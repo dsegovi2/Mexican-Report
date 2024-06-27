@@ -177,8 +177,6 @@ tribe_mapping <- tribble(
   "3002", "American Indian and Alaska Native, not specified"
 )
 
-
-```{r}
 # Recode the tribe variable using case_when() from dplyr
 data_chi_2018_22 <- data_chi_2018_22 %>%
   mutate(
@@ -203,10 +201,6 @@ tribe_percentages <- tribe_counts %>% ungroup() %>%
   mutate(percent = count / sum(count) * 100) %>%
   ungroup()
 
-
-
-
-```
 
 # export
 
