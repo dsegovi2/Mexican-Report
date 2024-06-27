@@ -21,20 +21,20 @@ library(knitr)
 getwd()
 
 # import tract files
-tract_pop_2018_2022_sf <- st_read("C:/Users/dsegovi2/Documents/mexico_report/Data Tables/tract_pop_2018_2022_sf/tract_pop_2018_2022_sf.shp") 
+tract_pop_2018_2022_sf <- st_read("Data Tables/tract_pop_2018_2022_sf/tract_pop_2018_2022_sf.shp") 
 
-tract_pop_2008_2012_sf <- st_read("C:/Users/dsegovi2/Documents/mexico_report/Data Tables/tract_pop_2008_2012_sf/tract_pop_2008_2012_sf.shp") 
+tract_pop_2008_2012_sf <- st_read("Data Tables/tract_pop_2008_2012_sf/tract_pop_2008_2012_sf.shp") 
 
-tract_pop_2000_sf <- st_read("C:/Users/dsegovi2/Documents/mexico_report/Data Tables/tract_pop_2000_sf/tract_pop_2000_sf.shp") 
+tract_pop_2000_sf <- st_read("Data Tables/tract_pop_2000_sf/tract_pop_2000_sf.shp") 
 
 
 # import sf files
 
-chicago_ca_2018_22_sf <- st_read("C:/Users/dsegovi2/Documents/mexico_report/Data Tables/chicago_ca_2018_22_sf/chicago_ca_2018_22_sf.shp") %>% rename(community =  commnty, AQYYE004_sum =  AQYYE00)
+chicago_ca_2018_22_sf <- st_read("Data Tables/chicago_ca_2018_22_sf/chicago_ca_2018_22_sf.shp") %>% rename(community =  commnty, AQYYE004_sum =  AQYYE00)
 
-chicago_ca_2008_12_sf <- st_read("C:/Users/dsegovi2/Documents/mexico_report/Data Tables/chicago_ca_2008_12_sf/chicago_ca_2008_12_sf.shp") %>% rename(community =  commnty, Q2OE004_sum = Q2OE004)
+chicago_ca_2008_12_sf <- st_read("Data Tables/chicago_ca_2008_12_sf/chicago_ca_2008_12_sf.shp") %>% rename(community =  commnty, Q2OE004_sum = Q2OE004)
 
-chicago_ca_2000_sf <- st_read("C:/Users/dsegovi2/Documents/mexico_report/Data Tables/chicago_ca_2000_sf/chicago_ca_2000_sf.shp")
+chicago_ca_2000_sf <- st_read("Data Tables/chicago_ca_2000_sf/chicago_ca_2000_sf.shp")
 
 
 
