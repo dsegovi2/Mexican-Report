@@ -18,9 +18,13 @@ library(data.table)
 
 # Read Data
 
-ddi_file_2018_22 <-  read_ipums_ddi("Data Extract/usa_00039.xml")
+ddi_file <- read_ipums_ddi("Data Extract/usa_00045.xml")
+data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
 
-data_chi_2018_22  <- read_ipums_micro(ddi_file_2018_22) %>% filter(CITY == 1190)  %>% clean_names()
+
+# 2018-2022 ACS
+data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
+
 
 
 # 1B: Population pyramid of the percentage of Mexican population by age group compared to the rest of the population in Chicago and median age in Chicago (Data source: 2018-2022 ACS data)

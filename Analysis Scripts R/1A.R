@@ -23,12 +23,12 @@ chicago_ca <- st_read("Boundaries - Community Areas (current)/geo_export_2081dd0
 
 # tract 
 
-nhgis_csv_file <- "Data Extract/nhgis0044_csv.zip"
-nhgis_shp_file <- "Data Extract/nhgis0044_shape.zip"
+nhgis_csv_file <- "Data Extract/nhgis0051_csv.zip"
+nhgis_shp_file <- "Data Extract/nhgis0051_shape.zip"
 
 # merge sf with df
-extract_2018_2022_df <- read_nhgis(nhgis_csv_file, verbose = FALSE)
-extract_2018_2022_sf <- read_ipums_sf(nhgis_shp_file, verbose = FALSE)
+extract_2018_2022_df <- read_nhgis(nhgis_csv_file, file_select = matches("nhgis0051_ds263_20225_tract"), verbose = TRUE)
+extract_2018_2022_sf <- read_ipums_sf(nhgis_shp_file, file_select = matches("nhgis0051_shapefile_tl2022_us_tract_2022.zip"), verbose = FALSE)
 extract_2018_2022 <- ipums_shape_full_join(extract_2018_2022_df, extract_2018_2022_sf, by = "GISJOIN")
 
 # variable: AQYYE004:    Hispanic or Latino: Mexican
@@ -58,12 +58,10 @@ chicago_ca_2018_22_sf <- chicago_ca %>% st_join(chicago_ca_2018_2022) %>% rename
 
 # tract 
 
-nhgis_csv_file <- "Data Extract/nhgis0045_csv.zip"
-nhgis_shp_file <- "Data Extract/nhgis0045_shape.zip"
 
 # merge sf with df
-extract_2008_2012_df <- read_nhgis(nhgis_csv_file, verbose = FALSE)
-extract_2008_2012_sf <- read_ipums_sf(nhgis_shp_file, verbose = FALSE)
+extract_2008_2012_df <- read_nhgis(nhgis_csv_file, file_select = matches("nhgis0051_ds192_20125_tract"), verbose = FALSE)
+extract_2008_2012_sf <- read_ipums_sf(nhgis_shp_file, file_select = matches("nhgis0051_shapefile_tl2012_us_tract_2012.zip"), verbose = FALSE)
 extract_2008_2012 <- ipums_shape_full_join(extract_2008_2012_df, extract_2008_2012_sf, by = "GISJOIN")
 # Data Dictionary: Q2OE004:     Hispanic or Latino: Mexican
 tract_pop_2008_2012 <- extract_2008_2012 %>% filter(STATE == "Illinois" & COUNTY == "Cook County") %>% select(GISJOIN, YEAR, STUSAB, STATE, COUNTY, TRACTA, NAME_E,  Q2OE004, Q2OM004)
@@ -89,12 +87,10 @@ chicago_ca_2008_12_sf <- chicago_ca %>% st_join(chicago_ca_2008_2012) %>% rename
 
 
 # 2000 census
-nhgis_csv_file <- "Data Extract/nhgis0050_csv.zip"
-nhgis_shp_file <- "Data Extract/nhgis0050_shape.zip"
 
 # merge sf with df
-extract_2000_df <- read_nhgis(nhgis_csv_file, verbose = FALSE)
-extract_2000_sf <- read_ipums_sf(nhgis_shp_file, verbose = FALSE)
+extract_2000_df <- read_nhgis(nhgis_csv_file, file_select = matches("nhgis0051_ds146_2000_tract.csv"),verbose = FALSE)
+extract_2000_sf <- read_ipums_sf(nhgis_shp_file, file_select = matches("nhgis0051_shapefile_tl2010_us_tract_2000.zip"),verbose = FALSE)
 extract_2000 <- ipums_shape_full_join(extract_2000_df, extract_2000_sf, by = "GISJOIN")
 # variable: AQYYE004:    Hispanic or Latino: Mexican
 

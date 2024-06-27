@@ -17,10 +17,13 @@ library(data.table)
 
 # Read Data
 
-ddi_file_2018_22 <-  read_ipums_ddi("Data Extract/usa_00039.xml")
 
-data_chi_2018_22  <- read_ipums_micro(ddi_file_2018_22) %>% filter(CITY == 1190)  %>% clean_names()
+ddi_file <- read_ipums_ddi("Data Extract/usa_00045.xml")
+data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
 
+
+# 2018-2022 ACS
+data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
 
 # 1C Average family size of the Mexican population compared to, other Latinos, Black and White populations in Chicago
 
