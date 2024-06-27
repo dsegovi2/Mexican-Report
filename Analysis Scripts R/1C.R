@@ -24,8 +24,6 @@ data_chi_2018_22  <- read_ipums_micro(ddi_file_2018_22) %>% filter(CITY == 1190)
 
 # 1C Average family size of the Mexican population compared to, other Latinos, Black and White populations in Chicago
 
-```{r}
-
 # Recode variables and create the `group` variable
 data_chi <- data_chi_2018_22 %>%
   mutate(
@@ -68,9 +66,11 @@ avg_family_size <- data_chi %>%
    summarise(avg_family_size = sum(famsize * perwt, na.rm = TRUE) / sum(perwt, na.rm = TRUE))
 
 
+# export
+
+write.csv(avg_family_size, "Data Tables/avg_family_size.csv")
 
 
-```
 
 
 

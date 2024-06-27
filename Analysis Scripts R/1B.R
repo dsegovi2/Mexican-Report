@@ -15,6 +15,7 @@ library(janitor)
 library(data.table)
 
 
+
 # Read Data
 
 ddi_file_2018_22 <-  read_ipums_ddi("Data Extract/usa_00039.xml")
