@@ -1,3 +1,6 @@
-"","Ethnicity","Weighted_Median_Age"
-"1","Mexican",32
-"2","Non-Mexican",38
+"","group","weighted_age"
+"1","Cuban",34
+"2","Mexican",30
+"3","Puerto Rican",36
+"4","Black/African American",37
+"5","White",35
