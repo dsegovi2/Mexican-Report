@@ -128,36 +128,8 @@ chi_3A_2000 <- housing_ddi %>%
 join_data_A3 <- rbind(chi_3A_2018_22, chi_3A_2008_12, chi_3A_2000)
 
 #### Export 
+write.csv(join_data_A3, "Data Tables/join_data_A3.csv")
 
 
 
-table_a3 <-  join_data_A3 %>% 
-  
-  filter(ownershp_f == "Owned or being bought (loan)") %>% 
-
-  pivot_wider(id_cols =  c(race_ethnicity, ownershp_f), names_from = "year", values_from = c(count, per, per2)) %>% 
-  select(race_ethnicity, count_2000, per2_2000, count_2012, per2_2012, count_2022, per2_2022 ) %>% 
-  # using kable 
-  kbl(col.names = c("", "Units", "Percents" , "Units", "Percents", "Units", "Percents"),
-      align = c("l",rep("c",6)),
-      caption = "home ownership by Race/Ethnicity over time (2000-2022)",
-      format.args = list(big.mark = ","),
-      linesep = "") %>% 
-  kable_classic(full_width = T,  
-                font_size = 8,
-                html_font = "Arial",
-                position = "center",
-                latex_options = "HOLD_position") %>% 
-  # column_spec(1, width = "7.5em") %>%
-  # column_spec(2:10, width = "3.8em") %>%
-  add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2),
-                    # background = "#cbc9e2", 
-                    bold = T, font_size =8) %>% 
-  # row_spec(0, bold = T, 
-  #          # background = "#f2f0f7",
-  #          font_size = 8) %>% 
-  
-  footnote(general = "Source: IPUMS-CPS database (Oct 2021). Tabulations by Great Cities Institute",
-           general_title = "")                     
-  
 
