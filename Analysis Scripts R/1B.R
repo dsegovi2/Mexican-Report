@@ -13,8 +13,8 @@ library(htmltools)
 library(leaflet)
 library(janitor)
 library(data.table)
-
-
+library(survey)
+library(matrixStats)
 
 # Read Data
 
@@ -66,44 +66,56 @@ df <-  data_chi_2018_22 %>%
   )
 
 # Calculate weighted population counts by age group and ethnicity
-weighted_age_group_data <- df  %>%
-  group_by(ethnicity, age_group, race) %>%
+hispanic_weighted <- df  %>%
+  group_by(ethnicity, age_group) %>%
   summarise(weighted_population = sum(perwt), .groups = 'drop') %>%
   group_by(ethnicity) %>%
-  mutate(weighted_percentage = weighted_population / sum(weighted_population) * 100)
+  mutate(weighted_percentage = weighted_population / sum(weighted_population) * 100)  %>% rename(group = ethnicity)
 
-# extract groups we are interested in
-mexican <- weighted_age_group_data %>% filter(ethnicity == "Mexican") %>% select(ethnicity, age_group, weighted_population, weighted_percentage) %>% rename(group = ethnicity)
-cuban <-  weighted_age_group_data %>% filter(ethnicity == "Cuban") %>% select(ethnicity, age_group, weighted_population, weighted_percentage) %>% rename(group = ethnicity)
-puerto_rican <- weighted_age_group_data %>% filter(ethnicity == "Puerto Rican") %>% select(ethnicity, age_group, weighted_population, weighted_percentage) %>% rename(group = ethnicity)
 
-black <- weighted_age_group_data %>% filter(ethnicity == "Non-Hispanic" & race == "Black/African American")  %>% ungroup() %>% select(race, age_group, weighted_population, weighted_percentage) %>% rename(group = race)
-white <- weighted_age_group_data %>% filter(ethnicity == "Non-Hispanic" & race == "White")  %>%  ungroup() %>% select(race, age_group, weighted_population, weighted_percentage) %>% rename(group = race)
+non_hispanic_weighted <- df %>% filter(ethnicity == "Non-Hispanic") %>%  group_by(race, age_group) %>%
+  summarise(weighted_population = sum(perwt), .groups = 'drop') %>%
+  group_by(race) %>%
+  mutate(weighted_percentage = weighted_population / sum(weighted_population) * 100) %>% rename(group = race)
+
+
 
 # combine population
-pop_pyramid <- rbind(mexican, cuban, puerto_rican, black, white)
+pop_pyramid <- rbind(hispanic_weighted, non_hispanic_weighted)
+
+# extract groups we are interested in
+pop_pyramid <- pop_pyramid %>% filter(group %in% c("Cuban", "Mexican", "Puerto Rican", "White", "Black/African American"))
 
 
-# Filter data for valid age and ethnicity
-df <- df[complete.cases(df$age) & complete.cases(df$ethnicity), ]
+# get median age
 
-# Calculate weighted median age for Mexicans
-weighted_median_age_mexican <- median(df$age[df$ethnicity == "Mexican"], weights = df$perwt[df$ethnicity == "Mexican"])
+hispanic_age <- df %>%
+  group_by(ethnicity) %>%
+  summarize(
+    weighted_age = matrixStats::weightedMedian(age, perwt)
+  ) %>%
+  ungroup() %>% rename(group = ethnicity)
 
-# Calculate weighted median age for Non-Mexicans
-weighted_median_age_non_mexican <- median(df$age[df$ethnicity != "Mexican"], weights = df$perwt[df$ethnicity != "Mexican"])
+non_hispanic_age <- df %>%
+  group_by(race) %>%
+  summarize(
+    weighted_age = matrixStats::weightedMedian(age, perwt)
+  ) %>%
+  ungroup() %>% rename(group = race)
 
-# Create a data frame
-weighted_median_age <- data.frame(
-  Ethnicity = c("Mexican", "Non-Mexican"),
-  Weighted_Median_Age = c(weighted_median_age_mexican, weighted_median_age_non_mexican)
-)
+
+# combine hispanic/non-hispanic
+weighted_age <- rbind(hispanic_age, non_hispanic_age)
+
+# filter
+weighted_age_filter <- weighted_age %>% filter(group %in% c("Mexican", "Puerto Rican", "Cuban", "White", "Black/African American"))
+
 
 
 
 # export
 
-write.csv(pop_pyramid, "Data Tables/pop_pyramid.csv")
+write.csv(pop_pyramid, "Data Tables/Demographics/pop_pyramid.csv")
 
-write.csv(weighted_median_age, "Data Tables/weighted_median_age.csv")
+write.csv(weighted_age_filter, "Data Tables/Demographics/weighted_median_age.csv")
 
