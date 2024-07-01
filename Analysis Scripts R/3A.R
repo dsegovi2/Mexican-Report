@@ -43,5 +43,12 @@ chi_3A_2018_22  <- housing_ddi %>%
   clean_names() %>% 
   filter(year == 2022, city == 1190)  
 
-?read_ipums_micro
-# ldakszhdj,kdschffghn
+# ?read_ipums_micro
+# # ldakszhdj,kdschffghn
+
+
+
+library(usethis)
+
+# make a repository
+use_git()
