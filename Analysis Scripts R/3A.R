@@ -1,6 +1,6 @@
 
 # https://cran.r-project.org/web/packages/ipumsr/vignettes/ipums-read.html#reading-microdata-extracts
-
+# https://cran.r-project.org/web/packages/ipumsr/vignettes/value-labels.html
 library(ipumsr)
 library(tidyverse)
 library(purrr)
@@ -13,6 +13,9 @@ library(htmltools)
 library(leaflet)
 library(janitor)
 library(data.table)
+library(survey) # for survey analysis
+library(srvyr)  # for tidy survey analysis
+library("kableExtra") 
 getwd()
 
 # import packages
@@ -25,30 +28,108 @@ getwd()
 # 
 # 
 # ### To get Labels
+# is.labelled(housing_ddi$RACE)
 # attributes(housing_ddi_file$RACE)
-# 
+# OR
 # ipums_val_labels(housing_ddi_file$RACE)
 
 #### OR
 
-housing_ddi <- read_ipums_micro(read_ipums_ddi("usa_00001.xml"),  value_labels = "both")
+usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00045.xml")) 
+# view(usa_ddi)
+colnames(usa_ddi)
 
-ipums_val_labels(housing_ddi, var = RACE)
-is.labelled(housing_ddi$RACE)
-housing_ddi$race_f = as_factor(housing_ddi$RACE)
+housing_ddi <- usa_ddi %>% 
+  select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, OWNERSHP, OWNERSHPD, PERNUM, PERWT,HHWT, SERIAL ) %>% 
+  clean_names() 
 
-# read_ipums_micro_list(housing_ddi)
+ipums_val_labels(housing_ddi$race)
+ipums_val_labels(housing_ddi$hispan)
 
+
+########### 2018- 2022
 chi_3A_2018_22  <- housing_ddi %>% 
-  clean_names() %>% 
-  filter(year == 2022, city == 1190)  
+  
+  filter(year == 2022, city == 1190, pernum == 1) %>%  #### dont forget to filter PUMA 
+  mutate(race_f = as_factor(race),
+         hispan_f = as_factor(hispan),
+         ownershp_f = as_factor(ownershp)) %>% 
+  
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "Not hispanic, White",
+                                    hispan ==0 & race == 2 ~ "Not hispanic, Black",
+                                    hispan %in% c(2,3,4) ~ "Other Hispanic",
+                                    hispan ==1 ~ "Hispanic, Mexican", 
+                                    TRUE ~ NA_character_)) %>% 
+  as_survey_design(weights = hhwt) %>% 
+  
+  survey_count(year, race_ethnicity, ownershp_f, name="count") %>% 
+  
+  filter(!is.na(race_ethnicity)) %>% 
+  
+  group_by(race_ethnicity) %>% 
+  mutate(total = sum(count),
+         per = 100*round(count/total, 4),
+         per2 = paste0(per,"%")) 
+  
 
-# ?read_ipums_micro
-# # ldakszhdj,kdschffghn
+
+########### 2008- 2012
+chi_3A_2008_12  <- housing_ddi %>% 
+  
+  filter(year == 2012, city == 1190, pernum == 1) %>%  #### dont forget to filter PUMA 
+  mutate(race_f = as_factor(race),
+         hispan_f = as_factor(hispan),
+         ownershp_f = as_factor(ownershp)) %>% 
+  
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "Not hispanic, White",
+                                    hispan ==0 & race == 2 ~ "Not hispanic, Black",
+                                    hispan %in% c(2,3,4) ~ "Other Hispanic",
+                                    hispan ==1 ~ "Hispanic, Mexican", 
+                                    TRUE ~ NA_character_)) %>% 
+  as_survey_design(weights = hhwt) %>% 
+  
+  survey_count(year, race_ethnicity, ownershp_f, name="count") %>% 
+  
+  filter(!is.na(race_ethnicity)) %>% 
+  
+  group_by(race_ethnicity) %>% 
+  mutate(total = sum(count),
+         per = 100*round(count/total, 4),
+         per2 = paste0(per,"%")) 
+
+
+########### 2000
+chi_3A_2000 <- housing_ddi %>% 
+  
+  filter(year == 2000, city == 1190, pernum == 1) %>%  #### dont forget to filter PUMA 
+  mutate(race_f = as_factor(race),
+         hispan_f = as_factor(hispan),
+         ownershp_f = as_factor(ownershp)) %>% 
+  
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "Not hispanic, White",
+                                    hispan ==0 & race == 2 ~ "Not hispanic, Black",
+                                    hispan %in% c(2,3,4) ~ "Other Hispanic",
+                                    hispan ==1 ~ "Hispanic, Mexican", 
+                                    TRUE ~ NA_character_)) %>% 
+  as_survey_design(weights = hhwt) %>% 
+  
+  survey_count(year, race_ethnicity, ownershp_f, name="count") %>% 
+  
+  filter(!is.na(race_ethnicity)) %>% 
+  
+  group_by(race_ethnicity) %>% 
+  mutate(total = sum(count),
+         per = 100*round(count/total, 4),
+         per2 = paste0(per,"%")) 
 
 
 
-library(usethis)
+##### Joining Data
+join_data_A3 <- rbind(chi_3A_2018_22, chi_3A_2008_12, chi_3A_2000)
 
-# make a repository
-use_git()
+#### Export 
+write.csv(join_data_A3, "Data Tables/join_data_A3.csv")
+
+
+
+
