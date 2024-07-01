@@ -1,20 +1,26 @@
 
 # packages
 
-library(ipumsr)
-library(tidyverse)
-library(purrr)
-library(sf)
-library(tidycensus)
-library(tidyr)
-library(readxl)
-library(sf)
-library(htmltools)
-library(leaflet)
-library(janitor)
-library(data.table)
-library(survey)
-library(matrixStats)
+
+# List of packages to install and load
+packages <- c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", 
+              "readxl", "leaflet", "janitor", "data.table", "survey", 
+              "matrixStats", "htmltools", "srvyr")
+
+# Function to install and load packages
+install_and_load <- function(packages) {
+  # Check if package is installed, if not install it
+  for (package in packages) {
+    if (!requireNamespace(package, quietly = TRUE)) {
+      install.packages(package, dependencies = TRUE)
+    }
+    library(package, character.only = TRUE)
+  }
+}
+
+# Call the function to install and load packages
+install_and_load(packages)
+
 
 # Read Data
 
@@ -24,7 +30,6 @@ data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_name
 
 # 2018-2022 ACS
 data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
-
 
 
 # 1B: Population pyramid of the percentage of Mexican population by age group compared to the rest of the population in Chicago and median age in Chicago (Data source: 2018-2022 ACS data)
@@ -46,76 +51,73 @@ df <-  data_chi_2018_22 %>%
       hispan == 1 ~ "Mexican",
       hispan == 2 ~ "Puerto Rican",
       hispan == 3 ~ "Cuban",
-      hispan == 4 ~ "Other Hispanic/Latino",
-      hispan == 5 ~ "Other Hispanic/Latino",
-      TRUE ~ "Non-Hispanic"
-    ),
-    race = as.character(race),
-    race = case_when(
-      race == "1" ~ "White",
-      race == "2" ~ "Black/African American",
-      race == "3" ~ "American Indian or Alaska Native",
-      race == "4" ~ "Chinese",
-      race == "5" ~ "Japanese",
-      race == "6" ~ "Other Asian or Pacific Islander",
-      race == "7" ~ "Other race, nec",
-      race == "8" ~ "Two major races",
-      race == "9" ~ "Three or more major races",
+      hispan == 4 ~ "Other Latino",
+      hispan == 0 ~ "Not Hispanic",
+      hispan == 9 ~ "Not Reported",
       TRUE ~ NA_character_
+    ),
+    race_category = case_when(
+      race == 1 & hispan == 0 ~ "Non-Hispanic White",
+      race == 2 & hispan == 0 ~ "Non-Hispanic Black/African American",
+      race == 3 ~ "American Indian or Alaska Native",
+      race == 4 & hispan == 0 ~ "Non-Hispanic Chinese",
+      race == 5 & hispan == 0 ~ "Non-Hispanic Japanese",
+      race == 6 & hispan == 0 ~ "Non-Hispanic Other Asian or Pacific Islander",
+      race == 7 & hispan == 0 ~ "Non-Hispanic Other race",
+      race == 8 & hispan == 0 ~ "Non-Hispanic Two major races",
+      race == 9 & hispan == 0 ~ "Non-Hispanic Three or more major races",
+      TRUE ~ NA_character_
+    ),
+    group = case_when(
+      ethnicity == "Mexican" ~ "Mexican",
+      ethnicity == "Puerto Rican" ~ "Puerto Rican",
+      ethnicity == "Cuban" ~ "Cuban",
+      race_category == "Non-Hispanic Black/African American" ~ "Non-Hispanic Black/African American",
+      race_category == "Non-Hispanic White" ~ "Non-Hispanic White",
+      TRUE ~ "Other"
     )
   )
+  
+
+# Create survey design object
+survey_design <- df %>%
+  as_survey_design(weights = perwt)
+
 
 # Calculate weighted population counts by age group and ethnicity
-hispanic_weighted <- df  %>%
-  group_by(ethnicity, age_group) %>%
-  summarise(weighted_population = sum(perwt), .groups = 'drop') %>%
-  group_by(ethnicity) %>%
-  mutate(weighted_percentage = weighted_population / sum(weighted_population) * 100)  %>% rename(group = ethnicity)
 
-
-non_hispanic_weighted <- df %>% filter(ethnicity == "Non-Hispanic") %>%  group_by(race, age_group) %>%
-  summarise(weighted_population = sum(perwt), .groups = 'drop') %>%
-  group_by(race) %>%
-  mutate(weighted_percentage = weighted_population / sum(weighted_population) * 100) %>% rename(group = race)
+# Calculate weighted population by ethnicity and age group
+weighted_population <- df %>%
+  as_survey_design(weights = perwt) %>% 
+  survey_count(group, age_group, name="total_weighted_count")  %>%
+  group_by(group) %>%
+  mutate(total_weighted_percentage = total_weighted_count / sum(total_weighted_count) * 100)  
 
 
 
-# combine population
-pop_pyramid <- rbind(hispanic_weighted, non_hispanic_weighted)
 
 # extract groups we are interested in
-pop_pyramid <- pop_pyramid %>% filter(group %in% c("Cuban", "Mexican", "Puerto Rican", "White", "Black/African American"))
+pop_pyramid <- weighted_population %>% filter(group %in% c("Cuban", "Mexican", "Puerto Rican", "Non-Hispanic White", "Non-Hispanic Black/African American"))
 
 
 # get median age
 
-hispanic_age <- df %>%
-  group_by(ethnicity) %>%
+weighted_age  <- df %>%
+  group_by(group) %>%
   summarize(
     weighted_age = matrixStats::weightedMedian(age, perwt)
-  ) %>%
-  ungroup() %>% rename(group = ethnicity)
-
-non_hispanic_age <- df %>%
-  group_by(race) %>%
-  summarize(
-    weighted_age = matrixStats::weightedMedian(age, perwt)
-  ) %>%
-  ungroup() %>% rename(group = race)
+  ) 
 
 
-# combine hispanic/non-hispanic
-weighted_age <- rbind(hispanic_age, non_hispanic_age)
 
 # filter
-weighted_age_filter <- weighted_age %>% filter(group %in% c("Mexican", "Puerto Rican", "Cuban", "White", "Black/African American"))
-
+weighted_age_filter <- weighted_age %>% filter(group %in% c("Mexican", "Puerto Rican", "Cuban", "Non-Hispanic White", "Non-Hispanic Black/African American"))
 
 
 
 # export
 
-write.csv(pop_pyramid, "Data Tables/Demographics/pop_pyramid.csv")
+write.csv(pop_pyramid, "Data Tables/pop_pyramid.csv")
 
-write.csv(weighted_age_filter, "Data Tables/Demographics/weighted_median_age.csv")
+write.csv(weighted_age_filter, "Data Tables/weighted_median_age.csv")
 

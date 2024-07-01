@@ -1,13 +1,23 @@
-library(ipumsr)
-library(tidyverse)
-library(purrr)
-library(sf)
-library(tidycensus)
-library(tidyr)
-library(readxl)
-library(sf)
-library(htmltools)
-library(leaflet)
+
+# List of packages to install and load
+packages <- c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", 
+              "readxl", "leaflet", "janitor", "data.table", "survey", 
+              "matrixStats", "htmltools")
+
+# Function to install and load packages
+install_and_load <- function(packages) {
+  # Check if package is installed, if not install it
+  for (package in packages) {
+    if (!requireNamespace(package, quietly = TRUE)) {
+      install.packages(package, dependencies = TRUE)
+    }
+    library(package, character.only = TRUE)
+  }
+}
+
+# Call the function to install and load packages
+install_and_load(packages)
+
 
 getwd()
 # import packages
