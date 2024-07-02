@@ -1,26 +1,32 @@
 
 # packages
 
-library(ipumsr)
-library(tidyverse)
-library(purrr)
-library(sf)
-library(tidycensus)
-library(tidyr)
-library(readxl)
-library(sf)
-library(htmltools)
-library(leaflet)
-library(janitor)
-library(data.table)
-library(matrixStats)
-# Read Data
+
+# List of packages to install and load
+packages <- c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", 
+              "readxl", "leaflet", "janitor", "data.table", "survey", 
+              "matrixStats", "htmltools", "survey", "srvyr")
+
+# Function to install and load packages
+install_and_load <- function(packages) {
+  # Check if package is installed, if not install it
+  for (package in packages) {
+    if (!requireNamespace(package, quietly = TRUE)) {
+      install.packages(package, dependencies = TRUE)
+    }
+    library(package, character.only = TRUE)
+  }
+}
+
+# Call the function to install and load packages
+install_and_load(packages)
+
 
 
 ddi_file <- read_ipums_ddi("Data Extract/usa_00045.xml")
 
-# filter to chicago
-data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
+# filter to chicago, 2018-2022 AC
+data_chi_2018_22   <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190 & year == 2022)  %>% clean_names()
 
 
 # 2018-2022 ACS
@@ -31,7 +37,7 @@ data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
 
 
 # Recode variables and create the `group` variable
-data_chi <- data_chi_2018_22 %>%
+data_chi_recode <- data_chi_2018_22 %>%
   mutate(
     ethnicity = case_when(
       hispan == 1 ~ "Mexican",
@@ -64,23 +70,33 @@ data_chi <- data_chi_2018_22 %>%
     )
   )
 
+# Create survey design object
+design <- svydesign(
+  ids = ~cluster + strata,   # Cluster and strata variables
+  strata = ~strata,
+  weights = ~perwt,          # Weight variable
+  data = data_chi_recode             # Your survey data frame
+)
+
 # weighted average
 
-weighted_avg_income <- data_chi %>%
-  group_by(group) %>%
-  summarize(
-    weighted_avg_hhincome = sum(hhincome * perwt, na.rm = TRUE) / sum(perwt, na.rm = TRUE)
-  ) %>%
-  ungroup()
+# Calculate weighted average household income by group
+weighted_avg_income <- svyby(
+  formula = ~hhincome,        # Variable to summarize (hhincome)
+  by = ~group,                # Variable to group by (group)
+  design = design,            # Survey design object
+  FUN = svymean,              # Function to calculate mean (weighted average)
+  na.rm = TRUE                # Remove NA values if any
+)
+
+weighted_avg_income <- as.data.frame(weighted_avg_income)
 
 # weighted median: 
 
-# Step 1: sort the data and find the point at which cumulative weight reaches
-
-weighted_median_income <- data_chi %>%
+weighted_median_income <- data_chi_recode  %>%
   group_by(group) %>%
   summarize(
-    weighted_median_hhincome = matrixStats::weightedMedian(hhincome, perwt)
+    weighted_median_hhincome = matrixStats::weightedMedian(hhincome,  weights = perwt)
   ) %>%
   ungroup()
 
@@ -92,21 +108,18 @@ income_levels <- weighted_avg_income %>% left_join(weighted_median_income)
 
 
 # Calculate poverty rates by group
-total_weight <- data_chi %>%
-  group_by(group) %>%  #
-  summarize(
-    total_weight = sum(perwt))  # Total weighted population in the group
 
-total_below_1_percent <- data_chi %>%
-  filter(poverty <= 1) %>%
-  group_by(group) %>%  #
-  summarise(total_weight_below_1_percent = sum(perwt))
+total_weighted_count <- data_chi_recode %>% 
+  as_survey_design(weights = perwt) %>% 
+  survey_count(group,  name="total_weighted_count")
 
+total_weighted_poverty_count <- data_chi_recode %>%   filter(poverty <= 1) %>%
+  as_survey_design(weights = perwt) %>% 
+  survey_count(group,  name="total_weighted_poverty_count")
 
-poverty_rate <- total_weight %>% left_join(total_below_1_percent) %>% mutate(poverty_rate = (total_weight_below_1_percent/total_weight) * 100)
+combined <- total_weighted_count %>% left_join(total_weighted_poverty_count)
 
-
-
+poverty_rate <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count/total_weighted_count)*100)
 
 
 # export

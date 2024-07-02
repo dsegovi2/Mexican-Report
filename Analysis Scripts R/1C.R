@@ -1,18 +1,25 @@
 
 # packages
 
-library(ipumsr)
-library(tidyverse)
-library(purrr)
-library(sf)
-library(tidycensus)
-library(tidyr)
-library(readxl)
-library(sf)
-library(htmltools)
-library(leaflet)
-library(janitor)
-library(data.table)
+# List of packages to install and load
+packages <- c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", 
+              "readxl", "leaflet", "janitor", "data.table", "survey", 
+              "matrixStats", "htmltools", "survey")
+
+# Function to install and load packages
+install_and_load <- function(packages) {
+  # Check if package is installed, if not install it
+  for (package in packages) {
+    if (!requireNamespace(package, quietly = TRUE)) {
+      install.packages(package, dependencies = TRUE)
+    }
+    library(package, character.only = TRUE)
+  }
+}
+
+# Call the function to install and load packages
+install_and_load(packages)
+
 
 
 # Read Data
@@ -64,9 +71,26 @@ data_chi <- data_chi_2018_22 %>%
 
 
 # Calculate average family size
-avg_family_size <- data_chi %>%
-  group_by(group) %>%
-   summarise(avg_family_size = sum(famsize * perwt, na.rm = TRUE) / sum(perwt, na.rm = TRUE))
+
+design <- svydesign(
+  ids = ~cluster + strata,   # Cluster and strata variables
+  strata = ~strata,
+  weights = ~perwt,          # Weight variable
+  data = data_chi            # Your survey data frame
+)
+   
+# apply survey function
+
+avg_family_size <- svyby(
+  formula = ~famsize,        # Variable to summarize (famsize)
+  by = ~group,               # Variable to group by (group)
+  design = design,           # Survey design object
+  FUN = svymean,             # Function to calculate mean (weighted average)
+  na.rm = TRUE               # Remove NA values if any
+)
+
+avg_family_size <- as.data.frame(avg_family_size)
+
 
 
 # export

@@ -1,20 +1,26 @@
 
 # packages
 
-library(ipumsr)
-library(tidyverse)
-library(purrr)
-library(sf)
-library(tidycensus)
-library(tidyr)
-library(readxl)
-library(sf)
-library(htmltools)
-library(leaflet)
-library(janitor)
-library(data.table)
-library(matrixStats)
-# Read Data
+
+# List of packages to install and load
+packages <- c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", 
+              "readxl", "leaflet", "janitor", "data.table", "survey", 
+              "matrixStats", "htmltools")
+
+# Function to install and load packages
+install_and_load <- function(packages) {
+  # Check if package is installed, if not install it
+  for (package in packages) {
+    if (!requireNamespace(package, quietly = TRUE)) {
+      install.packages(package, dependencies = TRUE)
+    }
+    library(package, character.only = TRUE)
+  }
+}
+
+# Call the function to install and load packages
+install_and_load(packages)
+
 
 
 ddi_file <- read_ipums_ddi("Data Extract/usa_00045.xml")
@@ -48,25 +54,28 @@ data_chi_2018_22 <- data_chi_2018_22 %>% left_join(tribe_labels, by = c("tribe" 
 # Filter data for Mexican population and those with indigenous tribe information
 mexican_indigenous <- data_chi_2018_22 %>%
   filter(hispan == 1, !is.na(tribe)) %>%
-  select(puma, tribe_label)
+  select(puma, tribe_label, perwt)
 
 # Count the number of individuals by indigenous tribe within each PUMA
-tribe_counts <- mexican_indigenous %>%
-  group_by(puma, tribe_label) %>%
-  summarise(count = n())
+
+
+ tribe_count <- mexican_indigenous %>%
+   as_survey_design(weights = perwt) %>% 
+  survey_count(tribe_label, name="total_weighted_count") %>% filter(!tribe_label %in% c("Not applicable or blank", ""))
   
+
+df_tribe <- tribe_count %>%  mutate(tribe_collapsed = case_when(
+    tribe_label %in% c("Not applicable or blank", "American Indian, tribe not specified", "American Indian and Alaska Native, not specified",
+                 "American Indian and Alaska Native, tribe not elsewhere classified", 
+                 "American Indian, tribe not elsewhere classified", "All other specified American Indian tribe combinations") ~ "Unspecified",
+    TRUE ~ tribe_label
+  )) %>% select(tribe_collapsed,tribe_label, everything())
+
   
-
-# Optionally, you can calculate percentages within each PUMA if needed
-tribe_percentages <- tribe_counts %>% ungroup() %>%
-  mutate(percent = count / sum(count) * 100) %>%
-  ungroup()
-
-
 
 # export
 
-write.csv(tribe_percentages, "Data Tables/tribe_percentages.csv")
+write.csv(df_tribe, "Data Tables/tribe_count.csv")
 
 
 
