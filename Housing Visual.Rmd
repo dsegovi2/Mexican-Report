@@ -39,33 +39,89 @@ library("kableExtra")
 ```
 \renewcommand{\arraystretch}{1.4}
 \clearpage
-# A
+
+
+
 
 ```{r}
-join_data_A3 = read.csv("Data Tables/join_data_A3.csv" )
+usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00045.xml")) 
+# view(usa_ddi)
+# colnames(usa_ddi)
 
-table_a3 <-  join_data_A3 %>% 
+housing_ddi <- usa_ddi %>% 
+  select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, OWNERSHP, OWNERSHPD, PERNUM, PERWT,HHWT, SERIAL, ROOMS ) %>% 
+  clean_names() 
+
+# ipums_val_labels(housing_ddi$race)
+# ipums_val_labels(housing_ddi$hispan)
+
+
+```
+
+
+```{r}
+homeownership = housing_ddi %>% 
+  filter( city == 1190, pernum == 1) %>%  #### dont forget to filter PUMA 
+  mutate(race_f = as_factor(race),
+         hispan_f = as_factor(hispan),
+         ownershp_f = as_factor(ownershp)) %>% 
+  
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(2,3,4) ~ "Hispanics other than Mexican",
+                                    hispan ==1 ~ "Mexican", 
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  as_survey_design(weights = hhwt) %>% 
+  
+  survey_count(year, race_ethnicity, ownershp_f, name="count") %>% 
+  
+  filter(!is.na(race_ethnicity)) %>% 
+  
+  group_by(year, race_ethnicity) %>% 
+  mutate(total = sum(count),
+         per = 100*round(count/total, 4),
+         per2 = paste0(per,"%"))
+  
+ # #### Export 
+# write.csv(homeownership, "Data Tables/3.A.homeownership.csv.csv") 
+  
+  
+```
+
+
+# A
+```{r}
+# homeownership = read.csv("Data Tables/3.A.homeownership.csv" )
+
+table_a3 <-  homeownership %>% 
   
   filter(ownershp_f == "Owned or being bought (loan)") %>% 
 
   pivot_wider(id_cols =  c(race_ethnicity, ownershp_f), names_from = "year", values_from = c(count, per, per2)) %>% 
-  select(race_ethnicity, count_2000, per2_2000, count_2012, per2_2012, count_2022, per2_2022 ) %>% 
-  # using kable 
+
+  mutate(diff2000_2022 = count_2022 - count_2000,
+         diff_per = round(per_2022 - per_2000, 4), 
+         diff_per2 = paste0(diff_per,"%")
+         ) %>% 
+  select(race_ethnicity, count_2000, per2_2000, count_2012, per2_2012, count_2022, per2_2022, diff2000_2022, diff_per2) %>% 
+ 
+   # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("", "Units", "Percents" , "Units", "Percents", "Units", "Percents"),
-      align = c("l",rep("c",6)),
-      caption = "home ownership by Race/Ethnicity over time (2000-2022)",
+      col.names = c("", "Number", "Percent" , "Number", "Percent", "Number", "Percent", "Number", "Percent"),
+      align = c("l",rep("c",8)),
+      caption = "Homeownership by Race/Ethnicity in Chicago, 2000, 2008-2012, and 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "") %>% 
-  kable_classic(full_width = T,  
+  kable_classic(full_width = F,  
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
                 latex_options = "HOLD_position") %>% 
-  # column_spec(1, width = "7.5em") %>%
-  # column_spec(2:10, width = "3.8em") %>%
-  add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2),
+  column_spec(1, width = "10em") %>%
+  column_spec(2:8, width = "3.8em") %>%
+  add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
                     # background = "#cbc9e2", 
                     bold = T, font_size =8) %>% 
   # row_spec(0, bold = T, 
@@ -76,5 +132,6 @@ table_a3 <-  join_data_A3 %>%
            general_title = "")   
 
 table_a3
+
 ```
 
