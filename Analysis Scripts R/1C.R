@@ -95,7 +95,7 @@ avg_family_size <- as.data.frame(avg_family_size)
 
 # export
 
-write.csv(avg_family_size, "Data Tables/avg_family_size.csv")
+write.csv(avg_family_size, "Data Tables/1C.csv")
 
 
 

@@ -117,7 +117,7 @@ weighted_age_filter <- weighted_age %>% filter(group %in% c("Mexican", "Puerto R
 
 # export
 
-write.csv(pop_pyramid, "Data Tables/pop_pyramid.csv")
+write.csv(pop_pyramid, "Data Tables/1B_population.csv")
 
-write.csv(weighted_age_filter, "Data Tables/weighted_median_age.csv")
+write.csv(weighted_age_filter, "Data Tables/1B_age.csv")
 

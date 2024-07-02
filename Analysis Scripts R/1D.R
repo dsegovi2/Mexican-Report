@@ -26,7 +26,7 @@ install_and_load(packages)
 ddi_file <- read_ipums_ddi("Data Extract/usa_00045.xml")
 
 # filter to chicago, 2018-2022 AC
-data_chi_2018_22   <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190 & year == 2022)  %>% clean_names()
+data_chi_2018_22   <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
 
 
 # 2018-2022 ACS
@@ -109,24 +109,31 @@ income_levels <- weighted_avg_income %>% left_join(weighted_median_income)
 
 # Calculate poverty rates by group
 
+## total weighted count.
+
 total_weighted_count <- data_chi_recode %>% 
   as_survey_design(weights = perwt) %>% 
-  survey_count(group,  name="total_weighted_count")
+  survey_total(weights = perwt, na.rm = TRUE) %>% 
+
 
 total_weighted_poverty_count <- data_chi_recode %>%   filter(poverty <= 1) %>%
   as_survey_design(weights = perwt) %>% 
-  survey_count(group,  name="total_weighted_poverty_count")
+  survey_total(weights = perwt, na.rm = TRUE) %>%   rename(total_weighted_poverty_count = total) 
 
 combined <- total_weighted_count %>% left_join(total_weighted_poverty_count)
 
 poverty_rate <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count/total_weighted_count)*100)
 
 
+
+
+
+
 # export
 
-write.csv(poverty_rate, "Data Tables/poverty_rate.csv")
+write.csv(poverty_rate, "Data Tables/1D_poverty.csv")
 
-write.csv(income_levels, "Data Tables/income_levels.csv")
+write.csv(income_levels, "Data Tables/1D_income.csv")
 
 
 

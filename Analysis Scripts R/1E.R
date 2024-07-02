@@ -5,7 +5,7 @@
 # List of packages to install and load
 packages <- c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", 
               "readxl", "leaflet", "janitor", "data.table", "survey", 
-              "matrixStats", "htmltools")
+              "matrixStats", "htmltools","srvyr")
 
 # Function to install and load packages
 install_and_load <- function(packages) {
