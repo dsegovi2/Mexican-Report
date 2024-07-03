@@ -236,6 +236,8 @@ housing_ddi3 <- usa_ddi %>%
   select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, PERNUM, PERWT, HHWT, SERIAL, RENTGRS, HHINCOME) %>% 
   clean_names() 
   
+
+
 rent_burdened = housing_ddi3 %>% 
   filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
   mutate(race_f = as_factor(race),
@@ -248,35 +250,39 @@ rent_burdened = housing_ddi3 %>%
                                     hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
                                     TRUE ~ NA_character_)) %>% 
   
-  mutate()
-  
   group_by(race_ethnicity) %>% 
   mutate(total = sum(hhwt, na.rm = T)) %>% 
-  mutate(rent_income = rentgrs/hhincome) %>% 
+  ungroup() %>% 
+  filter(hhincome != 9999999 ) %>% 
+  filter(rentgrs!= 0) %>% 
+  
+  mutate(rent_income = rentgrs/hhincome,
+         burdened_30 = if_else(rent_income >0.3 , "More than 30%","Less than 30%"),
+         burdened_50 = if_else(rent_income >0.5, "More than 50%", "Less than 50%")) %>% 
+  
   as_survey_design(weights = hhwt) %>% 
-  group_by(race_ethnicity) %>% 
-  summarise(income_mean = survey_mean(hhincome, na.rm = T),
-            rentgrs_mean = survey_mean(rentgrs, na.rm = T),
-            rent_income_mean = survey_mean(rent_income, na.rm = T))  
+  survey_count(year, race_ethnicity, total, burdened_30, burdened_50 , name="count") %>% 
+  mutate(per = 100*round(count/total, 4),
+         per2 = paste0(per,"%")) 
+  
+
   
   
+
   
 ```
 
 
 ```{r}
-rent_burdened = housing_ddi3 %>% 
-  filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
-  mutate(race_f = as_factor(race),
-         hispan_f = as_factor(hispan)) %>% 
+table_3.b.2 = rent_burdened %>% 
+  filter( burdened_30 != "Less than 30%") %>% 
+  group_by(race_ethnicity ) %>% 
   
-  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
-                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
-                                    hispan %in% c(2,3,4) ~ "Hispanics other than Mexican",
-                                    hispan ==1 ~ "Mexican", 
-                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
-                                    TRUE ~ NA_character_)) %>% 
-  as_survey_design(weights = hhwt) %>% 
-  survey_count( race_ethnicity, rentgrs, hhincome, name="count")  
+  mutate(more_30_count = sum(count)) %>% 
+  filter(burdened_50 == "More than 50%") %>% 
+  rename( 'more_50_count' = ) %>% 
+  
+  
+  pivot_wider(id_cols =  c(race_ethnicity, ownershp_f), names_from = "year", values_from = c(count, per, per2))
 ```
 
