@@ -20,6 +20,7 @@ knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.pos="H")
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+
 library(ipumsr)
 library(tidyverse)
 library(purrr)
@@ -40,14 +41,23 @@ library("kableExtra")
 \renewcommand{\arraystretch}{1.4}
 \clearpage
 
-
-
-
 ```{r}
 usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00045.xml")) 
 # view(usa_ddi)
 # colnames(usa_ddi)
+# ipums_view(usa_ddi)
 
+
+# revised_extract <- revise_extract_micro(
+#     old_extract,
+#     samples = "us2017a",
+#     vars = "EDUC"
+# )
+# 
+# revised_extract <- remove_from_extract(
+#     revised_extract,
+#     vars = "RACE"
+# )
 housing_ddi <- usa_ddi %>% 
   select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, OWNERSHP, OWNERSHPD, PERNUM, PERWT,HHWT, SERIAL, ROOMS ) %>% 
   clean_names() 
@@ -84,13 +94,14 @@ homeownership = housing_ddi %>%
          per2 = paste0(per,"%"))
   
  # #### Export 
-# write.csv(homeownership, "Data Tables/3.A.homeownership.csv.csv") 
+#  
   
   
 ```
 
 
-# A
+# 3.A: Rates of home ownership and rental housing among Mexicans with historical trends and comparisons to other groups.
+
 ```{r}
 # homeownership = read.csv("Data Tables/3.A.homeownership.csv" )
 
@@ -133,5 +144,139 @@ table_a3 <-  homeownership %>%
 
 table_a3
 
+```
+
+
+# 3.B1: Number and percentage of Mexicans who, live in crowded housing, or are rent-burdened.
+
+```{r}
+
+usa_ddi2 <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00002.xml")) 
+
+housing_ddi2 <- usa_ddi2 %>% 
+  select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, PERNUM, PERWT,HHWT, SERIAL, ROOMS, NUMPREC ) %>% 
+  clean_names() 
+
+
+## Be careful rooms == 0 is NA but it is overcrowded
+overcrowded = housing_ddi2 %>% 
+  filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+  mutate(race_f = as_factor(race),
+         hispan_f = as_factor(hispan)) %>% 
+  
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(2,3,4) ~ "Hispanics other than Mexican",
+                                    hispan ==1 ~ "Mexican", 
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  
+  as_survey_design(weights = hhwt) %>% 
+  survey_count(year, race_ethnicity, rooms, numprec, name="count") %>% 
+  mutate(p_per_room = numprec/rooms, 
+         overcrowded = if_else(p_per_room >1, "Overcrowded", "Not Overcowded")) %>% 
+  
+  group_by(year, race_ethnicity) %>% 
+  mutate(total = sum(count, na.rm = T)) %>% 
+  filter(rooms != 0 ) %>%  ## rooms == 0 is NA but it is overcrowded
+  ungroup() %>% 
+  group_by(year, race_ethnicity, overcrowded, total) %>% 
+
+  summarise(count_sum = sum(count)) %>% 
+  mutate(per = 100*round(count_sum/total, 4),
+         per2 = paste0(per,"%")) %>% 
+  ungroup()
+    
+
+
+```
+
+
+```{r}
+table_a3.2 <- overcrowded %>% 
+  
+  filter(overcrowded == "Overcrowded" ) %>% 
+
+  select(race_ethnicity, count_sum , per2) %>% 
+ 
+   # using kable 
+  
+  kbl(booktabs = T,
+      col.names = c("Race/Ethnicity", "Number", "Percent"  ),
+      # align = c("l",rep("c",2)),
+      caption = "Number and Percentage of Households Living in Crowded Housing by Race/Ethnicity in Chicago, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>% 
+  kable_classic(full_width = T,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  # column_spec(1, width = "10em") %>%
+  # column_spec(2:8, width = "3.8em") %>%
+  # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
+  #                   # background = "#cbc9e2", 
+  #                   bold = T, font_size =8) %>% 
+  row_spec(0, bold = T,
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+  
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+table_a3.2
+
+```
+
+
+# 3.B2: Rent burdened
+
+```{r}
+housing_ddi3 <- usa_ddi %>% 
+  select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, PERNUM, PERWT, HHWT, SERIAL, RENTGRS, HHINCOME) %>% 
+  clean_names() 
+  
+rent_burdened = housing_ddi3 %>% 
+  filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+  mutate(race_f = as_factor(race),
+         hispan_f = as_factor(hispan)) %>% 
+  
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(2,3,4) ~ "Hispanics other than Mexican",
+                                    hispan ==1 ~ "Mexican", 
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  
+  mutate()
+  
+  group_by(race_ethnicity) %>% 
+  mutate(total = sum(hhwt, na.rm = T)) %>% 
+  mutate(rent_income = rentgrs/hhincome) %>% 
+  as_survey_design(weights = hhwt) %>% 
+  group_by(race_ethnicity) %>% 
+  summarise(income_mean = survey_mean(hhincome, na.rm = T),
+            rentgrs_mean = survey_mean(rentgrs, na.rm = T),
+            rent_income_mean = survey_mean(rent_income, na.rm = T))  
+  
+  
+  
+```
+
+
+```{r}
+rent_burdened = housing_ddi3 %>% 
+  filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+  mutate(race_f = as_factor(race),
+         hispan_f = as_factor(hispan)) %>% 
+  
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(2,3,4) ~ "Hispanics other than Mexican",
+                                    hispan ==1 ~ "Mexican", 
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  as_survey_design(weights = hhwt) %>% 
+  survey_count( race_ethnicity, rentgrs, hhincome, name="count")  
 ```
 
