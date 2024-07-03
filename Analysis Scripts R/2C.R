@@ -26,38 +26,36 @@ data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_name
 # 2018-2022 ACS
 data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
 
+# create groups
+
+data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(2,3,4) ~ "Other Hispanic/Latino",
+                                    hispan ==1 ~ "Mexican", 
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)
+                                    )
+
+
+data_chi_2018_22 <- data_chi_2018_22 %>% select(year:gqtyped, perwt, hispan, race, race_ethnicity, school, speakeng)
+
 # Percentage of Limited English Proficient. 
 
-# select variables
-data_chi_2018_22 <- data_chi_2018_22 %>% select(year:gqtyped, perwt, hispan, speakeng)
-
-
-# Filter for the Mexican population
-data_mexican <- data_chi_2018_22  %>% 
-  filter(hispan == 1)
-
-# Define the survey design
-survey_design_mexican <- data_mexican %>% 
+# Step 1: Define Survey Design
+survey_design <- data_chi_2018_22 %>%
   as_survey_design(weights = perwt)
 
-# calculate english proficiency rate
+# Step 2: Group by race_ethnicity and calculate weighted counts and totals
+lep_rate_by_ethnicity <- survey_design %>%
+  group_by(race_ethnicity) %>%
+  summarise(
+    lep_count = survey_total(speakeng %in% c(1, 6)),
+    total_count = survey_total(),
+    lep_percentage = 100 * survey_mean(speakeng %in% c(1, 6), vartype = "se")
+  )
 
-eng_proficiency_rate <- survey_design_mexican %>%
-  group_by(speakeng) %>%
-  summarize(percentage = survey_mean(vartype = "se"))
 
-# recode, filter for limited proficiency
-df_eng <- eng_proficiency_rate %>% mutate(speakeng_label = as.character(speakeng),
-                                speakeng_label = recode(speakeng_label, 
-                                                  '1' = "Does not Speak English",
-                                                  '3' = "Yes, speaks only English",
-                                                  '4' = "Yes, speaks very well",
-                                                  '5' = "Yes, speaks well",
-                                                  '6' = "Yes, but not well"
-                                                  )) %>% filter(speakeng_label %in% c("Does not Speak English", "Yes, but not well"))
 
-df_total <- df_eng %>% adorn_totals("row") %>% as.data.frame() %>% select(speakeng, speakeng_label, percentage, percentage_se)
-                                
 # export
 
-write.csv(df_total, "Data Tables/2C.csv")
+write.csv(lep_rate_by_ethnicity, "Data Tables/2C.csv")

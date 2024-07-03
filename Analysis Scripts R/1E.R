@@ -48,34 +48,41 @@ data_chi_2018_22$tribe <- as.character(data_chi_2018_22$tribe)
 
 data_chi_2018_22 <- data_chi_2018_22 %>% left_join(tribe_labels, by = c("tribe" = "val"))
 
+
+# create native groups by collapsing categories
+
+data_recoded <- data_chi_2018_22  %>% mutate(
+    tribe_label_collapsed = case_when(
+      tribe_label %in% c("Not applicable or blank", "American Indian, tribe not specified", "American Indian and Alaska Native, not specified",
+                         "American Indian and Alaska Native, tribe not elsewhere classified", 
+                         "American Indian, tribe not elsewhere classified", "All other specified American Indian tribe combinations") ~ "Unspecified/Other",
+      TRUE ~ tribe_label
+    )
+  )
+ 
+
 # Population by Mexican indigenous groups by Public Use Microdata Areas (PUMAs) in Chicago.  
 
+# Filter data for Mexican indigenous individuals and select relevant columns
+mexican_indigenous <- data_recoded %>%
+  filter(hispan == 1) %>%
+  select(puma, tribe_label_collapsed, perwt)
 
-# Filter data for Mexican population and those with indigenous tribe information
-mexican_indigenous <- data_chi_2018_22 %>%
-  filter(hispan == 1, !is.na(tribe)) %>%
-  select(puma, tribe_label, perwt)
+# Create survey design with weights
+survey_design <- mexican_indigenous %>%
+  as_survey_design(weights = perwt)
 
 # Count the number of individuals by indigenous tribe within each PUMA
-
-
- tribe_count <- mexican_indigenous %>%
-   as_survey_design(weights = perwt) %>% 
-  survey_count(tribe_label, name="total_weighted_count") %>% filter(!tribe_label %in% c("Not applicable or blank", ""))
-  
-
-df_tribe <- tribe_count %>%  mutate(tribe_collapsed = case_when(
-    tribe_label %in% c("Not applicable or blank", "American Indian, tribe not specified", "American Indian and Alaska Native, not specified",
-                 "American Indian and Alaska Native, tribe not elsewhere classified", 
-                 "American Indian, tribe not elsewhere classified", "All other specified American Indian tribe combinations") ~ "Unspecified",
-    TRUE ~ tribe_label
-  )) %>% select(tribe_collapsed,tribe_label, everything())
+tribe_count <- survey_design %>%
+  survey_count(tribe_label_collapsed, name = "total_weighted_count")
 
   
+
+
 
 # export
 
-write.csv(df_tribe, "Data Tables/tribe_count.csv")
+write.csv(df_tribe, "Data Tables/1E.csv")
 
 
 

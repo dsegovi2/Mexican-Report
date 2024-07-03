@@ -32,6 +32,17 @@ data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_name
 data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
 
 
+# create groups
+
+data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                                                            hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                                                            hispan %in% c(2,3,4) ~ "Other Hispanic/Latino",
+                                                                            hispan ==1 ~ "Mexican", 
+                                                                            hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                                                            TRUE ~ NA_character_)
+)
+
+
 # 1B: Population pyramid of the percentage of Mexican population by age group compared to the rest of the population in Chicago and median age in Chicago (Data source: 2018-2022 ACS data)
 
 df <-  data_chi_2018_22 %>%
@@ -46,38 +57,8 @@ df <-  data_chi_2018_22 %>%
       age >= 60 & age < 70 ~ "60-69",
       age >= 70 & age < 80 ~ "70-79",
       age >= 80 ~ "80+"
-    ),
-    ethnicity = case_when(
-      hispan == 1 ~ "Mexican",
-      hispan == 2 ~ "Puerto Rican",
-      hispan == 3 ~ "Cuban",
-      hispan == 4 ~ "Other Latino",
-      hispan == 0 ~ "Not Hispanic",
-      hispan == 9 ~ "Not Reported",
-      TRUE ~ NA_character_
-    ),
-    race_category = case_when(
-      race == 1 & hispan == 0 ~ "Non-Hispanic White",
-      race == 2 & hispan == 0 ~ "Non-Hispanic Black/African American",
-      race == 3 ~ "American Indian or Alaska Native",
-      race == 4 & hispan == 0 ~ "Non-Hispanic Chinese",
-      race == 5 & hispan == 0 ~ "Non-Hispanic Japanese",
-      race == 6 & hispan == 0 ~ "Non-Hispanic Other Asian or Pacific Islander",
-      race == 7 & hispan == 0 ~ "Non-Hispanic Other race",
-      race == 8 & hispan == 0 ~ "Non-Hispanic Two major races",
-      race == 9 & hispan == 0 ~ "Non-Hispanic Three or more major races",
-      TRUE ~ NA_character_
-    ),
-    group = case_when(
-      ethnicity == "Mexican" ~ "Mexican",
-      ethnicity == "Puerto Rican" ~ "Puerto Rican",
-      ethnicity == "Cuban" ~ "Cuban",
-      race_category == "Non-Hispanic Black/African American" ~ "Non-Hispanic Black/African American",
-      race_category == "Non-Hispanic White" ~ "Non-Hispanic White",
-      TRUE ~ "Other"
     )
   )
-  
 
 # Create survey design object
 survey_design <- df %>%
@@ -87,37 +68,30 @@ survey_design <- df %>%
 # Calculate weighted population counts by age group and ethnicity
 
 # Calculate weighted population by ethnicity and age group
-weighted_population <- df %>%
+pop_pyramid <- df %>%
   as_survey_design(weights = perwt) %>% 
-  survey_count(group, age_group, name="total_weighted_count")  %>%
-  group_by(group) %>%
+  survey_count(race_ethnicity, age_group, name="total_weighted_count")  %>%
+  group_by(race_ethnicity) %>%
   mutate(total_weighted_percentage = total_weighted_count / sum(total_weighted_count) * 100)  
-
-
-
-
-# extract groups we are interested in
-pop_pyramid <- weighted_population %>% filter(group %in% c("Cuban", "Mexican", "Puerto Rican", "Non-Hispanic White", "Non-Hispanic Black/African American"))
 
 
 # get median age
 
 weighted_age  <- df %>%
-  group_by(group) %>%
+  group_by(race_ethnicity) %>%
   summarize(
     weighted_age = matrixStats::weightedMedian(age, perwt)
   ) 
 
 
 
-# filter
-weighted_age_filter <- weighted_age %>% filter(group %in% c("Mexican", "Puerto Rican", "Cuban", "Non-Hispanic White", "Non-Hispanic Black/African American"))
+
 
 
 
 # export
 
-write.csv(pop_pyramid, "Data Tables/1B_population.csv")
+write.csv(pop_pyramid, "Data Tables/1B_population_pyramid.csv")
 
-write.csv(weighted_age_filter, "Data Tables/1B_age.csv")
+write.csv(weighted_age, "Data Tables/1B_age.csv")
 

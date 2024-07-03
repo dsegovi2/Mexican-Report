@@ -4,7 +4,7 @@
 # List of packages to install and load
 packages <- c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", 
               "readxl", "leaflet", "janitor", "data.table", "survey", 
-              "matrixStats", "htmltools", "survey")
+              "matrixStats", "htmltools", "srvyr")
 
 # Function to install and load packages
 install_and_load <- function(packages) {
@@ -31,44 +31,18 @@ data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_name
 
 # 2018-2022 ACS
 data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
+# create groups
+
+data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                                                            hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                                                            hispan %in% c(2,3,4) ~ "Other Hispanic/Latino",
+                                                                            hispan ==1 ~ "Mexican", 
+                                                                            hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                                                            TRUE ~ NA_character_)
+)
+
 
 # 1C Average family size of the Mexican population compared to, other Latinos, Black and White populations in Chicago
-
-# Recode variables and create the `group` variable
-data_chi <- data_chi_2018_22 %>%
-  mutate(
-    ethnicity = case_when(
-      hispan == 1 ~ "Mexican",
-      hispan == 2 ~ "Puerto Rican",
-      hispan == 3 ~ "Cuban",
-      hispan == 4 ~ "Other Latino",
-      hispan == 0 ~ "Not Hispanic",
-      hispan == 9 ~ "Not Reported",
-      TRUE ~ NA_character_
-    ),
-    race_category = case_when(
-      race == 1 & hispan == 0 ~ "Non-Hispanic White",
-      race == 2 & hispan == 0 ~ "Non-Hispanic Black/African American",
-      race == 3 ~ "American Indian or Alaska Native",
-      race == 4 & hispan == 0 ~ "Non-Hispanic Chinese",
-      race == 5 & hispan == 0 ~ "Non-Hispanic Japanese",
-      race == 6 & hispan == 0 ~ "Non-Hispanic Other Asian or Pacific Islander",
-      race == 7 & hispan == 0 ~ "Non-Hispanic Other race",
-      race == 8 & hispan == 0 ~ "Non-Hispanic Two major races",
-      race == 9 & hispan == 0 ~ "Non-Hispanic Three or more major races",
-      TRUE ~ NA_character_
-    ),
-    group = case_when(
-      ethnicity == "Mexican" ~ "Mexican",
-      ethnicity == "Puerto Rican" ~ "Puerto Rican",
-      ethnicity == "Cuban" ~ "Cuban",
-      race_category == "Non-Hispanic Black/African American" ~ "Non-Hispanic Black/African American",
-      race_category == "Non-Hispanic White" ~ "Non-Hispanic White",
-      TRUE ~ "Other"
-    )
-  )
-
-
 
 # Calculate average family size
 
@@ -90,6 +64,20 @@ avg_family_size <- svyby(
 )
 
 avg_family_size <- as.data.frame(avg_family_size)
+
+
+#  method 2
+
+# Define the survey design using srvyr with only weights
+survey_design <- data_chi_2018_22 %>%
+  as_survey_design(weights = perwt)
+
+# Calculate the weighted average family size by group
+avg_family_size <- survey_design %>%
+  group_by(race_ethnicity) %>%
+  summarize(
+        avg_family_size = survey_mean(famsize, vartype = "se", na.rm = TRUE)
+  )
 
 
 
