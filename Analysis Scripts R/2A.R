@@ -20,7 +20,7 @@ install_and_load(packages)
 
 # Read Data
 
-ddi_file <- read_ipums_ddi("Data Extract/usa_00045.xml")
+ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa.xml")
 data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
 
 

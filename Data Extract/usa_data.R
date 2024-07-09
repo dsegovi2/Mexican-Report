@@ -35,26 +35,25 @@ usa_extract <- define_extract_usa(
   description = "2000 Census, 2012 ACS, 2022 ACS",
   samples = c("us2000g", "us2012e", "us2022c"),
   variables = c("STATEICP", "CITY", "PUMA", "HISPAN", "AGE", "FAMSIZE", "RACE", "HHINCOME", "POVERTY",   "SCHLTYPE", "SPEAKENG", "SCHOOL", "CITIZEN", "GRADEATT", "EDUC", "OWNERSHP", "ROOMS", "RENTGRS", "VALUEH",  "MORTGAGE", "UNITSSTR", "SERIAL", "EMPSTAT", "IND", "OCC", "GQTYPE", "ANCESTR1", "TRIBE")
-)  %>% 
-  submit_extract() %>%
+) %>% submit_extract() %>%
   wait_for_extract() %>%
-  download_extract() %>% add_to_extract(
-    usa_extract,
-    variables = var_spec("NUMPREC")
-  )
-
+  download_extract()
 
 # Add variables to the existing extraction plan ( NOT WORKING)
-usa_extract <- add_to_extract(
+usa_extract2 <- add_to_extract(
   usa_extract,
   samples = c("us2000g", "us2012e", "us2022c"),
-  variables = var_spec("NUMPREC")
+  variables = c("NUMPREC")
 )
+
+
+
+
 
 
 # Read Data
 
-ddi_file <- read_ipums_ddi("Data Extract/usa_00044.xml")
+ddi_file <- read_ipums_ddi("Data Extract/usa.xml")
 data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
 
 

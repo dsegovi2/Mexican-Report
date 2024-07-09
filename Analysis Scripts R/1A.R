@@ -33,8 +33,8 @@ chicago_ca <- st_read("Boundaries - Community Areas (current)/geo_export_2081dd0
 
 # tract 
 
-nhgis_csv_file <- "Data Extract/nhgis0051_csv.zip"
-nhgis_shp_file <- "Data Extract/nhgis0051_shape.zip"
+nhgis_csv_file <- "C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/nhgis0051_csv.zip"
+nhgis_shp_file <- "C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/nhgis0051_shape.zip"
 
 # merge sf with df
 extract_2018_2022_df <- read_nhgis(nhgis_csv_file, file_select = matches("nhgis0051_ds263_20225_tract"), verbose = TRUE)

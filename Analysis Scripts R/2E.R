@@ -20,7 +20,7 @@ install_and_load(packages)
 
 # Read Data
 
-ddi_file <- read_ipums_ddi("Data Extract/usa_00045.xml")
+ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa.xml")
 data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
 
 # 2018-2022 ACS
@@ -38,4 +38,59 @@ data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hisp
 
 
 # High School Graduation Rate for Mexican Public school pupils + adult education registration data
+
+## select variables
+df <- data_chi_2018_22 %>% select(race_ethnicity, schltype, school, gradeatt, perwt, educ, age)
+
+
+
+```{r}
+# filter for public schools
+df <- df %>% filter(schltype == 2)
+
+# Create a survey design object
+survey_design <- df %>%
+  as_survey_design(weights = perwt)
+
+
+# Calculate the numerator: weighted count of high school graduates aged 14-18, grouped by race_ethnicity
+numerator <- survey_design %>%
+  filter(educ == 6, age >= 14, age <= 18) %>%
+  group_by(race_ethnicity) %>%
+  summarise(weighted_n = survey_total(vartype = "se")) %>%
+  rename(graduates = weighted_n)
+
+# Calculate the denominator: weighted count of Mexican public school pupils aged 14-18, grouped by race_ethnicity
+denominator <- survey_design %>%
+  filter(age >= 14, age <= 18, school == 2) %>%
+  group_by(race_ethnicity) %>%
+  summarise(weighted_n = survey_total(vartype = "se")) %>%
+  rename(eligible_students = weighted_n)
+
+# Join numerator and denominator by race_ethnicity
+graduation_data <- numerator %>%
+  inner_join(denominator, by = "race_ethnicity")
+
+# Calculate the weighted high school graduation rate for each race_ethnicity group
+graduation_data <- graduation_data %>%
+  mutate(graduation_rate = (graduates / eligible_students) * 100)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
