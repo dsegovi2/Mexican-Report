@@ -187,13 +187,13 @@ overcrowded = housing_ddi2 %>%
          per2 = paste0(per,"%")) %>% 
   ungroup()
     
-
-
 ```
 
 
+
 ```{r}
-table_a3.2 <- overcrowded %>% 
+
+table_3.b1 <- overcrowded %>% 
   
   filter(overcrowded == "Overcrowded" ) %>% 
 
@@ -221,10 +221,11 @@ table_a3.2 <- overcrowded %>%
            # background = "#f2f0f7",
            font_size = 8) %>%
   
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute\nHousing is defined as overcrowded if more than 1 person in the room.
+",
            general_title = "")   
 
-table_a3.2
+table_3.b1
 
 ```
 
@@ -233,9 +234,11 @@ table_a3.2
 
 ```{r}
 housing_ddi3 <- usa_ddi %>% 
-  select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, PERNUM, PERWT, HHWT, SERIAL, RENTGRS, HHINCOME) %>% 
+  select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, PERNUM, PERWT, HHWT, SERIAL, RENTGRS, HHINCOME, OWNCOST) %>% 
   clean_names() 
   
+
+
 rent_burdened = housing_ddi3 %>% 
   filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
   mutate(race_f = as_factor(race),
@@ -247,25 +250,75 @@ rent_burdened = housing_ddi3 %>%
                                     hispan ==1 ~ "Mexican", 
                                     hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
                                     TRUE ~ NA_character_)) %>% 
-  
-  mutate()
   
   group_by(race_ethnicity) %>% 
   mutate(total = sum(hhwt, na.rm = T)) %>% 
-  mutate(rent_income = rentgrs/hhincome) %>% 
+  ungroup() %>% 
+  filter(hhincome != 9999999 ) %>% 
+  filter(rentgrs!= 0) %>% 
+  
+  mutate(rent_income = rentgrs/hhincome,
+         burdened_30 = if_else(rent_income >0.3 , "More than 30%","Less than 30%"),
+         burdened_50 = if_else(rent_income >0.5, "More than 50%", "Less than 50%")) %>% 
+  
   as_survey_design(weights = hhwt) %>% 
-  group_by(race_ethnicity) %>% 
-  summarise(income_mean = survey_mean(hhincome, na.rm = T),
-            rentgrs_mean = survey_mean(rentgrs, na.rm = T),
-            rent_income_mean = survey_mean(rent_income, na.rm = T))  
+  survey_count(year, race_ethnicity, total, burdened_30, burdened_50 , name="count") %>% 
+  mutate(per = 100*round(count/total, 4),
+         per2 = paste0(per,"%")) 
   
+
+####### prepare data for the table
   
+table_3.b2 = rent_burdened %>% 
+  filter( burdened_30 != "Less than 30%") %>% 
+  group_by(race_ethnicity ) %>% 
   
+  summarise(more_30_count = sum(count[burdened_30== "More than 30%"]),
+            more_50_count = sum(count[burdened_50== "More than 50%"]),
+            more_30_per = 100 *round(more_30_count/total, 4),
+            more_30_per2 = paste0(more_30_per, "%"),
+            more_50_per = 100 *round(more_50_count/total, 4),
+            more_50_per2 = paste0(more_50_per, "%")) %>% 
+  distinct() 
+
+
+
+table_3.b2_2 <- table_3.b2 %>% 
+  select(race_ethnicity, more_30_count, more_30_per2, more_50_count, more_50_per2) %>% 
+  
+  # using kable 
+  
+  kbl(booktabs = T,
+      col.names = c("Race/Ethnicity", "Number", "Percent" , "Number", "Percent" ),
+      align = c("l",rep("c",4)),
+      caption = "Rent Burdened by Race/Ethnicity in Chicago, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>% 
+  kable_classic(full_width = T,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  # column_spec(1, width = "10em") %>%
+  # column_spec(2:8, width = "3.8em") %>%
+  add_header_above( c("Race/Ethnicity", "More than 30%" = 2, "More than 50%" = 2),
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
+  # row_spec(0, bold = T,
+  #          # background = "#f2f0f7",
+  #          font_size = 8) %>%
+  
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute\nRent Burdened Households Defined as Spending 30% or More of Income on Rent",
+           general_title = "")  
+
+table_3.b2_2
 ```
 
+# 3.B2: Cost burdened
 
 ```{r}
-rent_burdened = housing_ddi3 %>% 
+
+cost_burdened = housing_ddi3 %>% 
   filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
   mutate(race_f = as_factor(race),
          hispan_f = as_factor(hispan)) %>% 
@@ -274,9 +327,75 @@ rent_burdened = housing_ddi3 %>%
                                     hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
                                     hispan %in% c(2,3,4) ~ "Hispanics other than Mexican",
                                     hispan ==1 ~ "Mexican", 
-                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    hispan ==0 & race %in%c(3:9) ~ "Other Latinos",
                                     TRUE ~ NA_character_)) %>% 
+  
+  group_by(race_ethnicity) %>% 
+  mutate(total = sum(hhwt, na.rm = T)) %>% 
+  ungroup() %>% 
+  filter(hhincome != 9999999 ) %>% 
+  filter(rentgrs!= 0) %>% 
+  
+  mutate(rent_income = rentgrs/hhincome,
+         burdened_30 = if_else(rent_income >0.3 , "More than 30%","Less than 30%"),
+         burdened_50 = if_else(rent_income >0.5, "More than 50%", "Less than 50%")) %>% 
+  
   as_survey_design(weights = hhwt) %>% 
-  survey_count( race_ethnicity, rentgrs, hhincome, name="count")  
+  survey_count(year, race_ethnicity, total, burdened_30, burdened_50 , name="count") %>% 
+  mutate(per = 100*round(count/total, 4),
+         per2 = paste0(per,"%")) 
+  
+
+####### prepare data for the table
+  
+table_3.b2 = rent_burdened %>% 
+  filter( burdened_30 != "Less than 30%") %>% 
+  group_by(race_ethnicity ) %>% 
+  
+  summarise(more_30_count = sum(count[burdened_30== "More than 30%"]),
+            more_50_count = sum(count[burdened_50== "More than 50%"]),
+            more_30_per = 100 *round(more_30_count/total, 4),
+            more_30_per2 = paste0(more_30_per, "%"),
+            more_50_per = 100 *round(more_50_count/total, 4),
+            more_50_per2 = paste0(more_50_per, "%")) %>% 
+  distinct() 
+
+
+
+table_3.b2_2 <- table_3.b2 %>% 
+  select(race_ethnicity, more_30_count, more_30_per2, more_50_count, more_50_per2) %>% 
+  
+  # using kable 
+  
+  kbl(booktabs = T,
+      col.names = c("Race/Ethnicity", "Number", "Percent" , "Number", "Percent" ),
+      align = c("l",rep("c",4)),
+      caption = "Rent Burdened by Race/Ethnicity in Chicago, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>% 
+  kable_classic(full_width = T,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  # column_spec(1, width = "10em") %>%
+  # column_spec(2:8, width = "3.8em") %>%
+  add_header_above( c("Race/Ethnicity", "More than 30%" = 2, "More than 50%" = 2),
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
+  # row_spec(0, bold = T,
+  #          # background = "#f2f0f7",
+  #          font_size = 8) %>%
+  
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute\nRent Burdened Households Defined as Spending 30% or More of Income on Rent",
+           general_title = "")  
+
+table_3.b2_2
 ```
+
+
+
+
+
+
 

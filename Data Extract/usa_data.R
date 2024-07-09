@@ -34,26 +34,16 @@ chicago_ca <- st_read("Boundaries - Community Areas (current)/geo_export_2081dd0
 usa_extract <- define_extract_usa(
   description = "2000 Census, 2012 ACS, 2022 ACS",
   samples = c("us2000g", "us2012e", "us2022c"),
-  variables = c("STATEICP", "CITY", "PUMA", "HISPAN", "AGE", "FAMSIZE", "RACE", "HHINCOME", "POVERTY",   "SCHLTYPE", "SPEAKENG", "SCHOOL", "CITIZEN", "GRADEATT", "EDUC", "OWNERSHP", "ROOMS", "RENTGRS", "VALUEH",  "MORTGAGE", "UNITSSTR", "SERIAL", "EMPSTAT", "IND", "OCC", "GQTYPE", "ANCESTR1", "TRIBE")
-) %>% submit_extract() %>%
+  variables = c("STATEICP", "CITY", "PUMA", "HISPAN", "AGE", "FAMSIZE", "RACE", "HHINCOME", "POVERTY",   "SCHLTYPE", "SPEAKENG", "SCHOOL", "CITIZEN", "GRADEATT", "EDUC", "OWNERSHP", "ROOMS", "RENTGRS", "VALUEH",  "MORTGAGE", "UNITSSTR", "SERIAL", "EMPSTAT", "IND", "OCC", "GQTYPE", "ANCESTR1", "TRIBE", "OWNCOST", "NUMPREC")
+)  %>% 
+  submit_extract() %>%
   wait_for_extract() %>%
-  download_extract()
-
-# Add variables to the existing extraction plan ( NOT WORKING)
-usa_extract2 <- add_to_extract(
-  usa_extract,
-  samples = c("us2000g", "us2012e", "us2022c"),
-  variables = c("NUMPREC")
-)
-
-
-
-
+  download_extract() 
 
 
 # Read Data
 
-ddi_file <- read_ipums_ddi("Data Extract/usa.xml")
+ddi_file <- read_ipums_ddi("C:/Users/elhamp2/Documents/GCI_Elly/Mexican Report/Mexican Report/usa_00006.xml")
 data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
 
 
@@ -66,6 +56,7 @@ data_chi_2008_12  <- data_chi %>% filter(year == 2012)  %>% clean_names()
 
 # 2000 ACS/Census
 data_chi_2000  <- data_chi %>% filter(year == 2000)  %>% clean_names()
+
 
 
 
