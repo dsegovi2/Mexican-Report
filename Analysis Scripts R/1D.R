@@ -32,69 +32,35 @@ data_chi_2018_22   <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% c
 # 2018-2022 ACS
 data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
 
+# create groups
+
+data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                                                            hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                                                            hispan %in% c(2,3,4) ~ "Other Hispanic/Latino",
+                                                                            hispan ==1 ~ "Mexican", 
+                                                                            hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                                                            TRUE ~ NA_character_)
+)
 
 # 1D Income Levels and poverty rates for Mexicans, other Latinos, Black and White Populations in Chicago.
 
 
-# Recode variables and create the `group` variable
-data_chi_recode <- data_chi_2018_22 %>%
-  mutate(
-    ethnicity = case_when(
-      hispan == 1 ~ "Mexican",
-      hispan == 2 ~ "Puerto Rican",
-      hispan == 3 ~ "Cuban",
-      hispan == 4 ~ "Other Latino",
-      hispan == 0 ~ "Not Hispanic",
-      hispan == 9 ~ "Not Reported",
-      TRUE ~ NA_character_
-    ),
-    race_category = case_when(
-      race == 1 & hispan == 0 ~ "Non-Hispanic White",
-      race == 2 & hispan == 0 ~ "Non-Hispanic Black/African American",
-      race == 3 ~ "American Indian or Alaska Native",
-      race == 4 & hispan == 0 ~ "Non-Hispanic Chinese",
-      race == 5 & hispan == 0 ~ "Non-Hispanic Japanese",
-      race == 6 & hispan == 0 ~ "Non-Hispanic Other Asian or Pacific Islander",
-      race == 7 & hispan == 0 ~ "Non-Hispanic Other race",
-      race == 8 & hispan == 0 ~ "Non-Hispanic Two major races",
-      race == 9 & hispan == 0 ~ "Non-Hispanic Three or more major races",
-      TRUE ~ NA_character_
-    ),
-    group = case_when(
-      ethnicity == "Mexican" ~ "Mexican",
-      ethnicity == "Puerto Rican" ~ "Puerto Rican",
-      ethnicity == "Cuban" ~ "Cuban",
-      race_category == "Non-Hispanic Black/African American" ~ "Non-Hispanic Black/African American",
-      race_category == "Non-Hispanic White" ~ "Non-Hispanic White",
-      TRUE ~ "Other"
-    )
+# Define the survey design using srvyr with only weights
+survey_design <- data_chi_2018_22 %>%
+  as_survey_design(weights = perwt)
+
+# Calculate the weighted average household income by group
+weighted_avg_income <- survey_design %>%
+  group_by(race_ethnicity) %>%
+  summarize(
+    avg_hhincome = survey_mean(hhincome, vartype = "se", na.rm = TRUE)
   )
 
-# Create survey design object
-design <- svydesign(
-  ids = ~cluster + strata,   # Cluster and strata variables
-  strata = ~strata,
-  weights = ~perwt,          # Weight variable
-  data = data_chi_recode             # Your survey data frame
-)
-
-# weighted average
-
-# Calculate weighted average household income by group
-weighted_avg_income <- svyby(
-  formula = ~hhincome,        # Variable to summarize (hhincome)
-  by = ~group,                # Variable to group by (group)
-  design = design,            # Survey design object
-  FUN = svymean,              # Function to calculate mean (weighted average)
-  na.rm = TRUE                # Remove NA values if any
-)
-
-weighted_avg_income <- as.data.frame(weighted_avg_income)
 
 # weighted median: 
 
-weighted_median_income <- data_chi_recode  %>%
-  group_by(group) %>%
+weighted_median_income <- data_chi_2018_22 %>%
+  group_by(race_ethnicity) %>%
   summarize(
     weighted_median_hhincome = matrixStats::weightedMedian(hhincome,  weights = perwt)
   ) %>%
@@ -109,20 +75,24 @@ income_levels <- weighted_avg_income %>% left_join(weighted_median_income)
 
 # Calculate poverty rates by group
 
-## total weighted count.
+# Calculate total weighted count by race_category and ethnicity
+total_weighted_pop_count <- survey_design %>%
+  group_by(race_ethnicity) %>%
+  summarise(total_weighted_pop_count = survey_total())
 
-total_weighted_count <- data_chi_recode %>% 
-  as_survey_design(weights = perwt) %>% 
-  survey_total(weights = perwt, na.rm = TRUE) %>% 
+# Calculate total weighted count in poverty by race_category and ethnicity
+total_weighted_poverty_count <- survey_design %>%
+  filter(poverty <= 1) %>%
+  group_by(race_ethnicity) %>%
+  summarise(total_weighted_poverty_count = survey_total())
+
+# Combine total counts and poverty counts
+combined <- left_join(total_weighted_pop_count, total_weighted_poverty_count)
 
 
-total_weighted_poverty_count <- data_chi_recode %>%   filter(poverty <= 1) %>%
-  as_survey_design(weights = perwt) %>% 
-  survey_total(weights = perwt, na.rm = TRUE) %>%   rename(total_weighted_poverty_count = total) 
 
-combined <- total_weighted_count %>% left_join(total_weighted_poverty_count)
 
-poverty_rate <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count/total_weighted_count)*100)
+poverty_rate <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count/total_weighted_pop_count)*100)
 
 
 

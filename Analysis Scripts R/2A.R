@@ -27,40 +27,59 @@ data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_name
 # 2018-2022 ACS
 data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
 
-# Filter for the Mexican population
-data_mexican <- data_chi_2018_22  %>% 
-  filter(hispan == 1)
+# create groups
 
-# Recode school type for clarity
-data_mexican <- data_mexican %>%
-  mutate(school_type = case_when(
+data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                                                            hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                                                            hispan %in% c(2,3,4) ~ "Other Hispanic/Latino",
+                                                                            hispan ==1 ~ "Mexican", 
+                                                                            hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                                                            TRUE ~ NA_character_)
+)
+
+
+# select variables
+data_chi_2018_22 <- data_chi_2018_22 %>% select(year:gqtyped, perwt, hispan, race, race_ethnicity, school, schltype)
+
+
+
+# Number and Percentage of Mexican population in public and private schools compared to other groups
+
+# Step 1: Filter for individuals enrolled in school
+enrolled_in_school <- data_chi_2018_22 %>%
+  filter(school == 2)
+
+
+# Define the survey design
+survey_design <- enrolled_in_school %>% 
+  as_survey_design(weights = perwt)
+
+# Step 3: Calculate the total weighted count for each race/ethnicity group (denominator)
+total_counts <- survey_design %>%
+  group_by(race_ethnicity) %>%
+  summarize(total_weighted_count = survey_total(vartype = "se"))
+
+# Step 4: Calculate the weighted count of race/ethnicity in public and private schools (numerator)
+school_counts <- survey_design %>%
+  group_by(schltype, race_ethnicity) %>%
+  summarize(weighted_count = survey_total(vartype = "se"))
+  
+# Step 5: Calculate the percentage of race/ethnicity groups in public and private schools
+school_percentages <- school_counts %>%
+  left_join(total_counts, by = "race_ethnicity") %>%
+  mutate(percentage = (weighted_count / total_weighted_count) * 100)
+
+# Step 6: Recode schltype for clarity
+df_all <- school_percentages %>%
+  mutate(schltype = case_when(
     schltype == 2 ~ "Public",
     schltype == 3 ~ "Private",
     TRUE ~ NA_character_
   ))
 
-# Define the survey design
-survey_design_mexican <- data_mexican %>% 
-  as_survey_design(weights = perwt)
-
-# Calculate the weighted count of the Mexican population in public and private schools
-school_counts <- survey_design_mexican %>%
-  filter(!is.na(school_type)) %>% 
-  group_by(school_type) %>%
-  summarize(weighted_count = survey_total(vartype = "se"))
-
-# Calculate the percentage of the Mexican population in public and private schools
-school_percentages <- survey_design_mexican %>%
-  filter(!is.na(school_type)) %>%
-  group_by(school_type) %>%
-  summarize(percentage = survey_mean(vartype = "se"))
-
-
-school_all <- school_counts %>% left_join(school_percentages)
-
 
 
 # export
 
-write.csv(school_all, "Data Tables/2A.csv")
+write.csv(df_all, "Data Tables/2A.csv")
 
