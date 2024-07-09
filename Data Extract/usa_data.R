@@ -62,6 +62,7 @@ data_chi_2000  <- data_chi %>% filter(year == 2000)  %>% clean_names()
 
 
 
+
   
   
   
