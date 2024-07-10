@@ -1,6 +1,6 @@
 ---
 title: "Housing"
-author: "Education"
+author: ""
 date: "Great Cities Institute"
 output: 
   pdf_document:
@@ -42,7 +42,7 @@ library("kableExtra")
 \clearpage
 
 ```{r}
-usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00045.xml")) 
+usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00006.xml")) 
 # view(usa_ddi)
 # colnames(usa_ddi)
 # ipums_view(usa_ddi)
@@ -59,10 +59,10 @@ usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities In
 #     vars = "RACE"
 # )
 housing_ddi <- usa_ddi %>% 
-  select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, OWNERSHP, OWNERSHPD, PERNUM, PERWT,HHWT, SERIAL, ROOMS ) %>% 
+  select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, OWNERSHP, OWNERSHPD, PERNUM, PERWT,HHWT, SERIAL, ROOMS, NUMPREC, OWNCOST, RENTGRS, HHINCOME) %>% 
   clean_names() 
 
-# ipums_val_labels(housing_ddi$race)
+# ipums_val_labels(housing_ddi$owncost)
 # ipums_val_labels(housing_ddi$hispan)
 
 
@@ -78,7 +78,7 @@ homeownership = housing_ddi %>%
   
   mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
                                     hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
-                                    hispan %in% c(2,3,4) ~ "Hispanics other than Mexican",
+                                    hispan %in% c(2,3,4) ~ "Other Latinos",
                                     hispan ==1 ~ "Mexican", 
                                     hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
                                     TRUE ~ NA_character_)) %>% 
@@ -151,15 +151,15 @@ table_a3
 
 ```{r}
 
-usa_ddi2 <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00002.xml")) 
-
-housing_ddi2 <- usa_ddi2 %>% 
-  select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, PERNUM, PERWT,HHWT, SERIAL, ROOMS, NUMPREC ) %>% 
-  clean_names() 
+# usa_ddi2 <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00002.xml")) 
+# 
+# housing_ddi2 <- usa_ddi2 %>% 
+#   select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, PERNUM, PERWT,HHWT, SERIAL, ROOMS, NUMPREC ) %>% 
+#   clean_names() 
 
 
 ## Be careful rooms == 0 is NA but it is overcrowded
-overcrowded = housing_ddi2 %>% 
+overcrowded = housing_ddi %>% 
   filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
   mutate(race_f = as_factor(race),
          hispan_f = as_factor(hispan)) %>% 
@@ -233,20 +233,20 @@ table_3.b1
 # 3.B2: Rent burdened
 
 ```{r}
-housing_ddi3 <- usa_ddi %>% 
-  select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, PERNUM, PERWT, HHWT, SERIAL, RENTGRS, HHINCOME, OWNCOST) %>% 
-  clean_names() 
+# housing_ddi3 <- usa_ddi %>% 
+#   select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, PERNUM, PERWT, HHWT, SERIAL, RENTGRS, HHINCOME, OWNCOST) %>% 
+#   clean_names() 
   
 
 
-rent_burdened = housing_ddi3 %>% 
+rent_burdened = housing_ddi %>% 
   filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
   mutate(race_f = as_factor(race),
          hispan_f = as_factor(hispan)) %>% 
   
   mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
                                     hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
-                                    hispan %in% c(2,3,4) ~ "Hispanics other than Mexican",
+                                    hispan %in% c(2,3,4) ~ "Other Latinos",
                                     hispan ==1 ~ "Mexican", 
                                     hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
                                     TRUE ~ NA_character_)) %>% 
@@ -314,31 +314,31 @@ table_3.b2_2 <- table_3.b2 %>%
 table_3.b2_2
 ```
 
-# 3.B2: Cost burdened
+# 3.B3: Own Cost Burdened
 
 ```{r}
 
-cost_burdened = housing_ddi3 %>% 
+owncost_burdened = housing_ddi %>% 
   filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
   mutate(race_f = as_factor(race),
          hispan_f = as_factor(hispan)) %>% 
   
   mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
                                     hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
-                                    hispan %in% c(2,3,4) ~ "Hispanics other than Mexican",
+                                    hispan %in% c(2,3,4) ~ "Other Latinos",
                                     hispan ==1 ~ "Mexican", 
-                                    hispan ==0 & race %in%c(3:9) ~ "Other Latinos",
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
                                     TRUE ~ NA_character_)) %>% 
   
   group_by(race_ethnicity) %>% 
   mutate(total = sum(hhwt, na.rm = T)) %>% 
   ungroup() %>% 
   filter(hhincome != 9999999 ) %>% 
-  filter(rentgrs!= 0) %>% 
-  
-  mutate(rent_income = rentgrs/hhincome,
-         burdened_30 = if_else(rent_income >0.3 , "More than 30%","Less than 30%"),
-         burdened_50 = if_else(rent_income >0.5, "More than 50%", "Less than 50%")) %>% 
+  filter(owncost!= 99999) %>% 
+
+  mutate(owncost_income = owncost/hhincome,
+         burdened_30 = if_else(owncost_income >0.3 , "More than 30%","Less than 30%"),
+         burdened_50 = if_else(owncost_income >0.5, "More than 50%", "Less than 50%")) %>% 
   
   as_survey_design(weights = hhwt) %>% 
   survey_count(year, race_ethnicity, total, burdened_30, burdened_50 , name="count") %>% 
@@ -346,9 +346,10 @@ cost_burdened = housing_ddi3 %>%
          per2 = paste0(per,"%")) 
   
 
+
 ####### prepare data for the table
   
-table_3.b2 = rent_burdened %>% 
+table_3.b3 = owncost_burdened %>% 
   filter( burdened_30 != "Less than 30%") %>% 
   group_by(race_ethnicity ) %>% 
   
@@ -362,7 +363,7 @@ table_3.b2 = rent_burdened %>%
 
 
 
-table_3.b2_2 <- table_3.b2 %>% 
+table_3.b3_2 <- table_3.b3 %>% 
   select(race_ethnicity, more_30_count, more_30_per2, more_50_count, more_50_per2) %>% 
   
   # using kable 
@@ -370,7 +371,7 @@ table_3.b2_2 <- table_3.b2 %>%
   kbl(booktabs = T,
       col.names = c("Race/Ethnicity", "Number", "Percent" , "Number", "Percent" ),
       align = c("l",rep("c",4)),
-      caption = "Rent Burdened by Race/Ethnicity in Chicago, 2018-2022",
+      caption = "Own Cost Burdened by Race/Ethnicity in Chicago, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "") %>% 
   kable_classic(full_width = T,  
@@ -387,15 +388,14 @@ table_3.b2_2 <- table_3.b2 %>%
   #          # background = "#f2f0f7",
   #          font_size = 8) %>%
   
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute\nRent Burdened Households Defined as Spending 30% or More of Income on Rent",
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute\nOwn Cost Burdened Households Defined as ???????????????????????",
            general_title = "")  
 
-table_3.b2_2
+table_3.b3_2
 ```
 
 
-
-
+# 3.D: 
 
 
 
