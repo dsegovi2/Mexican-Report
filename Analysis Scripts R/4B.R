@@ -39,11 +39,45 @@ data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hisp
 
 # Number and percentages with and without health insurance for Mexicans, other Latinos, Black and White populations.
 
-```{r}
-data_chi_2018_22
-```
-
-
 
 ## select variables
 df <- data_chi_2018_22 %>% select(race_ethnicity, hcovany, perwt)
+
+# Create survey design object
+survey_design <- df %>%
+  as_survey_design(weights = perwt)
+  
+  
+# Calculate numerator: weighted count of individuals with health insurance by race_ethnicity
+numerator_with_insurance <- survey_design %>%
+  filter(hcovany == 2) %>% 
+  group_by(race_ethnicity) %>%
+  summarise(weighted_n_with_insurance = survey_total(vartype = "se"))
+
+# Calculate denominator: total population by race_ethnicity
+denominator <- survey_design %>%
+  group_by(race_ethnicity) %>%
+  summarise(total_pop = survey_total(vartype = "se")) 
+  
+# calculate rate
+
+# Join numerator and denominator
+df_rates <- numerator_with_insurance %>%
+  left_join(denominator, by = "race_ethnicity") %>%
+  mutate(insurance_rate = (weighted_n_with_insurance / total_pop) * 100,
+         no_insurance_rate = 100 - insurance_rate)
+  
+```{r}
+df_rates
+```
+
+  
+  
+  # export
+
+write.csv(df_rates, "Data Tables/4B.csv")
+
+
+
+
+
