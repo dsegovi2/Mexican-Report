@@ -1,11 +1,8 @@
 
-# packages
-
-
 # List of packages to install and load
 packages <- c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", 
               "readxl", "leaflet", "janitor", "data.table", "survey", 
-              "matrixStats", "htmltools", "srvyr")
+              "matrixStats", "htmltools","srvyr")
 
 # Function to install and load packages
 install_and_load <- function(packages) {
@@ -21,16 +18,13 @@ install_and_load <- function(packages) {
 # Call the function to install and load packages
 install_and_load(packages)
 
-
 # Read Data
 
 ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa.xml")
 data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
 
-
 # 2018-2022 ACS
 data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
-
 
 # create groups
 
@@ -43,55 +37,34 @@ data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hisp
 )
 
 
-# 1B: Population pyramid of the percentage of Mexican population by age group compared to the rest of the population in Chicago and median age in Chicago (Data source: 2018-2022 ACS data)
+# Number and percentage of Mexican students attending area colleges
 
-df <-  data_chi_2018_22 %>%
-  mutate(
-    age_group = case_when(
-      age < 10 ~ "0-9",
-      age >= 10 & age < 20 ~ "10-19",
-      age >= 20 & age < 30 ~ "20-29",
-      age >= 30 & age < 40 ~ "30-39",
-      age >= 40 & age < 50 ~ "40-49",
-      age >= 50 & age < 60 ~ "50-59",
-      age >= 60 & age < 70 ~ "60-69",
-      age >= 70 & age < 80 ~ "70-79",
-      age >= 80 ~ "80+"
-    )
-  )
+## select variables
+df <- data_chi_2018_22 %>% select(race_ethnicity, school, gradeatt, perwt, educ, age)
+
 
 # Create survey design object
-survey_design <- df %>%
+survey_design <-df %>%
   as_survey_design(weights = perwt)
 
-
-# Calculate weighted population counts by age group and ethnicity
-
-# Calculate weighted population by ethnicity and age group
-pop_pyramid <- df %>%
-  as_survey_design(weights = perwt) %>% 
-  survey_count(race_ethnicity, age_group, name="total_weighted_count")  %>%
+# Group by race_ethnicity, filter for enrolled in college/grad school and ages 18-24
+numerator <- survey_design %>%  filter(school == 2, gradeatt %in% c(6, 7), age >= 18, age <= 24) %>% 
   group_by(race_ethnicity) %>%
-  mutate(total_weighted_percentage = total_weighted_count / sum(total_weighted_count) * 100)  
+  summarise(college_attendees = survey_total(vartype = "se"))
 
 
-# get median age
-
-weighted_age  <- df %>%
+# denominator calculate total number of 18-24 year olds
+denominator <- survey_design %>% filter(age >= 18, age <= 24) %>%
   group_by(race_ethnicity) %>%
-  summarize(
-    weighted_age = matrixStats::weightedMedian(age, perwt)
-  ) 
+  summarise(total_students = survey_total(vartype = "se"))
+
+
+# Calculate percentage of students attending college within each racial and ethnic group
+college_attendance <- left_join(numerator, denominator, by = "race_ethnicity") %>%
+  mutate(percentage_college_students = (college_attendees / total_students) * 100)
 
 
 
 
 
-
-
-# export
-
-write.csv(pop_pyramid, "Data Tables/1B_population_pyramid.csv")
-
-write.csv(weighted_age, "Data Tables/1B_age.csv")
 
