@@ -67,13 +67,8 @@ df_rates <- numerator_with_insurance %>%
   mutate(insurance_rate = (weighted_n_with_insurance / total_pop) * 100,
          no_insurance_rate = 100 - insurance_rate)
   
-```{r}
-df_rates
-```
 
-  
-  
-  # export
+# export
 
 write.csv(df_rates, "Data Tables/4B.csv")
 
