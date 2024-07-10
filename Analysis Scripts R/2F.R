@@ -37,7 +37,6 @@ data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hisp
 )
 
 
-# Number and percentage of Mexican students attending area colleges
 
 ## select variables
 df <- data_chi_2018_22 %>% select(race_ethnicity, school, gradeatt, perwt, educ, age)
@@ -47,24 +46,53 @@ df <- data_chi_2018_22 %>% select(race_ethnicity, school, gradeatt, perwt, educ,
 survey_design <-df %>%
   as_survey_design(weights = perwt)
 
+# Number and percentage of Mexican students attending area colleges
+
+# 18-24 year olds
+
+
 # Group by race_ethnicity, filter for enrolled in college/grad school and ages 18-24
-numerator <- survey_design %>%  filter(school == 2, gradeatt %in% c(6, 7), age >= 18, age <= 24) %>% 
+numerator_18_24 <- survey_design %>%  filter(school == 2, gradeatt %in% c(6, 7), age >= 18, age <= 24) %>% 
   group_by(race_ethnicity) %>%
   summarise(college_attendees = survey_total(vartype = "se"))
 
 
 # denominator calculate total number of 18-24 year olds
-denominator <- survey_design %>% filter(age >= 18, age <= 24) %>%
+denominator_18_24 <- survey_design %>% filter(age >= 18, age <= 24) %>%
   group_by(race_ethnicity) %>%
   summarise(total_students = survey_total(vartype = "se"))
 
 
 # Calculate percentage of students attending college within each racial and ethnic group
-college_attendance <- left_join(numerator, denominator, by = "race_ethnicity") %>%
+college_attendance_18_24 <- left_join(numerator, denominator, by = "race_ethnicity") %>%
+  mutate(percentage_college_students_18_24 = (college_attendees / total_students) * 100)
+
+
+# export
+
+write.csv(college_attendance_18_24, "Data Tables/2F_18_24.csv")
+
+
+# 25-34 year olds
+
+# Group by race_ethnicity, filter for enrolled in college/grad school and ages 18-24
+numerator_25_34 <- survey_design %>%  filter(school == 2, gradeatt %in% c(6, 7), age >= 25, age <= 34) %>% 
+  group_by(race_ethnicity) %>%
+  summarise(college_attendees = survey_total(vartype = "se"))
+
+
+# denominator calculate total number of 18-24 year olds
+denominator_25_34 <- survey_design %>% filter(age >= 25, age <= 34) %>%
+  group_by(race_ethnicity) %>%
+  summarise(total_students = survey_total(vartype = "se"))
+
+
+# Calculate percentage of students attending college within each racial and ethnic group
+college_attendance_25_34 <- left_join(numerator, denominator, by = "race_ethnicity") %>%
   mutate(percentage_college_students = (college_attendees / total_students) * 100)
 
 
 
+# export
 
-
-
+write.csv(college_attendance_25_34, "Data Tables/2F_25_34.csv")
