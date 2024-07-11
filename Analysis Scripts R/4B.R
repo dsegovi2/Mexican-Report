@@ -36,52 +36,43 @@ data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hisp
                                                                             TRUE ~ NA_character_)
 )
 
-# Educational Attainment of population age 25 and over for Mexicans, other Latinos, Black and White populations . 
+
+# Number and percentages with and without health insurance for Mexicans, other Latinos, Black and White populations.
 
 
 ## select variables
-df <- data_chi_2018_22 %>% select(race_ethnicity, educ, age, perwt)
-
-
-# collapse educational categories
-df <- df %>%   mutate(educ = as.character(educ)) %>% mutate(education_level = case_when(
-    educ == "0" ~ "N/A or no schooling",
-    educ %in% c("1", "2") ~ "Grade School",
-    educ %in% c("3", "4", "5") ~ "Some High School",
-    educ %in% c("6") ~ "High School",
-    educ %in% c("7") ~ "Some College",
-     educ %in% c("8", "9", "10", "11") ~ "2 years of college or higher",
-    educ == "99" ~ "Missing",
-    TRUE ~ "Other"
-  ))
-
+df <- data_chi_2018_22 %>% select(race_ethnicity, hcovany, perwt)
 
 # Create survey design object
 survey_design <- df %>%
   as_survey_design(weights = perwt)
-
-# Calculate numerator: weighted count of individuals by education level and race_ethnicity
-numerator <- survey_design %>%
-  filter(age >= 25) %>%
-  group_by(race_ethnicity, education_level) %>%
-  summarise(weighted_n = survey_total(vartype = "se"))
+  
+  
+# Calculate numerator: weighted count of individuals with health insurance by race_ethnicity
+numerator_with_insurance <- survey_design %>%
+  filter(hcovany == 2) %>% 
+  group_by(race_ethnicity) %>%
+  summarise(weighted_n_with_insurance = survey_total(vartype = "se"))
 
 # Calculate denominator: total population by race_ethnicity
 denominator <- survey_design %>%
-  filter(age >= 25) %>%
   group_by(race_ethnicity) %>%
-  summarise(total_pop = survey_total(vartype = "se"))
+  summarise(total_pop = survey_total(vartype = "se")) 
+  
+# calculate rate
 
-# Merge numerator and denominator by race_ethnicity
-education_levels <- c("N/A or no schooling", "Grade School", "Some High School", "High School","Some College", "2 years of college or higher")
-
-education_rates <- numerator %>%
+# Join numerator and denominator
+df_rates <- numerator_with_insurance %>%
   left_join(denominator, by = "race_ethnicity") %>%
-  mutate(educational_rate = (weighted_n / total_pop) * 100,
-  education_level = factor(education_level, levels = education_levels))    %>%  arrange(race_ethnicity, education_level)
+  mutate(insurance_rate = (weighted_n_with_insurance / total_pop) * 100,
+         no_insurance_rate = 100 - insurance_rate)
   
 
 # export
 
-write.csv(education_rates, "Data Tables/2G.csv")
+write.csv(df_rates, "Data Tables/4B.csv")
+
+
+
+
 
