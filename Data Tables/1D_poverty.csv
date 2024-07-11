@@ -1,6 +1,6 @@
-"","race_ethnicity","total_weighted_pop_count","total_weighted_pop_count_se","total_weighted_poverty_count","total_weighted_poverty_count_se","poverty_rate"
-"1","Black (non-Hispanic or Latino)",778689,6004.39755181471,51325,1476.80793139904,6.59120650221077
-"2","Mexican",585724,5306.69283455324,11708,721.897017155839,1.99889367688536
-"3","Other (non-Hispanic or Latino)",264489,3512.95727613199,13583,722.899636448244,5.13556329374757
-"4","Other Hispanic/Latino",209512,3035.57820276362,5854,434.043664074826,2.79411203176906
-"5","White (non-Hispanic or Latino)",884587,5248.34577622681,35613,955.752118230654,4.02594657167695
+,race_ethnicity,total_weighted_pop_count,total_weighted_pop_count_se,total_weighted_poverty_count,total_weighted_poverty_count_se,poverty_rate
+1,Black (non-Hispanic or Latino),778689,6004.397552,51325,1476.807931,6.591206502
+2,Mexican,585724,5306.692835,11708,721.8970172,1.998893677
+3,Other (non-Hispanic or Latino),264489,3512.957276,13583,722.8996364,5.135563294
+4,Other Hispanic/Latino,209512,3035.578203,5854,434.0436641,2.794112032
+5,White (non-Hispanic or Latino),884587,5248.345776,35613,955.7521182,4.025946572

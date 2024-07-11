@@ -63,9 +63,9 @@ data_recoded <- data_chi_2018_22  %>% mutate(
 
 # Population by Mexican indigenous groups by Public Use Microdata Areas (PUMAs) in Chicago.  
 
-# Filter data for Mexican indigenous individuals and select relevant columns
+# Filter data for Mexican who identify as AIAN and select relevant columns
 mexican_indigenous <- data_recoded %>%
-  filter(hispan == 1) %>%
+  filter(hispan == 1 & race == 3) %>%
   select(puma, tribe_label_collapsed, perwt)
 
 # Create survey design with weights
@@ -78,11 +78,9 @@ tribe_count <- survey_design %>%
 
   
 
-
-
 # export
 
-write.csv(df_tribe, "Data Tables/1E.csv")
+write.csv(tribe_count, "Data Tables/1E.csv")
 
-
+sum(tribe_count$total_weighted_count)
 

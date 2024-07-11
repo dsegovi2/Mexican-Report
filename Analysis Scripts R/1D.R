@@ -26,11 +26,11 @@ install_and_load(packages)
 ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa.xml")
 
 # filter to chicago, 2018-2022 AC
-data_chi_2018_22   <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
+data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
 
 
 # 2018-2022 ACS
-data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
+data_chi_2018_22  <- data_chi %>% filter(year == 2022)  %>% clean_names()
 
 # create groups
 
@@ -44,13 +44,16 @@ data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hisp
 
 # 1D Income Levels and poverty rates for Mexicans, other Latinos, Black and White Populations in Chicago.
 
-
+# Filter the data to remove negative and extreme values
+filtered_data <- data_chi_2018_22 %>%
+  filter(hhincome > 0 & hhincome < 9999999, pernum == 1)
+  
 # Define the survey design using srvyr with only weights
-survey_design <- data_chi_2018_22 %>%
-  as_survey_design(weights = perwt)
+survey_design <- filtered_data  %>%
+  as_survey_design(weights = hhwt)
 
 # Calculate the weighted average household income by group
-weighted_avg_income <- survey_design %>%
+weighted_avg_income <- survey_design %>% filter(pernum == 1) %>%
   group_by(race_ethnicity) %>%
   summarize(
     avg_hhincome = survey_mean(hhincome, vartype = "se", na.rm = TRUE)
@@ -59,10 +62,10 @@ weighted_avg_income <- survey_design %>%
 
 # weighted median: 
 
-weighted_median_income <- data_chi_2018_22 %>%
+weighted_median_income <- data_chi_2018_22 %>%  filter(pernum == 1) %>%
   group_by(race_ethnicity) %>%
   summarize(
-    weighted_median_hhincome = matrixStats::weightedMedian(hhincome,  weights = perwt)
+    weighted_median_hhincome = matrixStats::weightedMedian(hhincome,  weights = hhwt)
   ) %>%
   ungroup()
 
@@ -70,18 +73,27 @@ weighted_median_income <- data_chi_2018_22 %>%
 income_levels <- weighted_avg_income %>% left_join(weighted_median_income)
 
 
+
+
+
 # poverty
 
 
+# Define the survey design using srvyr with only weights
+survey_design2 <- data_chi_2018_22  %>%
+  as_survey_design(weights = perwt)
+  
+
+  
 # Calculate poverty rates by group
 
 # Calculate total weighted count by race_category and ethnicity
-total_weighted_pop_count <- survey_design %>%
+total_weighted_pop_count <- survey_design2 %>%
   group_by(race_ethnicity) %>%
   summarise(total_weighted_pop_count = survey_total())
 
 # Calculate total weighted count in poverty by race_category and ethnicity
-total_weighted_poverty_count <- survey_design %>%
+total_weighted_poverty_count <- survey_design2 %>%
   filter(poverty <= 1) %>%
   group_by(race_ethnicity) %>%
   summarise(total_weighted_poverty_count = survey_total())
@@ -93,9 +105,6 @@ combined <- left_join(total_weighted_pop_count, total_weighted_poverty_count)
 
 
 poverty_rate <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count/total_weighted_pop_count)*100)
-
-
-
 
 
 
