@@ -39,6 +39,7 @@ library(tinytex)
 library(survey) # for survey analysis
 library(srvyr)  # for tidy survey analysis
 library("kableExtra") 
+# remotes::install_github('yihui/knitr')
 # install.packages("knitr")
 # library(knitr)
 # options(tinytex.verbose = TRUE)
@@ -54,7 +55,7 @@ library("kableExtra")
 \clearpage
 
 ```{r}
-usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00006.xml")) 
+usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00010.xml")) 
 # view(usa_ddi)
 # colnames(usa_ddi)
 # ipums_view(usa_ddi)
@@ -239,8 +240,8 @@ table_3.b1 <- overcrowded %>%
            # background = "#f2f0f7",
            font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")
+  add_footnote(c("Housing is defined as overcrowded if more than one person in the room.", "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute"),
+ notation = "none")
 
 table_3.b1
 
@@ -411,7 +412,7 @@ table_3.b3_2 <- table_3.b3 %>%
   #          font_size = 8) %>%
 
   
-  add_footnote(c("Own Cost Burdened Households Defined as ?", "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute"),
+  add_footnote(c("Own Cost Burdened Households Defined as ?", "Source: IPUMS-USA database (2018-2022).Tabulations by Great Cities Institute"),
  notation = "none")
 
 table_3.b3_2
