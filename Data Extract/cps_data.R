@@ -33,7 +33,8 @@ cps_extract <- define_extract_micro(
                    "HISPAN",  # Hispanic pop
                    "EMPSTAT", # Employment status
                    "RACE",
-                   "WKSTAT" # Full or part time status
+                   "WKSTAT", # Full or part time status
+                   "LABFORCE"
                    
                    ),
   data_format = "fixed_width",
