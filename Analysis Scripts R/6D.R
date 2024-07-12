@@ -37,44 +37,24 @@ data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hisp
 )
 
 
-# High School Graduation Rate for Mexican Public school pupils + adult education registration data
+# Mexican employment and representation in local government. 
 
 
-df <- data_chi_2018_22 %>% select(race_ethnicity, schltype, school, gradeatt, perwt, educ, age) 
 
-# Create a survey design object
-survey_design <- df %>%
-  as_survey_design(weights = perwt)
+df <- data_chi_2018_22 %>% select(race_ethnicity, perwt, empstat, ind, occ) 
 
 
-# method 2: Look at 21-24 year olds without a high school diploma out of all 21-24 year olds
+```{r}
+table(df$ind)
+```
 
 
-# Calculate numerator: weighted count of students aged 14-18 not in school
-numerator_not_in_school <- survey_design %>%
-  filter(age >= 21, age <= 24, school == 1) %>%
-  group_by(race_ethnicity) %>%
-  summarise(not_in_school = survey_total(vartype = "se"))
 
-# Calculate denominator: weighted count of total students aged 21-24
-denominator_total_students <- survey_design %>%
-  filter(age >= 21, age <= 24,  gradeatt == 5) %>%
-  group_by(race_ethnicity) %>%
-  summarise(total_students = survey_total(vartype = "se"))
-
-  
-# Calculate dropout rate by joining numerator and denominator
-dropout_data <- numerator_not_in_school %>%
-  inner_join(denominator_total_students, by = "race_ethnicity") %>%
-  mutate(dropout_rate = (not_in_school / total_students) * 100)
-
-
-# export
-
-write.csv(dropout_data, "Data Tables/2E_dropout.csv")
 
 
   
+
+
 
 
 

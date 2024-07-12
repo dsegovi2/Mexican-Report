@@ -25,11 +25,37 @@ install_and_load(packages)
 # Read Data
 
 ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa.xml")
-data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
+data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190 & STATEICP == 21)  %>% clean_names()
 
-
-# 2018-2022 ACS
 data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
+
+# filter for pumas
+
+# 2020 pumas
+pumas_2020 <- c(3168, 3155, 3166, 3162, 3163, 3154, 3159, 3152, 3167, 3151, 3158, 3161, 3165, 3153, 3157, 3160, 3156, 3164)
+
+# 2010 pumas
+
+pumas_2010 <- c(3501, 3502, 3503, 3504, 3520, 3521, 3522, 3523, 3525, 3526, 3527, 3529, 3530, 3531, 3532)
+
+# filter for pumas
+data_chi_22  <- data_chi_2018_22  %>%
+  filter(
+    year == 2022 & multyear == 2022 & puma %in% pumas_2020 |
+    year == 2022 & multyear %in% 2018:2021 & puma %in% pumas_2010
+  )
+
+
+
+#removed_pumas <- data_chi_2018_22 %>%
+#  anti_join(data_chi_22, by = "puma") %>%
+# group_by(year, multyear, puma) %>% summarize(count = n())
+
+#write_csv(removed_pumas, "removed_pumas.csv")
+
+
+
+
 
 
 # create groups
