@@ -223,40 +223,90 @@ table_5a.2
 ```
 
 
-5C.1: Aggregated Household income
+## 5B: Numbers and percentages of unionized Mexican workers
 
 
 ```{r}
-hhincome = Business_ddi %>%
-  filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+  
+  
+cps_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/cps_00170.xml")) %>% 
+  clean_names() 
+# colnames(cps_ddi)
+# ipums_view(cps_ddi)
+
+# ipums_val_labels(cps_ddi$hispan)
+# ipums_val_labels(cps_ddi$empstat)
+
+
+
+Union <- cps_ddi %>% 
+  
+  filter( year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
   mutate(race_f = as_factor(race),
-         hispan_f = as_factor(hispan)) %>%
+         hispan_f = as_factor(hispan), 
+         laborforce_f = as_factor(labforce),
+         employment_f = as_factor(empstat),
+         union_f = as_factor(union)) %>%
 
-  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
-                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
-                                    hispan %in% c(2,3,4) ~ "Other Latinos",
-                                    hispan ==1 ~ "Mexican",
-                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
-                                    TRUE ~ NA_character_)) %>%
-  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)"))) %>%
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 100 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 200 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(200:612) ~ "Other Latinos",
+                                    hispan %in% c(100:109) ~ "Mexican", 
+                                    hispan ==0 & !race %in%c(100,200) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)"))) %>% 
   
-  filter(hhincome == 9999999)
-  
-  as_survey_design(weights = hhwt) %>%
-  survey_count(race_ethnicity, hhincome, name="count")
+  mutate(employment_f = case_when(empstat %in% c(1, 10, 12) ~ "Employed",
+                              TRUE ~ "other")) %>% 
   
   
+  filter(labforce != 0 |  empstat !=0) %>% 
+  filter(employment_f == "Employed") %>%
+  as_survey_design(weights = asecwt) %>% 
   
+  survey_count(race_ethnicity, laborforce_f, employment_f,  union_f, name="count") %>% 
+  group_by(race_ethnicity) %>% 
+  mutate(total_employed = sum(count)) %>% 
+  filter(union_f %in% c("Member of labor union", "Covered by union but not a member")) %>% 
+  group_by(race_ethnicity, total_employed) %>% 
+  summarise(unionized = sum(count),
+            prc = 100*round(unionized/total_employed, 4),
+            prc2 = paste0(prc, "%")) %>% 
+  distinct()
+
+
+table5b <- Union %>% 
+  select(race_ethnicity,total_employed,  unionized, prc2) %>% 
+  # using kable
+
+  kbl(booktabs = T,
+      col.names = c("Race/Ethnicity",  "Total Employed" ,"Unionized Workers", "Percent"),
+      align = c("l",rep("c",3)),
+      caption = " Numbers and percentages of unionized Mexican workers by Race/Ethnicity in Chicago, 2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+ kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:4, width = "8.6em") %>% 
+  # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity", "More than 30%" = 2, "More than 50%" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T,
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+
   
+  add_footnote(c( "Source: IPUMS-CPS database (2022). Tabulations by Great Cities Institute"),
+ notation = "none")
+
+table5b
+
+
 ```
-
-
-
-
-
-
-
-
 
 
 

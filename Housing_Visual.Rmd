@@ -419,7 +419,63 @@ table_3.b3_2
 ```
 
 
-## 3.D:
+## 3.D: House Value
 
+```{r}
+
+community_shp <- read_sf("data/2020/intersect_census_2020.shp")
+search_variables <- load_variables(2022, 
+                         dataset = "acs5",
+                         cache = TRUE)
+view(search_variables)
+options(tigris_use_cache = TRUE)
+house_value_data <-  get_acs(
+  cache_table = TRUE,
+  geography = "tract",
+  variables = c("Mvalue"="B25077_001",
+                "Not Hispanic or Latino"="B03001_002",
+                "Hispanic or Latino"="B03001_003",
+                "Mexican" = "B03001_004"),
+                
+  summary_var =  "B23001_001",              
+  state = 17,
+  year = 2022,
+  geometry = TRUE)
+
+
+census_centroids_2022 <- st_centroid(house_value_data)
+
+# Spatial join: attach community area names to census tracts based on centroid location
+census_community_2020 <- st_join(census_centroids_2020, 
+                                 community_shp, 
+                                 join = st_within)
+
+#######Spatial Join
+# Calculate centroids of census tracts
+census_centroids_2020 <- st_centroid(shp_2020)
+
+
+# Spatial join: attach community area names to census tracts based on centroid location
+census_community_2020 <- st_join(census_centroids_2020, 
+                                 community_shp, 
+                                 join = st_within)
+
+
+data_2020 <- read_nhgis("data/2020/nhgis0011_csv.zip") %>%
+  filter(GISJOIN %in% shp_2020$GISJOIN) %>%
+  
+  select(GISJOIN, YEAR, U7K003 ) %>%
+  rename("Total Hispanic or Latino" = "U7K003") %>% 
+  left_join(census_community_2020[, c("GISJOIN", "community", "label", "area_numbe" ) ]%>% st_drop_geometry(), by = "GISJOIN")
+
+
+
+Chicago_2020 <- left_join(shp_2020, data_2020,  by = join_by(GISJOIN == GISJOIN)) %>% 
+  
+  st_transform(Chicago_2020, crs = 4326)
+#mapview(shp_2020)
+
+
+```
 
 
