@@ -1,10 +1,8 @@
 
-# packages
-
 # List of packages to install and load
 packages <- c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", 
               "readxl", "leaflet", "janitor", "data.table", "survey", 
-              "matrixStats", "htmltools", "srvyr")
+              "matrixStats", "htmltools","srvyr")
 
 # Function to install and load packages
 install_and_load <- function(packages) {
@@ -20,17 +18,12 @@ install_and_load <- function(packages) {
 # Call the function to install and load packages
 install_and_load(packages)
 
-
-
 # Read Data
-
 
 ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa.xml")
 data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
 
 
-# 2018-2022 ACS
-data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
 # create groups
 
 data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
@@ -42,27 +35,7 @@ data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hisp
 )
 
 
-# 1C Average family size of the Mexican population compared to, other Latinos, Black and White populations in Chicago
-
-# Calculate average family size
-
-# Define the survey design using srvyr with only weights
-survey_design <- data_chi_2018_22 %>%
-  as_survey_design(weights = perwt)
-
-# Calculate the weighted average family size by group
-avg_family_size <- survey_design %>%
-  group_by(race_ethnicity) %>%
-  summarize(
-        avg_family_size = survey_mean(famsize, vartype = "se", na.rm = TRUE)
-  )
-
-
-
-# export
-
-write.csv(avg_family_size, "Data Tables/1C.csv")
-
+# Number and percentages of Mexicans by status, i.e., citizens, permanent residents, undocumented and asylum seekers, with historic trends and comparisons to other groups.
 
 
 
