@@ -39,6 +39,10 @@ chicago_ca_2000_sf <- st_read("Data Tables/chicago_ca_2000_sf/chicago_ca_2000_sf
 
 
 ```
+```{r}
+data <- chicago_ca_2018_22_sf %>% as.data.frame() %>% arrange(community)
+view(data)
+```
 
 
 
