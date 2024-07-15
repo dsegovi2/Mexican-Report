@@ -1,0 +1,282 @@
+---
+title: "Mexican Report"
+author: "Employment and Business"
+date: "Great Cities Institute"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    highlight: pygments
+    extra_dependencies: ["float"]
+    fig_caption: true
+mainfont: "Arial"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.pos="H")
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+library(ipumsr)
+library(tidyverse)
+library(purrr)
+library(sf)
+library(tidycensus)
+library(tidyr)
+library(readxl)
+library(sf)
+library(htmltools)
+library(leaflet)
+library(janitor)
+library(data.table)
+library(survey) # for survey analysis
+library(srvyr)  # for tidy survey analysis
+library(palmerpenguins)
+library("kableExtra") 
+library(stringr)
+library(knitr)
+library(palmerpenguins)
+options(tinytex.verbose = TRUE)
+
+
+usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(2,3,4) ~ "Other Latinos",
+                                    hispan ==1 ~ "Mexican", 
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)"))) 
+# install.packages("knitr")
+```
+\renewcommand{\arraystretch}{1.4}
+\clearpage
+
+# Employment and Business
+
+## 5A.1: Unemployment Rate
+
+```{r}
+
+unemployment = usa_data %>% 
+  filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+  
+  as_survey_design(weights = perwt) %>% 
+  survey_count(race_ethnicity, employment=empstat_f, laborforce= labforce_f,  name="count") %>% 
+  filter(laborforce == "Yes, in the labor force") %>% 
+  group_by(race_ethnicity) %>% 
+  mutate(in_laborforce = sum(count)) %>% 
+  filter(employment == "Unemployed") %>% 
+  mutate(unemployment_rate = 100*round(count/in_laborforce, 4),
+         prc2 = paste0(unemployment_rate, "%"))
+  
+
+
+
+table_5.a1 <- unemployment %>%
+  select(race_ethnicity,  in_laborforce, count, prc2) %>%
+
+  # using kable
+
+  kbl(booktabs = T,
+      col.names = c("Race/Ethnicity",  "In the Labor Force" ,"Unemployed", "Percent"),
+      align = c("l",rep("c",3)),
+      caption = "Unemployment Rate by Race/Ethnicity in Chicago, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+ kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:4, width = "8.6em") %>% 
+  # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity", "More than 30%" = 2, "More than 50%" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T,
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+
+  
+  add_footnote(c( "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute"),
+ notation = "none")
+
+table_5.a1
+
+```
+
+\clearpage
+
+## 5A.2: Numbers and percentages of Mexicans employed, by industry
+
+
+```{r}
+
+
+industry = usa_data %>%
+  filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+
+  
+
+  mutate(industry = case_when(ind %in% c(0170:0490)  ~ "Agriculture, Forestry, Fishing, and Hunting, and Mining",
+                              ind == 0770  ~ "Construction",
+                              ind %in% c(1070:3990)  ~ "Manufacturing",
+                              ind %in% c(4070:4590)  ~ "Wholesale Trade",
+                              ind %in% c(4670:5790)  ~ "Retail Trade",
+                              ind %in% c(6070:6390, 0570:0690) ~ "Transportation and Warehousing, and Utilities",
+                              ind %in% c(6470:6780)  ~ "Information",
+                              ind %in% c(6870:7190)  ~ "Finance and Insurance, and Real Estate, and Rental and Leasing",
+                              ind %in% c(7270:7790)  ~ "Professional, Scientific, and Management, and Administrative, and Waste Management Services",
+                              ind %in% c(7860:8470)  ~ "Educational Services, and Health Care and Social Assistance",
+                              ind %in% c(8561:8690)  ~ "Arts, Entertainment, and Recreation, and Accommodation and Food Services",
+                              ind %in% c(8770:9290)  ~ "Other Services, Except Public Administration",
+                              ind %in% c(9370:9590)  ~ "Public Administration",
+                              ind %in% c(9670:9870)  ~ "Military",
+                              ind == 9920  ~ "Unemployed, last worked 5 years ago or earlier or never worked",
+
+                                    TRUE ~ NA_character_)) %>%
+
+  as_survey_design(weights = perwt) %>%
+  survey_count(race_ethnicity, industry, employment=empstat_f, name="count") %>%
+  filter(employment == "Employed") %>%
+  group_by(race_ethnicity) %>%
+  mutate(total_employed = sum(count, na.rm = T)) %>%
+  mutate(prc = 100* round(count/total_employed, 4),
+         prc2 = paste0(prc,"%")) %>%
+  ungroup()
+
+
+
+
+table_5a.2 <-  industry %>%
+  # filter(race_ethnicity %in% c("Other Latinos")) %>% 
+  select(industry, count,  prc2) %>%
+
+   # using kable
+  kable(booktabs = T,
+        col.names = c("Industry", "Number", "% Share"  ),
+      align = c("l",rep("c",2)),
+      caption = "Employment Distribution by Industry and Race/Ethnicity in Chicago, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                # latex_options = "HOLD_position",
+                ) %>%
+  column_spec(1, width = "40em") %>%
+  column_spec(2:3, width = "7em") %>%
+  # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T,
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+
+  pack_rows("Mexican", 1,14, hline_after = T  ) %>% 
+  pack_rows("Other Latinos", 15, 28, hline_before = T , hline_after = T) %>% 
+  pack_rows("White (non-Hispanic or Latino)", 29, 42,  hline_before = T , hline_after = T) %>% 
+  pack_rows("Black (non-Hispanic or Latino)", 43, 56,  hline_before = T, hline_after = T ) %>% 
+  pack_rows("Other (non-Hispanic or Latino)", 57, 70, hline_before = T, hline_after = T) %>% 
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "") 
+  
+
+table_5a.2
+
+```
+
+
+## 5B: Numbers and percentages of unionized Mexican workers
+
+
+```{r}
+  
+options(knitr.kable.NA = '') 
+
+cps_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/cps_00170.xml")) %>% 
+  clean_names() 
+# colnames(cps_ddi)
+# ipums_view(cps_ddi)
+
+# ipums_val_labels(cps_ddi$hispan)
+# ipums_val_labels(cps_ddi$empstat)
+
+
+Union <- cps_ddi %>% 
+  
+  filter( year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+  mutate(race_f = as_factor(race),
+         hispan_f = as_factor(hispan), 
+         laborforce_f = as_factor(labforce),
+         employment_f = as_factor(empstat),
+         union_f = as_factor(union)) %>%
+
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 100 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 200 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(200:612) ~ "Other Latinos",
+                                    hispan %in% c(100:109) ~ "Mexican", 
+                                    hispan ==0 & !race %in%c(100,200) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)"))) %>% 
+  
+  mutate(employment_f = case_when(empstat %in% c(1, 10, 12) ~ "Employed",
+                              TRUE ~ "other")) %>% 
+  
+  
+  filter(labforce != 0 |  empstat !=0) %>% 
+  filter(employment_f == "Employed") %>%
+  as_survey_design(weights = asecwt) %>% 
+  
+  survey_count(race_ethnicity, laborforce_f, employment_f,  union_f, name="count") %>% 
+  group_by(race_ethnicity) %>% 
+  mutate(total_employed = sum(count)) %>% 
+  filter(union_f %in% c("Member of labor union", "Covered by union but not a member")) %>% 
+  # group_by(race_ethnicity, total_employed) %>% 
+  mutate(prc = 100*round(count/total_employed, 4),
+            prc2 = paste0(prc, "%")) %>% 
+  select(race_ethnicity,union_f, total_employed,  count, prc2) %>% 
+  pivot_wider(names_from = union_f, values_from = c(count, prc2))
+  
+
+
+table5b <- Union %>% 
+  select(race_ethnicity,  total_employed,  `count_Member of labor union`, `prc2_Member of labor union`, `count_Covered by union but not a member`, `prc2_Covered by union but not a member`  ) %>% 
+
+
+  kbl(booktabs = T,
+      col.names = c("",  "" ,"Number", "Percent", "Number", "Percent"),
+      align = c("l",rep("c",5)),
+      caption = " Numbers and percentages of unionized Mexican workers by Race/Ethnicity in Illinois, 2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+ kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:5, width = "5.16em") %>%
+  add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity",  "Total Employed","Member of labor union" =2 ,"Covered by union but not a member" = 2),
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
+  row_spec(0, bold = T,
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+
+  
+  add_footnote(c( "Source: IPUMS-CPS database (2022). Tabulations by Great Cities Institute"),
+ notation = "none")
+
+table5b
+
+
+```
+
+
