@@ -159,7 +159,7 @@ table_5a.2 <-  industry %>%
 
    # using kable
   kable(booktabs = T,
-        col.names = c("Industry", "Number", "% Share"  ),
+        col.names = c("Industry", "Number", "% Share of Employed"   ),
       align = c("l",rep("c",2)),
       caption = "Employment Distribution by Industry and Race/Ethnicity in Chicago, 2018-2022",
       format.args = list(big.mark = ","),
@@ -191,6 +191,81 @@ table_5a.2 <-  industry %>%
 table_5a.2
 
 ```
+
+\clearpage
+
+## 5A.3: Numbers and percentages of Mexicans employed, by Occupation
+
+
+```{r}
+
+
+occupation = usa_data %>%
+  filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+
+  
+
+  mutate(occupation = case_when(occ %in% c(0010:3550)  ~ "Management, Business, and Financial Occupations",
+                                occ %in% c(3601:4655)  ~ "Service Occupations",
+                                occ %in% c(4700:5940)  ~ "Sales and Office Occupations",
+                                occ %in% c(6005:7640)  ~ "Natural Resources, Construction, and Maintenance Occupations",
+                                occ %in% c(7700:9760)  ~ "Production, Transportation, and Material Moving Occupations",
+                                    TRUE ~ NA_character_)) %>%
+
+  as_survey_design(weights = perwt) %>%
+  survey_count(race_ethnicity, occupation, employment=empstat_f, name="count") %>%
+  filter(employment == "Employed") %>%
+  group_by(race_ethnicity) %>%
+  mutate(total_employed = sum(count, na.rm = T)) %>%
+  mutate(prc = 100* round(count/total_employed, 4),
+         prc2 = paste0(prc,"%")) %>%
+  filter(!is.na(occupation)) %>% 
+  ungroup()
+
+
+
+
+table_5a.3 <-  occupation %>%
+  # filter(race_ethnicity %in% c("Other Latinos")) %>% 
+  select(occupation, count,  prc2) %>%
+
+   # using kable
+  kable(booktabs = T,
+        col.names = c("Occupations", "Number", "% Share of Employed"  ),
+      align = c("l",rep("c",2)),
+      caption = "Employment Distribution by Occupations Category and Race/Ethnicity in Chicago, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                # latex_options = "HOLD_position",
+                ) %>%
+  column_spec(1, width = "40em") %>%
+  column_spec(2:3, width = "7em") %>%
+  # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T,
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+
+  pack_rows("Mexican", 1,5, hline_after = T  ) %>% 
+  pack_rows("Other Latinos", 6, 10, hline_before = T , hline_after = T) %>% 
+  pack_rows("White (non-Hispanic or Latino)", 11, 15,  hline_before = T , hline_after = T) %>% 
+  pack_rows("Black (non-Hispanic or Latino)", 16, 20,  hline_before = T, hline_after = T ) %>% 
+  pack_rows("Other (non-Hispanic or Latino)", 21, 25, hline_before = T, hline_after = T) %>% 
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "") 
+  
+
+table_5a.3
+
+```
+
+
+
 
 
 ## 5B: Numbers and percentages of unionized Mexican workers
@@ -278,5 +353,6 @@ table5b
 
 
 ```
+
 
 
