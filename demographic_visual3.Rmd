@@ -123,7 +123,7 @@ Mexican_map_2020 <-
   tm_shape(Mexican,  bbox = bbox_new) +
   tm_dots(col = "Origin",
           palette = "#9eb7e5",
-          size = 0.03,
+          size = 0.025,
           legend.show = FALSE) +
   
   tm_shape(comm_2022) +
@@ -162,7 +162,7 @@ Mexican_map_2020 <-
   tm_add_legend("symbol", 
                 labels = "Mexican", 
                 col = "#9eb7e5",
-                size = 0.5,
+                size = 0.8,
                 title = "1 dot = 50 People") +
   
   tm_add_legend("line",
