@@ -26,7 +26,7 @@ chicago_ca <- st_read("Boundaries - Community Areas (current)/geo_export_2081dd0
 
 ## Get data from IPUMS: https://cran.r-project.org/web/packages/ipumsr/vignettes/ipums-api.html
 
-#get_sample_info("usa")
+nnnnnn = get_sample_info("usa")
 
 
 ## data extract

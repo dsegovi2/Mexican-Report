@@ -28,7 +28,10 @@ get_metadata_nhgis(type = "datasets")
 
 # look for info on particular data-set
 
-get_metadata_nhgis(dataset = "2000_SF1a") 
+bbbb = get_metadata_nhgis(dataset = "2000_SF1a") 
+
+bbbb$data_tables
+
 
 ## Data Extract
 
@@ -37,7 +40,7 @@ extract <- define_extract_nhgis(
   datasets = list(
     ds_spec("2018_2022_ACS5b", data_tables = c("B03001"), geog_levels = c("tract")),
     ds_spec("2008_2012_ACS5b", data_tables = c("B03001"), geog_levels = c("tract")),
-    ds_spec("2000_SF1a", data_tables = c("NPCT011B", "NH004B"), geog_levels = c("tract"))
+    ds_spec("2000_SF1a", data_tables = c("NPCT011B", "NH004B", "NP001A"), geog_levels = c("tract"))
   ),
   shapefiles = list(
     "us_tract_2022_tl2022",
