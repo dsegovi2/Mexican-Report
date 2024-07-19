@@ -1,0 +1,569 @@
+---
+title: "Mexican Report"
+author: "Education"
+date: "Great Cities Institute"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    highlight: pygments
+    extra_dependencies: ["float"]
+    fig_caption: true
+mainfont: "Arial"
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.pos="H")
+
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+library(ipumsr)
+library(tidyverse)
+library(purrr)
+library(sf)
+library(tidycensus)
+library(tidyr)
+library(readxl)
+library(sf)
+library(htmltools)
+library(leaflet)
+library(janitor)
+library(data.table)
+library(tinytex)
+library(survey) # for survey analysis
+library(srvyr)  # for tidy survey analysis
+library(tmap)
+library("kableExtra") 
+library(tmaptools)
+library("RColorBrewer") 
+#library(OpenStreetMap)
+ library(knitr)
+ #options(tinytex.verbose = TRUE)
+# tinytex::reinstall_tinytex()
+# install.packages('tinytex')
+
+#update.packages(ask = FALSE, checkBuilt = TRUE)
+# tinytex::tlmgr_update()
+# tinytex::latexmk("Education_Visual.tex")
+
+
+##### Chicago boarder
+Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
+  st_transform(crs = 4326)
+# mapview(community_shp)
+
+# Get the current bounding box of the data
+bbox_data <- st_bbox(Chicago_boundary_shp)
+
+# Calculate the range of x and y values in degrees
+xrange <- bbox_data$xmax - bbox_data$xmin
+yrange <- bbox_data$ymax - bbox_data$ymin
+
+# Calculate the center of the bounding box
+center_x <- (bbox_data$xmin + bbox_data$xmax) / 2
+center_y <- (bbox_data$ymin + bbox_data$ymax) / 2
+# Modify the bounding box to fit the desired width while keeping the height the same
+bbox_new <- c(center_x - 0.24,
+              center_y - 0.23,
+              center_x + 0.23,
+              center_y + 0.23)
+
+# osm_chicago <- read_osm(bbox_new, 
+#                         type = "bing")
+```
+
+\renewcommand{\arraystretch}{1.4}
+\clearpage
+
+
+```{r}
+
+usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(2,3,4) ~ "Other Latinos",
+                                    hispan ==1 ~ "Mexican", 
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")))
+
+
+```
+
+
+
+# Education
+
+## 2.A: Number and percentages of Mexican population in public and private schools. 
+
+```{r}
+# analysis
+# select variables
+data_chi_2018_22 <- usa_data  %>% filter(year == 2022) %>% select(year:gqtyped, perwt, hispan, race, race_ethnicity, school, schltype)
+
+
+
+# Number and Percentage of Mexican population in public and private schools compared to other groups
+
+# Step 1: Filter for individuals enrolled in school
+enrolled_in_school <- data_chi_2018_22 %>%
+  filter(school == 2)
+
+
+# Define the survey design
+survey_design <- enrolled_in_school %>% 
+  as_survey_design(weights = perwt)
+
+# Step 3: Calculate the total weighted count for each race/ethnicity group (denominator)
+total_counts <- survey_design %>%
+  group_by(race_ethnicity) %>%
+  summarize(total_weighted_count = survey_total(vartype = "se"))
+
+# Step 4: Calculate the weighted count of race/ethnicity in public and private schools (numerator)
+school_counts <- survey_design %>%
+  group_by(schltype, race_ethnicity) %>%
+  summarize(weighted_count = survey_total(vartype = "se"))
+  
+# Step 5: Calculate the percentage of race/ethnicity groups in public and private schools
+school_percentages <- school_counts %>%
+  left_join(total_counts, by = "race_ethnicity") %>%
+    mutate(percentage = paste0(round((weighted_count / total_weighted_count) * 100, 2), "%"))
+
+# Step 6: Recode schltype for clarity
+df_all <- school_percentages %>%
+  mutate(schltype = case_when(
+    schltype == 2 ~ "Public",
+    schltype == 3 ~ "Private",
+    TRUE ~ NA_character_
+  ))
+```
+
+
+```{r}
+# visual
+
+
+table_2a <- df_all %>% 
+  
+pivot_wider(id_cols =  race_ethnicity, names_from = "schltype",  values_from = c(weighted_count, total_weighted_count, percentage)) %>% 
+  select(race_ethnicity, weighted_count_Public, percentage_Public, weighted_count_Private, percentage_Private) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("", "Number", "Percent" , "Number", "Percent"),
+      align = c("l",rep("c",4)),
+      caption = "Number and percentages of Mexican population in public and private schools in Chicago, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:5, width = "6.45em")   %>%
+  add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "Public Schools" = 2, "Private Schools" = 2),
+                    # background = "#cbc9e2", 
+                    bold = T, font_size =8) %>% 
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+table_2a 
+```
+
+## 2.C: Percentage of Limited English Proficient
+
+
+```{r}
+
+# analysis
+
+data_chi_2018_22 <- usa_data %>%  filter(year == 2022) %>% select(year:gqtyped, perwt, hispan, race, race_ethnicity, school, speakeng)
+
+# Percentage of Limited English Proficient. 
+
+# Step 1: Define Survey Design
+survey_design <- data_chi_2018_22 %>%
+  as_survey_design(weights = perwt)
+
+# Step 2: Group by race_ethnicity and calculate weighted counts and totals
+lep_rate_by_ethnicity <- survey_design %>%
+  group_by(race_ethnicity) %>%
+  summarise(
+    lep_count = survey_total(speakeng %in% c(1, 6)),
+    total_count = survey_total(),
+    lep_percentage = 100 * survey_mean(speakeng %in% c(1, 6), vartype = "se")
+  ) %>%
+  mutate(lep_percentage = paste0(round(lep_percentage, 1), "%"))
+
+
+```
+
+
+```{r}
+# visual
+
+
+
+table_2c <- lep_rate_by_ethnicity %>% select(race_ethnicity, lep_count, lep_percentage) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Race/Ethnicity", "Number", "Percent"),
+      align = c("l",rep("c",2)),
+      caption = "Number and percentages of Mexican population with limited English proficiency, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:3, width = "12.9em") %>%  
+
+  row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+table_2c
+
+```
+
+## 2.D: Number and Percentages of Mexican non-citizens enrolled in public schools
+
+```{r}
+# analysis
+
+
+# Step 1: Filter for individuals enrolled in school
+enrolled_in_school <- usa_data  %>%  filter(year == 2022) %>%
+  filter(school == 2)
+
+
+# Step 2: Filter for non-citizen individuals enrolled in public schools
+enrolled_in_public_schools <- enrolled_in_school %>%
+  filter(schltype == 2 & citizen == 3)
+  
+# Step 3: Create survey design
+  
+survey_design_school <- enrolled_in_school %>%
+  as_survey_design(weights = perwt)
+  
+survey_design_public_schools <- enrolled_in_public_schools %>%
+  as_survey_design(weights = perwt)
+
+
+# Step 4: Calculate denominator (total count enrolled in school) for each subgroup
+denominator_counts <- survey_design_school %>%
+  group_by(race_ethnicity) %>%
+  summarise(num_enrolled_all_school = survey_total()) 
+  
+  
+  
+# Step 5: Calculate numerator (count of public school enrollment) for each subgroup
+numerator_counts <- survey_design_public_schools %>%
+  group_by(race_ethnicity) %>%
+  summarise(num_enrolled_public = survey_total())
+  
+  
+# Step 6: Calculate percentages and estimate SEs
+
+percentages <- numerator_counts %>%
+  left_join(denominator_counts, by = "race_ethnicity") %>%
+  mutate(percentage = 100 * num_enrolled_public / num_enrolled_all_school) %>%
+  mutate(percentage = paste0(round(percentage, 1), "%"))
+
+  
+
+
+```
+
+
+```{r}
+# visual
+
+table_2d <- percentages %>% select(race_ethnicity, num_enrolled_public, percentage) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Race/Ethnicity", "Number", "Percent"),
+      align = c("l",rep("c",2)),
+      caption = "Number and percentages of Mexican non-citizens enrolled in public schools, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:3, width = "12.9em") %>%  
+row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+table_2d
+
+```
+
+
+## 2.E: Number and Percentages of Mexican 21-24 years old without a high school diploma
+
+
+```{r}
+
+
+df <- usa_data  %>%  filter(year == 2022) %>% select(race_ethnicity, schltype, school, gradeatt, perwt, educ, age) 
+
+# Create a survey design object
+survey_design <- df %>%
+  as_survey_design(weights = perwt)
+
+
+# method: Look at 21-24 year olds without a high school diploma out of all 21-24 year olds
+
+
+# Calculate numerator: weighted count of students aged 21-24 not in school
+numerator_not_in_school <- survey_design %>%
+  filter(age >= 21, age <= 24, school == 1) %>%
+  group_by(race_ethnicity) %>%
+  summarise(not_in_school = survey_total(vartype = "se"))
+
+# Calculate denominator: weighted count of total students aged 21-24
+denominator_total_students <- survey_design %>%
+  filter(age >= 21, age <= 24) %>%
+  group_by(race_ethnicity) %>%
+  summarise(total_students = survey_total(vartype = "se"))
+
+  
+# Calculate dropout rate by joining numerator and denominator
+dropout_data <- numerator_not_in_school %>%
+  inner_join(denominator_total_students, by = "race_ethnicity") %>%
+  mutate(dropout_rate = (not_in_school / total_students) * 100) %>%
+  mutate(dropout_rate = paste0(round(dropout_rate, 1), "%"))
+
+```
+
+
+```{r}
+# visual
+
+
+table_2e <- dropout_data %>% select(race_ethnicity, not_in_school, dropout_rate) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Race/Ethnicity", "Number", "Percent"),
+      align = c("l",rep("c",2)),
+      caption = "Number and percentages of Mexican people aged 21-24 years old without a high school diploma, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:3, width = "12.9em") %>%  
+  row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+table_2e
+
+```
+
+
+## 2.F: Number and Percentage of Mexican students attending undergraduate/graduate colleges or professional schools
+
+```{r}
+
+## select variables
+df <- usa_data  %>%  filter(year == 2022) %>% select(race_ethnicity, school, gradeatt, perwt, educ, age)
+
+
+# Create survey design object
+survey_design <-df %>%
+  as_survey_design(weights = perwt)
+
+# Number and percentage of Mexican students attending area colleges
+
+# 18-24 year olds
+
+
+# Group by race_ethnicity, filter for enrolled in college/grad school and ages 18-24
+numerator_18_24 <- survey_design %>%  filter(school == 2, gradeatt %in% c(6, 7), age >= 18, age <= 24) %>% 
+  group_by(race_ethnicity) %>%
+  summarise(college_attendees = survey_total(vartype = "se"))
+
+
+# denominator calculate total number of 18-24 year olds
+denominator_18_24 <- survey_design %>% filter(age >= 18, age <= 24) %>%
+  group_by(race_ethnicity) %>%
+  summarise(total_students = survey_total(vartype = "se"))
+
+
+# Calculate percentage of students attending college within each racial and ethnic group
+college_attendance_18_24 <- left_join(numerator_18_24, denominator_18_24, by = "race_ethnicity") %>%
+  mutate(percentage_college_students = (college_attendees / total_students) * 100) %>% mutate(age = "18_24", percentage_college_students = paste0(round(percentage_college_students, 1), "%"))
+
+
+
+# 25-34 year olds
+
+# Group by race_ethnicity, filter for enrolled in college/grad school and ages 18-24
+numerator_25_34 <- survey_design %>%  filter(school == 2, gradeatt %in% c(6, 7), age >= 25, age <= 34) %>% 
+  group_by(race_ethnicity) %>%
+  summarise(college_attendees = survey_total(vartype = "se"))
+
+
+# denominator calculate total number of 18-24 year olds
+denominator_25_34 <- survey_design %>% filter(age >= 25, age <= 34) %>%
+  group_by(race_ethnicity) %>%
+  summarise(total_students = survey_total(vartype = "se"))
+
+
+# Calculate percentage of students attending college within each racial and ethnic group
+college_attendance_25_34 <- left_join(numerator_25_34, denominator_25_34, by = "race_ethnicity") %>%
+  mutate(percentage_college_students = (college_attendees / total_students) * 100) %>% mutate(age = "25_34", percentage_college_students = paste0(round(percentage_college_students, 1), "%"))
+
+
+# combine
+
+df_college <- rbind(college_attendance_18_24, college_attendance_25_34)
+
+```
+
+
+
+```{r}
+table_2f <- df_college %>% pivot_wider(id_cols =  c(race_ethnicity), names_from = "age", values_from = c(college_attendees, percentage_college_students)) %>% select(race_ethnicity,  college_attendees_18_24,  percentage_college_students_18_24,  college_attendees_25_34,  percentage_college_students_25_34) %>%
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("", "Number", "Percent" , "Number", "Percent"),
+      align = c("l",rep("c",4)),
+      caption = "Number and Percentage of Mexican students attending undergraduate/graduate colleges or professional schools, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em")  %>%
+  column_spec(2:5, width = "6.45em")  %>%
+  add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "Ages 18-24" = 2, "Ages 25-34" = 2),
+                    # background = "#cbc9e2", 
+                    bold = T, font_size =8) %>% 
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+
+table_2f
+
+```
+
+
+## 2.G: Educational Attainment of Mexicans 25 and Older
+
+
+```{r}
+df <- usa_data  %>%  filter(year == 2022) %>% select(race_ethnicity, educ, age, perwt)
+
+
+
+
+# collapse educational categories
+df <- df %>%   mutate(educ = as.character(educ)) %>% mutate(education_level = case_when(
+    educ %in% c("0", "1", "2") ~ "Grade School or Less",
+    educ %in% c("3", "4", "5") ~ "Some High School",
+    educ %in% c("6") ~ "High School",
+    educ %in% c("7") ~ "Some College",
+     educ %in% c("8", "9", "10", "11") ~ "2 years of college or higher",
+    TRUE ~ "Other"
+  ))
+
+
+# Create survey design object
+survey_design <- df %>%
+  as_survey_design(weights = perwt)
+
+# Calculate numerator: weighted count of individuals by education level and race_ethnicity
+numerator <- survey_design %>%
+  filter(age >= 25) %>%
+  group_by(race_ethnicity, education_level) %>%
+  summarise(weighted_n = survey_total(vartype = "se"))
+
+# Calculate denominator: total population by race_ethnicity
+denominator <- survey_design %>%
+  filter(age >= 25) %>%
+  group_by(race_ethnicity) %>%
+  summarise(total_pop = survey_total(vartype = "se"))
+
+# Merge numerator and denominator by race_ethnicity
+education_levels <- c("Grade School or Less", "Some High School", "High School","Some College", "2 years of college or higher")
+
+education_rates <- numerator %>%
+  left_join(denominator, by = "race_ethnicity") %>%
+  mutate(educational_rate = (weighted_n / total_pop) * 100,
+  education_level = factor(education_level, levels = education_levels))    %>%  arrange(race_ethnicity, education_level)  %>% mutate(educational_rate = paste0(round(educational_rate, 1), "%"))
+  
+```
+
+
+```{r}
+table_2g <- education_rates %>% select(race_ethnicity, education_level, weighted_n, educational_rate)  %>% pivot_wider(id_cols =  c(race_ethnicity), names_from = "education_level", values_from = c(weighted_n, educational_rate))   %>% select(race_ethnicity, 'weighted_n_Grade School or Less', 'educational_rate_Grade School or Less',  'weighted_n_Some High School', 'educational_rate_Some High School', 'weighted_n_High School', 'educational_rate_High School', 'weighted_n_Some College', 'educational_rate_Some College', 'weighted_n_2 years of college or higher', 'educational_rate_2 years of college or higher') %>% 
+
+
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("",  "Number", "Percent", "Number", "Percent" , "Number", "Percent" , "Number", "Percent" , "Number", "Percent" ),
+      align = c("l",rep("c",11)),
+      caption = "Educational Attainment of Mexicans 25 and Older, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em")  %>%
+  column_spec(2:11, width = "2.58em")  %>%
+  add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity",  "Grade School\nor Less" = 2, "Some High School" = 2, "High School" = 2, "Some College" = 2, "2 years or more\nof college" = 2),
+                    # background = "#cbc9e2", 
+                    bold = T, font_size =8) %>% 
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "") 
+
+
+table_2g
+
+```
+
