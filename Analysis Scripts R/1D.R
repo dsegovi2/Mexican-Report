@@ -22,25 +22,18 @@ install_and_load <- function(packages) {
 install_and_load(packages)
 
 
+usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(2,3,4) ~ "Other Latinos",
+                                    hispan ==1 ~ "Mexican", 
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")))
 
-ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa.xml")
+# filter for 2022
 
-# filter to chicago, 2018-2022 AC
-data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
-
-
-# 2018-2022 ACS
-data_chi_2018_22  <- data_chi %>% filter(year == 2022)  %>% clean_names()
-
-# create groups
-
-data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
-                                                                            hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
-                                                                            hispan %in% c(2,3,4) ~ "Other Hispanic/Latino",
-                                                                            hispan ==1 ~ "Mexican", 
-                                                                            hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
-                                                                            TRUE ~ NA_character_)
-)
+data_chi_2018_22 <- usa_data %>% filter(year == 2022)
 
 # 1D Income Levels and poverty rates for Mexicans, other Latinos, Black and White Populations in Chicago.
 
@@ -69,10 +62,13 @@ weighted_median_income <- data_chi_2018_22 %>%  filter(pernum == 1) %>%
   ) %>%
   ungroup()
 
+
 # final df with income levels
-income_levels <- weighted_avg_income %>% left_join(weighted_median_income)
-
-
+income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
+  mutate(
+    avg_hhincome = paste0("$", format(avg_hhincome, big.mark = ",", scientific = FALSE)),
+    weighted_median_hhincome = paste0("$", format(weighted_median_hhincome, big.mark = ",", scientific = FALSE))
+  )
 
 
 
@@ -102,11 +98,8 @@ total_weighted_poverty_count <- survey_design2 %>%
 combined <- left_join(total_weighted_pop_count, total_weighted_poverty_count)
 
 
-
-
-poverty_rate <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count/total_weighted_pop_count)*100)
-
-
+poverty_rate <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count/total_weighted_pop_count)*100,
+                                    poverty_rate   = paste0(round(poverty_rate, 1), "%")) 
 
 # export
 
