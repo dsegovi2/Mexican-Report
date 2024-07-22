@@ -19,28 +19,17 @@ install_and_load <- function(packages) {
 install_and_load(packages)
 
 # Read Data
-
-ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa.xml")
-data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
-
-# 2018-2022 ACS
-data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
-
-# create groups
-
-data_chi_2018_22 <-  data_chi_2018_22 %>% mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
-                                                                            hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
-                                                                            hispan %in% c(2,3,4) ~ "Other Hispanic/Latino",
-                                                                            hispan ==1 ~ "Mexican", 
-                                                                            hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
-                                                                            TRUE ~ NA_character_)
-)
+usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(2,3,4) ~ "Other Latinos",
+                                    hispan ==1 ~ "Mexican", 
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")))
 
 
-# High School Graduation Rate for Mexican Public school pupils + adult education registration data
-
-
-df <- data_chi_2018_22 %>% select(race_ethnicity, schltype, school, gradeatt, perwt, educ, age) 
+df <- usa_data  %>%  filter(year == 2022) %>% select(race_ethnicity, schltype, school, gradeatt, perwt, educ, age) 
 
 # Create a survey design object
 survey_design <- df %>%
@@ -50,7 +39,7 @@ survey_design <- df %>%
 # method 2: Look at 21-24 year olds without a high school diploma out of all 21-24 year olds
 
 
-# Calculate numerator: weighted count of students aged 14-18 not in school
+# Calculate numerator: weighted count of students aged 21-24 not in school
 numerator_not_in_school <- survey_design %>%
   filter(age >= 21, age <= 24, school == 1) %>%
   group_by(race_ethnicity) %>%
@@ -58,7 +47,7 @@ numerator_not_in_school <- survey_design %>%
 
 # Calculate denominator: weighted count of total students aged 21-24
 denominator_total_students <- survey_design %>%
-  filter(age >= 21, age <= 24,  gradeatt == 5) %>%
+  filter(age >= 21, age <= 24) %>%
   group_by(race_ethnicity) %>%
   summarise(total_students = survey_total(vartype = "se"))
 

@@ -22,41 +22,39 @@ install_and_load <- function(packages) {
 install_and_load(packages)
 
 
-
-ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa.xml")
-
-# filter to chicago
-data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190)  %>% clean_names()
+# read data
 
 
-# 2018-2022 ACS
-data_chi_2018_22  <- data_chi  %>% filter(year == 2022)  %>% clean_names()
+usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(2,3,4) ~ "Other Latinos",
+                                    hispan ==1 ~ "Mexican", 
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")))
+
+# filter for 2022
+
+data_chi_2018_22 <- usa_data %>% filter(year == 2022)
+
 
 # check ipums labels
 
 # Ensure data_chi_2018_22 is loaded
-tribe_labels <- ipums_val_labels(data_chi_2018_22, var = "tribe")
-tribe_labels$tribe_label <- as.factor(tribe_labels$lbl)
-tribe_labels$val <- as.character(tribe_labels$val)
-tribe_labels <- tribe_labels %>% select(val, tribe_label)
-
-
 
 # make tribe a character
-data_chi_2018_22$tribe <- as.character(data_chi_2018_22$tribe)
-
-
-data_chi_2018_22 <- data_chi_2018_22 %>% left_join(tribe_labels, by = c("tribe" = "val"))
+data_chi_2018_22$tribe_f <- as.character(data_chi_2018_22$tribe_f)
 
 
 # create native groups by collapsing categories
 
 data_recoded <- data_chi_2018_22  %>% mutate(
     tribe_label_collapsed = case_when(
-      tribe_label %in% c("Not applicable or blank", "American Indian, tribe not specified", "American Indian and Alaska Native, not specified",
+      tribe_f %in% c("Not applicable or blank", "American Indian, tribe not specified", "American Indian and Alaska Native, not specified",
                          "American Indian and Alaska Native, tribe not elsewhere classified", 
                          "American Indian, tribe not elsewhere classified", "All other specified American Indian tribe combinations") ~ "Unspecified/Other",
-      TRUE ~ tribe_label
+      TRUE ~ tribe_f
     )
   )
  
@@ -76,11 +74,13 @@ survey_design <- mexican_indigenous %>%
 tribe_count <- survey_design %>%
   survey_count(tribe_label_collapsed, name = "total_weighted_count")
 
-  
+# round 
+tribe_count  <- tribe_count %>% mutate(
+  total_weighted_count_se = round(total_weighted_count_se, 1)
+)
 
 # export
 
 write.csv(tribe_count, "Data Tables/1E.csv")
 
-sum(tribe_count$total_weighted_count)
 
