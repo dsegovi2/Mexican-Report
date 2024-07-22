@@ -82,7 +82,6 @@ weighted_age  <- df %>%
 df_final  <- pop_pyramid %>% left_join(weighted_age)
 
 
-
 # export
 
 write.csv(pop_pyramid, "Data Tables/1B_population_pyramid.csv")

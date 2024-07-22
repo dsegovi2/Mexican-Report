@@ -332,6 +332,7 @@ table_2d
 
 df <- usa_data  %>%  filter(year == 2022) %>% select(race_ethnicity, schltype, school, gradeatt, perwt, educ, age) 
 
+
 # Create a survey design object
 survey_design <- df %>%
   as_survey_design(weights = perwt)
@@ -340,9 +341,9 @@ survey_design <- df %>%
 # method: Look at 21-24 year olds without a high school diploma out of all 21-24 year olds
 
 
-# Calculate numerator: weighted count of students aged 21-24 not in school
+# Calculate numerator: weighted count of students aged 21-24 not in school and without a high school diploma
 numerator_not_in_school <- survey_design %>%
-  filter(age >= 21, age <= 24, school == 1) %>%
+  filter(age >= 21, age <= 24, school == 1, educ %in% c("0", "1", "2", "3", "4", "5")) %>%
   group_by(race_ethnicity) %>%
   summarise(not_in_school = survey_total(vartype = "se"))
 
