@@ -75,13 +75,10 @@ unemployment = usa_data %>%
          prc2 = paste0(unemployment_rate, "%"))
   
 
-
-
 table_5.a1 <- unemployment %>%
   select(race_ethnicity,  in_laborforce, count, prc2) %>%
-
+  
   # using kable
-
   kbl(booktabs = T,
       col.names = c("Race/Ethnicity",  "In the Labor Force" ,"Unemployed", "Percent"),
       align = c("l",rep("c",3)),
@@ -199,11 +196,8 @@ table_5a.2
 
 ```{r}
 
-
 occupation = usa_data %>%
   filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
-
-  
 
   mutate(occupation = case_when(occ %in% c(0010:3550)  ~ "Management, Business, and Financial Occupations",
                                 occ %in% c(3601:4655)  ~ "Service Occupations",
@@ -265,23 +259,14 @@ table_5a.3
 ```
 
 
-
-
-
 ## 5B: Numbers and percentages of unionized Mexican workers
-
 
 ```{r}
   
-options(knitr.kable.NA = '') 
+options(knitr.kable.NA = '-') 
 
 cps_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/cps_00170.xml")) %>% 
   clean_names() 
-# colnames(cps_ddi)
-# ipums_view(cps_ddi)
-
-# ipums_val_labels(cps_ddi$hispan)
-# ipums_val_labels(cps_ddi$empstat)
 
 
 Union <- cps_ddi %>% 
@@ -350,7 +335,6 @@ table5b <- Union %>%
  notation = "none")
 
 table5b
-
 
 ```
 
