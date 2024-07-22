@@ -55,18 +55,6 @@ usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexic
 
 
 
-
-usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
-  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
-                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
-                                    hispan %in% c(2,3,4) ~ "Other Latinos",
-                                    hispan ==1 ~ "Mexican", 
-                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
-                                    TRUE ~ NA_character_)) %>% 
-  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)"))) 
-# install.packages("knitr")
-
-
 ```
 \renewcommand{\arraystretch}{1.4}
 \clearpage
@@ -76,48 +64,80 @@ usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexic
 ## 6.A:Number and percentages of Mexicans by status, i.e., citizens, permanent residents, undocumented and asylum seekers, with historic trends and comparisons to other groups.
 
 ```{r}
-
-process_year <- function(data, year) {
-  
-  df <- usa_data %>% 
-    filter(year == !!year) %>% 
-    select(race_ethnicity, citizen, perwt) %>%
-    mutate(
-      citizenship_status = case_when(
-        citizen == 1 ~ "Citizen",
-        citizen == 2 ~ "Citizen",
-        citizen == 3 ~ "Not a Citizen",
-        TRUE ~ "Unknown"  # This includes N/A and any other undefined categories
-      )
+# Define df at the top
+df <- usa_data %>% 
+  select(race_ethnicity, citizen, perwt, year) %>%
+  mutate(
+    citizenship_status = case_when(
+      citizen == 1 ~ "Citizen",
+      citizen == 2 ~ "Citizen",
+      citizen == 3 ~ "Not a Citizen",
+      TRUE ~ "Unknown"  # This includes N/A and any other undefined categories
     )
-  
+  )
+
+
+# 2022
   survey_design <- df %>%
     as_survey_design(weights = perwt)
   
-  numerator <- survey_design %>%
+  numerator_2022 <- survey_design %>%
+    filter(year == 2022) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
   
-  denominator <- survey_design %>%
+  denominator_2022 <- survey_design %>%
+     filter(year == 2022)%>%
     group_by(race_ethnicity) %>%
     summarise(total_pop = survey_total(vartype = "se"))
   
-  rates <- numerator %>%
-    left_join(denominator, by = "race_ethnicity") %>%
+  df_rates_2022 <- numerator_2022 %>%
+    left_join(denominator_2022, by = "race_ethnicity") %>%
     mutate(rate = round(weighted_n / total_pop, 4)*100) %>% 
-    mutate(year = !!year)
+    mutate(year = 2022)
   
-  return(rates)
-}
-
-# Process data for 2022, 2012, and 2000
-df_rates_2022 <- process_year(data_chi, 2022)
-df_rates_2012 <- process_year(data_chi, 2012)
-df_rates_2000 <- process_year(data_chi, 2000)
-
+  
+# 2012
+  
+  numerator_2012 <- survey_design %>%
+    filter(year == 2012) %>%
+    group_by(race_ethnicity, citizenship_status) %>%
+    summarise(weighted_n = survey_total(vartype = "se"))
+  
+  denominator_2012 <- survey_design %>%
+     filter(year == 2012)%>%
+    group_by(race_ethnicity) %>%
+    summarise(total_pop = survey_total(vartype = "se"))
+  
+  df_rates_2012 <- numerator_2012 %>%
+    left_join(denominator_2012, by = "race_ethnicity") %>%
+    mutate(rate = round(weighted_n / total_pop, 4)*100) %>% 
+    mutate(year = 2012)
+  
+  
+  
+# 2000
+   numerator_2000 <- survey_design %>%
+    filter(year == 2000) %>%
+    group_by(race_ethnicity, citizenship_status) %>%
+    summarise(weighted_n = survey_total(vartype = "se"))
+  
+  denominator_2000 <- survey_design %>%
+     filter(year == 2000)%>%
+    group_by(race_ethnicity) %>%
+    summarise(total_pop = survey_total(vartype = "se"))
+  
+  df_rates_2000 <- numerator_2000 %>%
+    left_join(denominator_2000, by = "race_ethnicity") %>%
+    mutate(rate = round(weighted_n / total_pop, 4)*100) %>% 
+    mutate(year = 2000)
+   
+  
+  
+  
+  
 # Combine all years
 citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
-
 ```
 
 
