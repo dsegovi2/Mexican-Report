@@ -554,13 +554,13 @@ tribe_count  <- tribe_count %>% mutate(
 # visuals
 
 
-table_1e <- tribe_count %>% select(tribe_label_collapsed, total_weighted_count, total_weighted_count_se) %>% 
+table_1e <- tribe_count %>% select(tribe_label_collapsed, total_weighted_count) %>% 
  
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Race/Ethnicity", "Number", "Standard Error"),
-      align = c("l",rep("c",2)),
+      col.names = c("Race/Ethnicity", "Number"),
+      align = c("l",rep("c",1)),
       caption = "Population by Mexican indigenous groups, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
@@ -570,7 +570,7 @@ table_1e <- tribe_count %>% select(tribe_label_collapsed, total_weighted_count, 
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2, width = "25.8em") %>%  
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
@@ -581,4 +581,5 @@ table_1e <- tribe_count %>% select(tribe_label_collapsed, total_weighted_count, 
 
 table_1e
 ```
+
 
