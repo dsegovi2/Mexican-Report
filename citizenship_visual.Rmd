@@ -82,7 +82,7 @@ df <- usa_data %>%
     as_survey_design(weights = perwt)
   
   numerator_2022 <- survey_design %>%
-    filter(year == 2022) %>%
+    filter(year == 2022 & citizen == 3) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
   
@@ -100,7 +100,7 @@ df <- usa_data %>%
 # 2012
   
   numerator_2012 <- survey_design %>%
-    filter(year == 2012) %>%
+    filter(year == 2012 & citizen == 3) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
   
@@ -118,7 +118,7 @@ df <- usa_data %>%
   
 # 2000
    numerator_2000 <- survey_design %>%
-    filter(year == 2000) %>%
+    filter(year == 2000 & citizen == 3) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
   
@@ -133,9 +133,7 @@ df <- usa_data %>%
     mutate(year = 2000)
    
   
-  
-  
-  
+
 # Combine all years
 citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
 ```
@@ -148,15 +146,14 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
   filter(citizenship_status != "Unknown") %>% 
   select(year, race_ethnicity,  citizenship_status, rate) %>%
   pivot_wider(id_cols = race_ethnicity,   names_from =c(citizenship_status, year) , values_from = rate) %>% 
-  mutate(change_non_citizen = round(`Not a Citizen_2022` - `Not a Citizen_2000`, 2) ,
-         change_citizen = round(Citizen_2022 - Citizen_2000, 2)) %>% 
+  mutate(change_non_citizen = round(`Not a Citizen_2022` - `Not a Citizen_2000`, 2)) %>% 
     
-    select(race_ethnicity,  Citizen_2000, `Not a Citizen_2000` ,Citizen_2012, `Not a Citizen_2012`, Citizen_2022, `Not a Citizen_2022`, change_citizen, change_non_citizen) %>%
+    select(race_ethnicity, `Not a Citizen_2000` , `Not a Citizen_2012`,  `Not a Citizen_2022`,change_non_citizen) %>%
   mutate(across(-race_ethnicity, ~ paste0(., "%"))) %>% 
   
   kbl(booktabs = T,
-      col.names = c("",  "Citizen Rate" ,"Non citizen Rate", "Citizen Rate" ,"Non citizen Rate", "Citizen Rate" ,"Non citizen Rate", "Citizen Rate" ,"Non citizen Rate"),
-      align = c("l",rep("c",8)),
+      col.names = c("", "Non citizen Rate", "Non citizen Rate", "Non citizen Rate", "Non citizen Rate"),
+      align = c("l",rep("c",4)),
       caption = "Citizenship by Race/Ethnicity in Chicago, 2000-2022",
       format.args = list(big.mark = ","),
       linesep = "") %>%
@@ -166,8 +163,8 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
                 position = "center",
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:9, width = "3.8em") %>%
-  add_header_above(align = c("l", rep("c",4)), c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2), 
+  column_spec(2:5, width = "6.45em") %>%
+  add_header_above(align = c("l", rep("c",4)), c("Race/Ethnicity", "2000" = 1, "2008-2012" = 1, "2018-2022" = 1, "Change from\n2000 to 2018-2022" = 1), 
                    bold = T, font_size =8) %>%
   # row_spec(0, bold = T,
   #          # background = "#f2f0f7",
@@ -179,8 +176,6 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
 
 table_6.a1                                                                                                                                                                                                                                                                                                                                                                                                      
 ```
-
-
 
 
 
