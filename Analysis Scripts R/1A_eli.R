@@ -21,7 +21,8 @@ install_and_load(packages)
 
 getwd()
 # import packages
-chicago_ca <- st_read("Boundaries - Community Areas (current)/geo_export_2081dd0e-84f5-45c8-b501-f07b67ad9491.shp")
+chicago_ca <- st_read("Boundaries - Community Areas (current)/geo_export_2081dd0e-84f5-45c8-b501-f07b67ad9491.shp") %>% 
+  st_transform(crs = 4326)
 
 
 # Mexican Report
@@ -64,7 +65,7 @@ tract_pop_2018_2022 <- extract_2018_2022 %>%
   st_transform(4326)
 
 
-# commmunity area
+########## community area
 
 # set crs
 chicago_ca <- st_transform(chicago_ca, 4326)
@@ -81,9 +82,9 @@ tract_pop_chi_2022 <- tract_pop_2018_2022 %>%
   filter(GISJOIN %in% tract_2018_22_ca_point$GISJOIN)
 
 
-chicago_ca_2018_2022 <- tract_2018_22_ca %>% 
+chicago_ca_2018_2022 <- tract_2018_22_ca_point %>% 
   group_by(community) %>% 
-  summarize(total_pop = sum(AQYYE001, na.rm = T),
+  summarise(total_pop = sum(AQYYE001, na.rm = T),
             total_mexican = sum(AQYYE004, na.rm = T),
             prc = 100* round(total_mexican /total_pop, 4)) %>% 
   mutate(lable = str_to_title(community)) %>% 
@@ -98,7 +99,7 @@ chicago_ca_2018_22_sf <- chicago_ca %>%
   select(-community.y) 
 
 
-# 2008-2012 ACS
+######################### 2008-2012 ACS ####################################
 
 # tract 
 
@@ -110,19 +111,19 @@ extract_2008_2012 <- ipums_shape_full_join(extract_2008_2012_df, extract_2008_20
 # Data Dictionary: Q2OE004:     Hispanic or Latino: Mexican
 tract_pop_2008_2012 <- extract_2008_2012 %>% 
   filter(STATE == "Illinois" & COUNTY == "Cook County") %>% 
-  select(GISJOIN, YEAR, STUSAB, STATE, COUNTY, TRACTA, NAME_E,  Q2OE004, Q2OM004,Q2OE001) %>% 
+  select(GISJOIN, GEOID, YEAR, STUSAB, STATE, COUNTY, TRACTA, NAME_E,  Q2OE004, Q2OM004,Q2OE001) %>% 
   st_transform( 4326) %>% 
-  summarise(total_mexican = sum(Q2OE004, na.rm = T),
+  group_by(GISJOIN, YEAR, GEOID) %>% 
+  mutate(total_mexican = sum(Q2OE004, na.rm = T),
             total_pop = sum(Q2OE001, na.rm = T),
-            prc = 100* round(total_mexican /total_pop, 4)) %>% 
-  mutate(lable = str_to_title(community)) %>% 
-  mutate(lable = gsub(" ", "\n", lable))
+            prc = 100* round(total_mexican /total_pop, 4))  
+
 
 
 # commmunity area
 
 # set crs
-chicago_ca <- st_transform(chicago_ca, 4326)
+# chicago_ca <- st_transform(chicago_ca, 4326)
 
 # Calculate centroids for each census tract
 tract_2008_12_centroids <- st_centroid(tract_pop_2008_2012)
@@ -163,8 +164,10 @@ extract_2000 <- ipums_shape_full_join(extract_2000_df, extract_2000_sf, by = "GI
 # variable: AQYYE004:    Hispanic or Latino: Mexican
 
 # 2000 tract pop
-tract_pop_2000 <- extract_2000 %>% filter(STATE == "Illinois" & COUNTY == "Cook") %>% select(GISJOIN, YEAR, STUSAB, STATE, COUNTY, TRACTA, NAME, FUH001,
-                                                                                             FL5001)
+tract_pop_2000 <- extract_2000 %>% 
+  filter(STATE == "Illinois" & COUNTY == "Cook") %>% 
+  select(GISJOIN, YEAR, STUSAB, STATE, COUNTY, TRACTA, NAME, FUH001,FL5001) %>% 
+  st_transform( 4326)
 
 # FUH001: Mexican
 
@@ -172,8 +175,6 @@ tract_pop_2000 <- extract_2000 %>% filter(STATE == "Illinois" & COUNTY == "Cook"
 # commmunity area
 
 # set crs
-chicago_ca <- st_transform(chicago_ca, 4326)
-tract_pop_2000 <- st_transform(tract_pop_2000, 4326)
 
 # Calculate centroids for each census tract
 tract_2000_centroids <- st_centroid(tract_pop_2000)
@@ -181,7 +182,7 @@ tract_2000_centroids <- st_centroid(tract_pop_2000)
 # Perform a spatial join to assign community areas to centroids
 tract_2000_ca_point <- st_join(tract_2000_centroids, chicago_ca, join = st_within) %>% filter(!is.na(community))
 
-chicago_ca_2000 <- tract_2000_ca %>% 
+chicago_ca_2000 <- tract_2000_ca_point %>% 
   group_by(community) %>% 
   summarise(total_mexican = sum(FUH001, na.rm = T),
             total_pop = sum(FL5001, na.rm = T),
