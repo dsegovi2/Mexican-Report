@@ -228,7 +228,8 @@ table_5a.2
 
 ```{r}
   
-  
+options(knitr.kable.NA = '') 
+
 cps_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/cps_00170.xml")) %>% 
   clean_names() 
 # colnames(cps_ddi)
@@ -236,7 +237,6 @@ cps_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities In
 
 # ipums_val_labels(cps_ddi$hispan)
 # ipums_val_labels(cps_ddi$empstat)
-
 
 
 Union <- cps_ddi %>% 
@@ -268,20 +268,21 @@ Union <- cps_ddi %>%
   group_by(race_ethnicity) %>% 
   mutate(total_employed = sum(count)) %>% 
   filter(union_f %in% c("Member of labor union", "Covered by union but not a member")) %>% 
-  group_by(race_ethnicity, total_employed) %>% 
-  summarise(unionized = sum(count),
-            prc = 100*round(unionized/total_employed, 4),
+  # group_by(race_ethnicity, total_employed) %>% 
+  mutate(prc = 100*round(count/total_employed, 4),
             prc2 = paste0(prc, "%")) %>% 
-  distinct()
+  select(race_ethnicity,union_f, total_employed,  count, prc2) %>% 
+  pivot_wider(names_from = union_f, values_from = c(count, prc2))
+  
 
 
 table5b <- Union %>% 
-  select(race_ethnicity,total_employed,  unionized, prc2) %>% 
-  # using kable
+  select(race_ethnicity,  total_employed,  `count_Member of labor union`, `prc2_Member of labor union`, `count_Covered by union but not a member`, `prc2_Covered by union but not a member`  ) %>% 
+
 
   kbl(booktabs = T,
-      col.names = c("Race/Ethnicity",  "Total Employed" ,"Unionized Workers", "Percent"),
-      align = c("l",rep("c",3)),
+      col.names = c("",  "" ,"Number", "Percent", "Number", "Percent"),
+      align = c("l",rep("c",5)),
       caption = " Numbers and percentages of unionized Mexican workers by Race/Ethnicity in Chicago, 2022",
       format.args = list(big.mark = ","),
       linesep = "") %>%
@@ -291,10 +292,10 @@ table5b <- Union %>%
                 position = "center",
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:4, width = "8.6em") %>% 
-  # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity", "More than 30%" = 2, "More than 50%" = 2),
-  #                   # background = "#cbc9e2",
-  #                   bold = T, font_size =8) %>%
+  column_spec(2:5, width = "5.16em") %>%
+  add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity",  "Total Employed","Member of labor union" =2 ,"Covered by union but not a member" = 2),
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
   row_spec(0, bold = T,
            # background = "#f2f0f7",
            font_size = 8) %>%
@@ -308,5 +309,13 @@ table5b
 
 ```
 
+
+
+```{r}
+
+
+
+
+```
 
 

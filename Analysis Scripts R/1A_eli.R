@@ -224,3 +224,4 @@ st_write(chicago_ca_2000_sf, "Data Tables/shp/comm_pop_chi_2000.shp", driver = "
 
 
 
+
