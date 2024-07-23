@@ -79,7 +79,7 @@ usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexi
 
 
 \renewcommand{\arraystretch}{1.4}
-
+\clearpage
 
 
 

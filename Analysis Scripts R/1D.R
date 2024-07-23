@@ -39,7 +39,7 @@ data_chi_2018_22 <- usa_data %>% filter(year == 2022)
 
 # Filter the data to remove negative and extreme values
 filtered_data <- data_chi_2018_22 %>%
-  filter(hhincome > 0 & hhincome < 9999999, pernum == 1)
+  filter(hhincome >= 0 & hhincome < 9999999, pernum == 1)
   
 # Define the survey design using srvyr with only weights
 survey_design <- filtered_data  %>%
