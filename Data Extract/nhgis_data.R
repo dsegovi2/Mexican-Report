@@ -53,6 +53,44 @@ extract <- define_extract_nhgis(
   download_extract()
 
 
+################### extract_1980_2010
+
+# shp <- get_metadata_nhgis(type = "shapefiles")
+# view(shp)
+
+## datasets
+# ds <- get_metadata_nhgis(type = "datasets") %>%
+#   filter(between(group, "1920 Census", "2020 Census"))   # 1920_tPop_Chi, 1920 Census,
+
+# ds %>%
+#   filter(group == "1980 Census")
+# 
+# metadata_1980 <- get_metadata_nhgis(dataset = "1980_STF1")
+# 
+# print(metadata_1980$data_tables, n= 82) %>%
+#   filter(str_detect(description, "Spanish"))
+
+
+##### downloadind data
+extract_1980_2010 <- define_extract_nhgis(
+  "1980 NHGIS Data via IPUMS API",
+  datasets = list(ds_spec("1980_STF1", data_tables = c("NT8", "NT9A"), geog_levels = "tract"),
+                  ds_spec("1990_STF1", data_tables = c("NP8", "NP9"), geog_levels = "tract"),
+                  ds_spec("2000_SF1a", data_tables = c("NP004A", "NP011A", "NPCT011B", "NPCT011C"), geog_levels = "tract"),
+                  ds_spec("2010_SF1b", data_tables = c("PCT11"), geog_levels = "tract")
+                  ),
+  shapefiles = list("us_tract_1980_tl2000", 
+                    "us_place_1980_tl2000", 
+                    "us_tract_1990_tl2000", 
+                    "us_place_1990_tl2000",
+                    "us_tract_2000_tl2000", 
+                    "us_place_2000_tl2000",
+                    "us_tract_2010_tl2010", 
+                    "us_place_2010_tl2010"
+                    )) %>%
+  submit_extract() %>%
+  wait_for_extract() %>%
+  download_extract()
 
 
 
