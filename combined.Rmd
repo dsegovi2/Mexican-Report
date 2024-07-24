@@ -10,6 +10,10 @@ output:
     extra_dependencies: ["float"]
     fig_caption: true
 mainfont: "Arial"
+header-includes:
+  - \usepackage{titling}
+  - \pretitle{\begin{flushleft}}
+  - \posttitle{\end{flushleft}}
 editor_options: 
   chunk_output_type: console
 ---
@@ -1196,6 +1200,10 @@ table_1d.1
 
 
 
+<<<<<<< HEAD
+=======
+### 2. Poverty Rates, 2018-2022: Mexican Population at or Below 1% Poverty Threshold, 2018-2022
+>>>>>>> 7d05f21cb6bfb08607cc3bdeed0d38f75930cfb2
 
 ```{r}
 # analysis
@@ -1206,9 +1214,8 @@ table_1d.1
 # Define the survey design using srvyr with only weights
 survey_design2 <- data_chi_2018_22  %>%
   as_survey_design(weights = perwt)
-  
 
-  
+
 # Calculate poverty rates by group
 
 # Calculate total weighted count by race_category and ethnicity
@@ -1227,7 +1234,7 @@ combined <- left_join(total_weighted_pop_count, total_weighted_poverty_count)
 
 
 poverty_rate <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count/total_weighted_pop_count)*100,
-                                    poverty_rate   = paste0(round(poverty_rate, 1), "%")) 
+                                    poverty_rate   = paste0(round(poverty_rate, 1), "%"))
 
 ```
 
@@ -1235,34 +1242,37 @@ poverty_rate <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count
 ```{r}
 # visuals
 
-
-table_1d.2 <- poverty_rate  %>% select(race_ethnicity, total_weighted_poverty_count, poverty_rate) %>% 
- 
-   # using kable 
+table_1d.2 <- poverty_rate  %>% 
   
+  select(race_ethnicity, total_weighted_poverty_count, poverty_rate) %>%
+   # using kable
+
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number", "Percent"),
       align = c("l",rep("c",2)),
-      caption = "Mexican Population at or Below 1% Poverty Threshold, 2018-2022",
+      # caption = "Mexican Population at or Below 1% Poverty Threshold, 2018-2022",
       format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
+      linesep = "")  %>%
+  kable_classic(full_width = FALSE,
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                latex_options = "HOLD_position") %>% 
+                latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "12.9em") %>%
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
             font_size = 8) %>%
 
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
+           general_title = "")
 
 table_1d.2
+
+
 ```
+
 
 ## 1.E: Population by Mexican indigenous groups, 2018-2022:
 
@@ -1351,7 +1361,7 @@ table_1e
 
 # Education
 
-## 2.A: Number and percentages of Mexican population in public and private schools. 
+## 2.A: Number and percentages of Mexican population in public and private schools.
 
 ```{r}
 # analysis
@@ -1368,7 +1378,7 @@ enrolled_in_school <- data_chi_2018_22 %>%
 
 
 # Define the survey design
-survey_design <- enrolled_in_school %>% 
+survey_design <- enrolled_in_school %>%
   as_survey_design(weights = perwt)
 
 # Step 3: Calculate the total weighted count for each race/ethnicity group (denominator)
@@ -1380,7 +1390,7 @@ total_counts <- survey_design %>%
 school_counts <- survey_design %>%
   group_by(schltype, race_ethnicity) %>%
   summarize(weighted_count = survey_total(vartype = "se"))
-  
+
 # Step 5: Calculate the percentage of race/ethnicity groups in public and private schools
 school_percentages <- school_counts %>%
   left_join(total_counts, by = "race_ethnicity") %>%
@@ -1400,34 +1410,34 @@ df_all <- school_percentages %>%
 # visual
 
 
-table_2a <- df_all %>% 
-  
-pivot_wider(id_cols =  race_ethnicity, names_from = "schltype",  values_from = c(weighted_count, total_weighted_count, percentage)) %>% 
-  select(race_ethnicity, weighted_count_Public, percentage_Public, weighted_count_Private, percentage_Private) %>% 
- 
-   # using kable 
-  
+table_2a <- df_all %>%
+
+pivot_wider(id_cols =  race_ethnicity, names_from = "schltype",  values_from = c(weighted_count, total_weighted_count, percentage)) %>%
+  select(race_ethnicity, weighted_count_Public, percentage_Public, weighted_count_Private, percentage_Private) %>%
+
+   # using kable
+
   kbl(, booktabs = T,
       col.names = c("", "Number", "Percent" , "Number", "Percent"),
       align = c("l",rep("c",4)),
       caption = "Number and percentages of Mexican population in public and private schools in Chicago, 2018-2022",
       format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
+      linesep = "")  %>%
+  kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                latex_options = "HOLD_position") %>% 
+                latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
   column_spec(2:5, width = "6.45em")   %>%
   add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "Public Schools" = 2, "Private Schools" = 2),
-                    # background = "#cbc9e2", 
-                    bold = T, font_size =8) %>% 
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
 
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
+           general_title = "")
 
-table_2a 
+table_2a
 ```
 
 
@@ -1442,7 +1452,7 @@ table_2a
 
 data_chi_2018_22 <- usa_data %>%  filter(year == 2022) %>% select(year:gqtyped, perwt, hispan, race, race_ethnicity, school, speakeng)
 
-# Percentage of Limited English Proficient. 
+# Percentage of Limited English Proficient.
 
 # Step 1: Define Survey Design
 survey_design <- data_chi_2018_22 %>%
@@ -1467,30 +1477,30 @@ lep_rate_by_ethnicity <- survey_design %>%
 
 
 
-table_2c <- lep_rate_by_ethnicity %>% select(race_ethnicity, lep_count, lep_percentage) %>% 
- 
-   # using kable 
-  
+table_2c <- lep_rate_by_ethnicity %>% select(race_ethnicity, lep_count, lep_percentage) %>%
+
+   # using kable
+
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number", "Percent"),
       align = c("l",rep("c",2)),
       caption = "Number and percentages of Mexican population with limited English proficiency, 2018-2022",
       format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
+      linesep = "")  %>%
+  kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                latex_options = "HOLD_position") %>% 
+                latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "12.9em") %>%
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
             font_size = 8) %>%
 
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
+           general_title = "")
 
 table_2c
 
@@ -1510,12 +1520,12 @@ enrolled_in_school <- usa_data  %>%  filter(year == 2022) %>%
 # Step 2: Filter for non-citizen individuals enrolled in public schools
 enrolled_in_public_schools <- enrolled_in_school %>%
   filter(schltype == 2 & citizen == 3)
-  
+
 # Step 3: Create survey design
-  
+
 survey_design_school <- enrolled_in_school %>%
   as_survey_design(weights = perwt)
-  
+
 survey_design_public_schools <- enrolled_in_public_schools %>%
   as_survey_design(weights = perwt)
 
@@ -1523,16 +1533,16 @@ survey_design_public_schools <- enrolled_in_public_schools %>%
 # Step 4: Calculate denominator (total count enrolled in school) for each subgroup
 denominator_counts <- survey_design_school %>%
   group_by(race_ethnicity) %>%
-  summarise(num_enrolled_all_school = survey_total()) 
-  
-  
-  
+  summarise(num_enrolled_all_school = survey_total())
+
+
+
 # Step 5: Calculate numerator (count of public school enrollment) for each subgroup
 numerator_counts <- survey_design_public_schools %>%
   group_by(race_ethnicity) %>%
   summarise(num_enrolled_public = survey_total())
-  
-  
+
+
 # Step 6: Calculate percentages and estimate SEs
 
 percentages <- numerator_counts %>%
@@ -1540,7 +1550,7 @@ percentages <- numerator_counts %>%
   mutate(percentage = 100 * num_enrolled_public / num_enrolled_all_school) %>%
   mutate(percentage = paste0(round(percentage, 1), "%"))
 
-  
+
 
 
 ```
@@ -1549,28 +1559,28 @@ percentages <- numerator_counts %>%
 ```{r}
 # visual
 
-table_2d <- percentages %>% select(race_ethnicity, num_enrolled_public, percentage) %>% 
- 
-   # using kable 
-  
+table_2d <- percentages %>% select(race_ethnicity, num_enrolled_public, percentage) %>%
+
+   # using kable
+
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number", "Percent"),
       align = c("l",rep("c",2)),
       caption = "Number and percentages of Mexican non-citizens enrolled in public schools, 2018-2022",
       format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
+      linesep = "")  %>%
+  kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                latex_options = "HOLD_position") %>% 
+                latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "12.9em") %>%
 row_spec(0, bold = T,
              #background = "#f2f0f7",
             font_size = 8) %>%
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
+           general_title = "")
 
 table_2d
 
@@ -1583,7 +1593,7 @@ table_2d
 ```{r}
 
 
-df <- usa_data  %>%  filter(year == 2022) %>% select(race_ethnicity, schltype, school, gradeatt, perwt, educ, age) 
+df <- usa_data  %>%  filter(year == 2022) %>% select(race_ethnicity, schltype, school, gradeatt, perwt, educ, age)
 
 
 # Create a survey design object
@@ -1606,7 +1616,7 @@ denominator_total_students <- survey_design %>%
   group_by(race_ethnicity) %>%
   summarise(total_students = survey_total(vartype = "se"))
 
-  
+
 # Calculate dropout rate by joining numerator and denominator
 dropout_data <- numerator_not_in_school %>%
   inner_join(denominator_total_students, by = "race_ethnicity") %>%
@@ -1620,29 +1630,29 @@ dropout_data <- numerator_not_in_school %>%
 # visual
 
 
-table_2e <- dropout_data %>% select(race_ethnicity, not_in_school, dropout_rate) %>% 
- 
-   # using kable 
-  
+table_2e <- dropout_data %>% select(race_ethnicity, not_in_school, dropout_rate) %>%
+
+   # using kable
+
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number", "Percent"),
       align = c("l",rep("c",2)),
       caption = "Number and percentages of Mexican people aged 21-24 years old without a high school diploma, 2018-2022",
       format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
+      linesep = "")  %>%
+  kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                latex_options = "HOLD_position") %>% 
+                latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "12.9em") %>%
   row_spec(0, bold = T,
              #background = "#f2f0f7",
             font_size = 8) %>%
 
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
+           general_title = "")
 
 table_2e
 
@@ -1671,7 +1681,7 @@ survey_design <-df %>%
 
 
 # Group by race_ethnicity, filter for enrolled in college/grad school and ages 18-24
-numerator_18_24 <- survey_design %>%  filter(school == 2, gradeatt %in% c(6, 7), age >= 18, age <= 24) %>% 
+numerator_18_24 <- survey_design %>%  filter(school == 2, gradeatt %in% c(6, 7), age >= 18, age <= 24) %>%
   group_by(race_ethnicity) %>%
   summarise(college_attendees = survey_total(vartype = "se"))
 
@@ -1691,7 +1701,7 @@ college_attendance_18_24 <- left_join(numerator_18_24, denominator_18_24, by = "
 # 25-34 year olds
 
 # Group by race_ethnicity, filter for enrolled in college/grad school and ages 18-24
-numerator_25_34 <- survey_design %>%  filter(school == 2, gradeatt %in% c(6, 7), age >= 25, age <= 34) %>% 
+numerator_25_34 <- survey_design %>%  filter(school == 2, gradeatt %in% c(6, 7), age >= 25, age <= 34) %>%
   group_by(race_ethnicity) %>%
   summarise(college_attendees = survey_total(vartype = "se"))
 
@@ -1717,28 +1727,28 @@ df_college <- rbind(college_attendance_18_24, college_attendance_25_34)
 
 ```{r}
 table_2f <- df_college %>% pivot_wider(id_cols =  c(race_ethnicity), names_from = "age", values_from = c(college_attendees, percentage_college_students)) %>% select(race_ethnicity,  college_attendees_18_24,  percentage_college_students_18_24,  college_attendees_25_34,  percentage_college_students_25_34) %>%
- 
-   # using kable 
-  
+
+   # using kable
+
   kbl(, booktabs = T,
       col.names = c("", "Number", "Percent" , "Number", "Percent"),
       align = c("l",rep("c",4)),
       caption = "Number and Percentage of Mexican students attending undergraduate/graduate colleges or professional schools, 2018-2022",
       format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
+      linesep = "")  %>%
+  kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                latex_options = "HOLD_position") %>% 
+                latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em")  %>%
   column_spec(2:5, width = "6.45em")  %>%
   add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "Ages 18-24" = 2, "Ages 25-34" = 2),
-                    # background = "#cbc9e2", 
-                    bold = T, font_size =8) %>% 
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
 
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
+           general_title = "")
 
 
 table_2f
@@ -1791,36 +1801,36 @@ education_rates <- numerator %>%
   left_join(denominator, by = "race_ethnicity") %>%
   mutate(educational_rate = (weighted_n / total_pop) * 100,
   education_level = factor(education_level, levels = education_levels))    %>%  arrange(race_ethnicity, education_level)  %>% mutate(educational_rate = paste0(round(educational_rate, 1), "%"))
-  
+
 ```
 
 
 ```{r}
-table_2g <- education_rates %>% select(race_ethnicity, education_level, weighted_n, educational_rate)  %>% pivot_wider(id_cols =  c(race_ethnicity), names_from = "education_level", values_from = c(weighted_n, educational_rate))   %>% select(race_ethnicity, 'weighted_n_Grade School or Less', 'educational_rate_Grade School or Less',  'weighted_n_Some High School', 'educational_rate_Some High School', 'weighted_n_High School', 'educational_rate_High School', 'weighted_n_Some College', 'educational_rate_Some College', 'weighted_n_2 years of college or higher', 'educational_rate_2 years of college or higher') %>% 
+table_2g <- education_rates %>% select(race_ethnicity, education_level, weighted_n, educational_rate)  %>% pivot_wider(id_cols =  c(race_ethnicity), names_from = "education_level", values_from = c(weighted_n, educational_rate))   %>% select(race_ethnicity, 'weighted_n_Grade School or Less', 'educational_rate_Grade School or Less',  'weighted_n_Some High School', 'educational_rate_Some High School', 'weighted_n_High School', 'educational_rate_High School', 'weighted_n_Some College', 'educational_rate_Some College', 'weighted_n_2 years of college or higher', 'educational_rate_2 years of college or higher') %>%
 
 
- 
-   # using kable 
-  
+
+   # using kable
+
   kbl(, booktabs = T,
       col.names = c("",  "Number", "Percent", "Number", "Percent" , "Number", "Percent" , "Number", "Percent" , "Number", "Percent" ),
       align = c("l",rep("c",11)),
       caption = "Educational Attainment of Mexicans 25 and Older, 2018-2022",
       format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
+      linesep = "")  %>%
+  kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                latex_options = "HOLD_position") %>% 
+                latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em")  %>%
   column_spec(2:11, width = "2.58em")  %>%
   add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity",  "Grade School\nor Less" = 2, "Some High School" = 2, "High School" = 2, "Some College" = 2, "2 years or more\nof college" = 2),
-                    # background = "#cbc9e2", 
-                    bold = T, font_size =8) %>% 
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
 
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "") 
+           general_title = "")
 
 
 table_2g
@@ -1838,42 +1848,42 @@ table_2g
 ```{r}
 # homeownership = read.csv("Data Tables/3.A.homeownership.csv" )
 
-table_a3 <-  homeownership %>% 
-  
-  filter(ownershp_f == "Owned or being bought (loan)") %>% 
+table_a3 <-  homeownership %>%
 
-  pivot_wider(id_cols =  c(race_ethnicity, ownershp_f), names_from = "year", values_from = c(count, per, per2)) %>% 
+  filter(ownershp_f == "Owned or being bought (loan)") %>%
+
+  pivot_wider(id_cols =  c(race_ethnicity, ownershp_f), names_from = "year", values_from = c(count, per, per2)) %>%
 
   mutate(diff2000_2022 = count_2022 - count_2000,
-         diff_per = round(per_2022 - per_2000, 4), 
+         diff_per = round(per_2022 - per_2000, 4),
          diff_per2 = paste0(diff_per,"%")
-         ) %>% 
-  select(race_ethnicity, count_2000, per2_2000, count_2012, per2_2012, count_2022, per2_2022, diff2000_2022, diff_per2) %>% 
- 
-   # using kable 
-  
+         ) %>%
+  select(race_ethnicity, count_2000, per2_2000, count_2012, per2_2012, count_2022, per2_2022, diff2000_2022, diff_per2) %>%
+
+   # using kable
+
   kbl(, booktabs = T,
       col.names = c("", "Number", "Percent" , "Number", "Percent", "Number", "Percent", "Number", "Percent"),
       align = c("l",rep("c",8)),
       caption = "Homeownership by Race/Ethnicity in Chicago, 2000, 2008-2012, and 2018-2022",
       format.args = list(big.mark = ","),
-      linesep = "") %>% 
-  kable_classic(full_width = F,  
+      linesep = "") %>%
+  kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                latex_options = "HOLD_position") %>% 
+                latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
   column_spec(2:9, width = "3.8em") %>%
   add_header_above( align = c("l", rep("c",4)), c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
-                    # background = "#cbc9e2", 
-                    bold = T, font_size =8) %>% 
-  # row_spec(0, bold = T, 
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
+  # row_spec(0, bold = T,
   #          # background = "#f2f0f7",
-  #          font_size = 8) %>% 
-  
+  #          font_size = 8) %>%
+
   footnote(general = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
+           general_title = "")
 
 table_a3
 
@@ -1954,8 +1964,8 @@ table_3.b1
 
 ```{r}
 rent_burdened = usa_data %>%
-  select(pernum, city, year, rentgrs, hhincome, ownershp_f, hhwt, race_ethnicity ) %>% 
-  filter( city == 1190, pernum == 1, year == 2022) %>%  
+  select(pernum, city, year, rentgrs, hhincome, ownershp_f, hhwt, race_ethnicity ) %>%
+  filter( city == 1190, pernum == 1, year == 2022) %>%
 
   group_by(race_ethnicity, ownershp_f) %>%
   mutate(total = sum(hhwt, na.rm = T)) %>%
@@ -1963,15 +1973,15 @@ rent_burdened = usa_data %>%
   filter(hhincome != 9999999 ) %>%
   filter(rentgrs!= 0) %>%
 
-  mutate(monthly_income = hhincome/12, 
+  mutate(monthly_income = hhincome/12,
         rent_income = rentgrs/monthly_income,
          burdened_30 = if_else(rent_income >0.3 , "More than 30%","Less than 30%"),
-         burdened_50 = if_else(rent_income >0.5, "More than 50%", "Less than 50%")) %>% 
+         burdened_50 = if_else(rent_income >0.5, "More than 50%", "Less than 50%")) %>%
   as_survey_design(weights = hhwt) %>%
   survey_count(year, race_ethnicity, total,ownershp_f, burdened_30, burdened_50 , name="count") %>%
   mutate(per = 100*round(count/total, 4),
-         per2 = paste0(per,"%")) 
- 
+         per2 = paste0(per,"%"))
+
 
   ####### prepare data for the table
 
@@ -2015,9 +2025,9 @@ table_3.b2_2 <- table_3.b2 %>%
   #          font_size = 8) %>%
 
   # footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute.Rent Burdened Households Defined as Spending 30% or More of Income on Rent",
-  #          general_title = "") %>% 
+  #          general_title = "") %>%
   add_footnote(c("Rent Burdened Households Defined as Spending 30% or More of Income on Rent", "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute"),
- notation = "none") 
+ notation = "none")
 
 
 table_3.b2_2
@@ -2029,7 +2039,7 @@ table_3.b2_2
 ```{r}
 
 owncost_burdened = usa_data %>%
-  select(pernum, city, year, owncost, hhincome, ownershp_f, hhwt, race_ethnicity ) %>% 
+  select(pernum, city, year, owncost, hhincome, ownershp_f, hhwt, race_ethnicity ) %>%
   filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
 
   group_by(race_ethnicity, ownershp_f) %>%
@@ -2083,7 +2093,7 @@ table_3.b3_2 <- table_3.b3 %>%
                 position = "center",
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:5, width = "6.45em") %>% 
+  column_spec(2:5, width = "6.45em") %>%
   add_header_above(align = c("l", rep("c",2)), c("Race/Ethnicity", "More than 30%" = 2, "More than 50%" = 2),
                     # background = "#cbc9e2",
                     bold = T, font_size =8) %>%
@@ -2091,7 +2101,7 @@ table_3.b3_2 <- table_3.b3 %>%
   #          # background = "#f2f0f7",
   #          font_size = 8) %>%
 
-  
+
   add_footnote(c("Own Cost Burdened Households Defined as ?", "Source: IPUMS-USA database (2018-2022).Tabulations by Great Cities Institute"),
  notation = "none")
 
@@ -2103,23 +2113,23 @@ table_3.b3_2
 
 ```{r}
 
-community_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries - Community Areas (current)/geo_export_2081dd0e-84f5-45c8-b501-f07b67ad9491.shp") %>% 
-  st_transform( crs = 4326) %>% 
+community_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries - Community Areas (current)/geo_export_2081dd0e-84f5-45c8-b501-f07b67ad9491.shp") %>%
+  st_transform( crs = 4326) %>%
   select(community,geometry)
 
 
-chicago_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/shp files/selected_centroid_2020.shp") %>% 
-  select(GEOID, geometry) %>% 
+chicago_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/shp files/selected_centroid_2020.shp") %>%
+  select(GEOID, geometry) %>%
   st_transform( crs = 4326)
 
 
 census_centroids_2022 <- st_centroid(chicago_shp)
 
 # Spatial join: attach community area names to census tracts based on centroid location
-census_community_2022 <- st_join(census_centroids_2022, 
-                                 community_shp, 
-                                 join = st_within) %>% 
-  mutate(lable = str_to_title(community)) %>% 
+census_community_2022 <- st_join(census_centroids_2022,
+                                 community_shp,
+                                 join = st_within) %>%
+  mutate(lable = str_to_title(community)) %>%
   mutate(lable = gsub(" ", "\n", lable))
 
 # write_sf(census_community_2022, "C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/shp files/census_community_2022.shp")
@@ -2127,7 +2137,7 @@ census_community_2022 <- st_join(census_centroids_2022,
 # search_variables <- load_variables(2022,
 #                          dataset = "acs5",
 #                          cache = TRUE)
-# 
+#
 # view(search_variables)
 
 # options(tigris_use_cache = TRUE)
@@ -2137,27 +2147,27 @@ house_value_data <-  get_acs(
   geography = "tract",
   variables = c("Not Hispanic or Latino"="B03001_002",
                 "Hispanic or Latino"="B03001_003",
-                "Mexican" = "B03001_004", 
+                "Mexican" = "B03001_004",
                 "total_pop"= "B03001_001"),
-                
-  summary_var =  "B25077_001",              
+
+  summary_var =  "B25077_001",
   state = 17,
-  year = 2022) %>% 
-  rename("Mvalue" = "summary_est") %>% 
+  year = 2022) %>%
+  rename("Mvalue" = "summary_est") %>%
 
-  filter(GEOID %in% c(chicago_shp$GEOID)) %>% 
-  left_join(census_community_2022 %>% st_drop_geometry(), by = "GEOID") %>% 
-  pivot_wider(id_cols = c(GEOID , NAME, Mvalue, community ), names_from = variable, values_from = estimate) %>% 
+  filter(GEOID %in% c(chicago_shp$GEOID)) %>%
+  left_join(census_community_2022 %>% st_drop_geometry(), by = "GEOID") %>%
+  pivot_wider(id_cols = c(GEOID , NAME, Mvalue, community ), names_from = variable, values_from = estimate) %>%
 
-  group_by(community) %>% 
+  group_by(community) %>%
   summarise(total_his = sum(`Hispanic or Latino`, na.rm = T),
          total_mexican = sum(Mexican, na.rm = T),
          total_pop = sum(total_pop, na.rm = T),
-         prc_mexican = total_mexican/total_pop, 
-         Mvalue = median(Mvalue, na.rm = T)) 
+         prc_mexican = total_mexican/total_pop,
+         Mvalue = median(Mvalue, na.rm = T))
 
-comunity_house_value_shp <- left_join(community_shp, house_value_data,  by = join_by(community == community)) %>% 
-  mutate(lable = str_to_title(community)) %>% 
+comunity_house_value_shp <- left_join(community_shp, house_value_data,  by = join_by(community == community)) %>%
+  mutate(lable = str_to_title(community)) %>%
   mutate(lable = gsub(" ", "\n", lable))
 
 
@@ -2202,17 +2212,17 @@ value_map_2020 <-
             legend.position = c(0.03, 0.12),
             legend.bg.color = "white",
             legend.bg.alpha = .3) +       # manually position legend) +
-  
+
   tm_credits("Data source:\n5-year ACS (2018-2022)\nMap Generated by:The Great Cities Institute",
              fontface = "bold",
              position = c("left","bottom"), size = 0.8)+
-  
-  
+
+
   tm_credits("Median House Value in Chicago, 2018-2022",
              fontface = "bold",
              position = c("left","top"), size = 1.25)+
 
-  
+
   tm_add_legend("line",
                 labels = c("Chicago Border","" ,"Community Areas with More Than\n50% Share of Mexican Population", ""),
                 col = c("#343a40","white" ,"#9b2226", "white"),
@@ -2229,18 +2239,18 @@ value_map_2020
 
 ```
 
-### Graph
+
 
 ```{r fig.width=6, fig.height=5 ,fig.align='center'}
 ####### Barchart: "op Ten Counties in Illinois with the Highest Population in Labor Force
-Mhouse_value_plot <- comunity_house_value_shp %>% 
-  filter(prc_mexican>=0.5) %>% 
-  arrange(desc(Mvalue)) %>% 
-  mutate(community2 = str_to_title(community)) %>% 
+Mhouse_value_plot <- comunity_house_value_shp %>%
+  filter(prc_mexican>=0.5) %>%
+  arrange(desc(Mvalue)) %>%
+  mutate(community2 = str_to_title(community)) %>%
   mutate(community2 = factor(community2),
-         community2 = fct_reorder(community2, Mvalue)) %>% 
+         community2 = fct_reorder(community2, Mvalue)) %>%
   ggplot(aes(y = community2, x = Mvalue) ) +
-  geom_bar( stat = "identity", 
+  geom_bar( stat = "identity",
             fill = "#6baed6",
             color = "#9b2226",
            width=0.7,
@@ -2264,12 +2274,12 @@ Mhouse_value_plot <- comunity_house_value_shp %>%
         axis.title.y = element_blank(),
         axis.text.x = element_blank(),
         axis.line.x = element_blank())
-  
-  
+
+
   Mhouse_value_plot
 ```
 
-# Health 
+# Health
 
 ## 4.A: Number and Percentages of Mexicans without Health Insurance, 2018-2022:
 
@@ -2282,27 +2292,27 @@ df <- usa_data %>%  filter(year == 2022) %>% select(race_ethnicity, hcovany, per
 # Create survey design object
 survey_design <- df %>%
   as_survey_design(weights = perwt)
-  
-  
+
+
 # Calculate numerator: weighted count of individuals without health insurance by race_ethnicity
 numerator_without_insurance <- survey_design %>%
-  filter(hcovany == 1) %>% 
+  filter(hcovany == 1) %>%
   group_by(race_ethnicity) %>%
   summarise(weighted_n_without_insurance = survey_total(vartype = "se"))
 
 # Calculate denominator: total population by race_ethnicity
 denominator <- survey_design %>%
   group_by(race_ethnicity) %>%
-  summarise(total_pop = survey_total(vartype = "se")) 
-  
+  summarise(total_pop = survey_total(vartype = "se"))
+
 # calculate rate
 
 # Join numerator and denominator
 df_rates <- numerator_without_insurance %>%
   left_join(denominator, by = "race_ethnicity") %>%
-  mutate(no_insurance_rate = (weighted_n_without_insurance / total_pop) * 100, 
+  mutate(no_insurance_rate = (weighted_n_without_insurance / total_pop) * 100,
          no_insurance_rate = paste0(round(no_insurance_rate, 1), "%"))
-  
+
 
 
 ```
@@ -2311,33 +2321,33 @@ df_rates <- numerator_without_insurance %>%
 ```{r}
 # visuals
 # visuals
-table_1a <- df_rates  %>% select(race_ethnicity, weighted_n_without_insurance, no_insurance_rate)   %>% 
- 
-   # using kable 
-  
+table_1a <- df_rates  %>% select(race_ethnicity, weighted_n_without_insurance, no_insurance_rate)   %>%
+
+   # using kable
+
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number without health insurance", "No Insurance Rate"),
       align = c("l",rep("c",2)),
       caption = "No Health Insurance, 2018-2022",
       format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
+      linesep = "")  %>%
+  kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                latex_options = "HOLD_position") %>% 
+                latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "12.9em") %>%
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
             font_size = 8) %>%
 
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
+           general_title = "")
 
 
-table_1a 
+table_1a
 
 ```
 
@@ -2351,22 +2361,22 @@ table_1a
 
 ```{r}
 
-unemployment = usa_data %>% 
-  filter( city == 1190, year == 2022) %>%  
-  
-  as_survey_design(weights = perwt) %>% 
-  survey_count(race_ethnicity, employment=empstat_f, laborforce= labforce_f,  name="count") %>% 
-  filter(laborforce == "Yes, in the labor force") %>% 
-  group_by(race_ethnicity) %>% 
-  mutate(in_laborforce = sum(count)) %>% 
-  filter(employment == "Unemployed") %>% 
+unemployment = usa_data %>%
+  filter( city == 1190, year == 2022) %>%
+
+  as_survey_design(weights = perwt) %>%
+  survey_count(race_ethnicity, employment=empstat_f, laborforce= labforce_f,  name="count") %>%
+  filter(laborforce == "Yes, in the labor force") %>%
+  group_by(race_ethnicity) %>%
+  mutate(in_laborforce = sum(count)) %>%
+  filter(employment == "Unemployed") %>%
   mutate(unemployment_rate = 100*round(count/in_laborforce, 4),
          prc2 = paste0(unemployment_rate, "%"))
-  
+
 
 table_5.a1 <- unemployment %>%
   select(race_ethnicity,  in_laborforce, count, prc2) %>%
-  
+
   # using kable
   kbl(booktabs = T,
       col.names = c("Race/Ethnicity",  "In the Labor Force" ,"Unemployed", "Percent"),
@@ -2380,7 +2390,7 @@ table_5.a1 <- unemployment %>%
                 position = "center",
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:4, width = "8.6em") %>% 
+  column_spec(2:4, width = "8.6em") %>%
   # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity", "More than 30%" = 2, "More than 50%" = 2),
   #                   # background = "#cbc9e2",
   #                   bold = T, font_size =8) %>%
@@ -2388,7 +2398,7 @@ table_5.a1 <- unemployment %>%
            # background = "#f2f0f7",
            font_size = 8) %>%
 
-  
+
   add_footnote(c( "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute"),
  notation = "none")
 
@@ -2407,7 +2417,7 @@ table_5.a1
 industry = usa_data %>%
   filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
 
-  
+
 
   mutate(industry = case_when(ind %in% c(0170:0490)  ~ "Agriculture, Forestry, Fishing, and Hunting, and Mining",
                               ind == 0770  ~ "Construction",
@@ -2440,7 +2450,7 @@ industry = usa_data %>%
 
 
 table_5a.2 <-  industry %>%
-  # filter(race_ethnicity %in% c("Other Latinos")) %>% 
+  # filter(race_ethnicity %in% c("Other Latinos")) %>%
   select(industry, count,  prc2) %>%
 
    # using kable
@@ -2465,14 +2475,14 @@ table_5a.2 <-  industry %>%
            # background = "#f2f0f7",
            font_size = 8) %>%
 
-  pack_rows("Mexican", 1,14, hline_after = T  ) %>% 
-  pack_rows("Other Latinos", 15, 28, hline_before = T , hline_after = T) %>% 
-  pack_rows("White (non-Hispanic or Latino)", 29, 42,  hline_before = T , hline_after = T) %>% 
-  pack_rows("Black (non-Hispanic or Latino)", 43, 56,  hline_before = T, hline_after = T ) %>% 
-  pack_rows("Other (non-Hispanic or Latino)", 57, 70, hline_before = T, hline_after = T) %>% 
+  pack_rows("Mexican", 1,14, hline_after = T  ) %>%
+  pack_rows("Other Latinos", 15, 28, hline_before = T , hline_after = T) %>%
+  pack_rows("White (non-Hispanic or Latino)", 29, 42,  hline_before = T , hline_after = T) %>%
+  pack_rows("Black (non-Hispanic or Latino)", 43, 56,  hline_before = T, hline_after = T ) %>%
+  pack_rows("Other (non-Hispanic or Latino)", 57, 70, hline_before = T, hline_after = T) %>%
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "") 
-  
+           general_title = "")
+
 
 table_5a.2
 
@@ -2502,14 +2512,14 @@ occupation = usa_data %>%
   mutate(total_employed = sum(count, na.rm = T)) %>%
   mutate(prc = 100* round(count/total_employed, 4),
          prc2 = paste0(prc,"%")) %>%
-  filter(!is.na(occupation)) %>% 
+  filter(!is.na(occupation)) %>%
   ungroup()
 
 
 
 
 table_5a.3 <-  occupation %>%
-  # filter(race_ethnicity %in% c("Other Latinos")) %>% 
+  # filter(race_ethnicity %in% c("Other Latinos")) %>%
   select(occupation, count,  prc2) %>%
 
    # using kable
@@ -2534,14 +2544,14 @@ table_5a.3 <-  occupation %>%
            # background = "#f2f0f7",
            font_size = 8) %>%
 
-  pack_rows("Mexican", 1,5, hline_after = T  ) %>% 
-  pack_rows("Other Latinos", 6, 10, hline_before = T , hline_after = T) %>% 
-  pack_rows("White (non-Hispanic or Latino)", 11, 15,  hline_before = T , hline_after = T) %>% 
-  pack_rows("Black (non-Hispanic or Latino)", 16, 20,  hline_before = T, hline_after = T ) %>% 
-  pack_rows("Other (non-Hispanic or Latino)", 21, 25, hline_before = T, hline_after = T) %>% 
+  pack_rows("Mexican", 1,5, hline_after = T  ) %>%
+  pack_rows("Other Latinos", 6, 10, hline_before = T , hline_after = T) %>%
+  pack_rows("White (non-Hispanic or Latino)", 11, 15,  hline_before = T , hline_after = T) %>%
+  pack_rows("Black (non-Hispanic or Latino)", 16, 20,  hline_before = T, hline_after = T ) %>%
+  pack_rows("Other (non-Hispanic or Latino)", 21, 25, hline_before = T, hline_after = T) %>%
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "") 
-  
+           general_title = "")
+
 
 table_5a.3
 
@@ -2551,17 +2561,17 @@ table_5a.3
 ## 5.B: Numbers and percentages of unionized Mexican workers
 
 ```{r}
-  
-options(knitr.kable.NA = '-') 
+
+options(knitr.kable.NA = '-')
 
 
 
 
-Union <- cps_ddi %>% 
-  
+Union <- cps_ddi %>%
+
   filter( year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
   mutate(race_f = as_factor(race),
-         hispan_f = as_factor(hispan), 
+         hispan_f = as_factor(hispan),
          laborforce_f = as_factor(labforce),
          employment_f = as_factor(empstat),
          union_f = as_factor(union)) %>%
@@ -2569,33 +2579,33 @@ Union <- cps_ddi %>%
   mutate(race_ethnicity = case_when(hispan ==0 & race == 100 ~ "White (non-Hispanic or Latino)",
                                     hispan ==0 & race == 200 ~ "Black (non-Hispanic or Latino)",
                                     hispan %in% c(200:612) ~ "Other Latinos",
-                                    hispan %in% c(100:109) ~ "Mexican", 
+                                    hispan %in% c(100:109) ~ "Mexican",
                                     hispan ==0 & !race %in%c(100,200) ~ "Other (non-Hispanic or Latino)",
-                                    TRUE ~ NA_character_)) %>% 
-  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)"))) %>% 
-  
+                                    TRUE ~ NA_character_)) %>%
+  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)"))) %>%
+
   mutate(employment_f = case_when(empstat %in% c(1, 10, 12) ~ "Employed",
-                              TRUE ~ "other")) %>% 
-  
-  
-  filter(labforce != 0 |  empstat !=0) %>% 
+                              TRUE ~ "other")) %>%
+
+
+  filter(labforce != 0 |  empstat !=0) %>%
   filter(employment_f == "Employed") %>%
-  as_survey_design(weights = asecwt) %>% 
-  
-  survey_count(race_ethnicity, laborforce_f, employment_f,  union_f, name="count") %>% 
-  group_by(race_ethnicity) %>% 
-  mutate(total_employed = sum(count)) %>% 
-  filter(union_f %in% c("Member of labor union", "Covered by union but not a member")) %>% 
-  # group_by(race_ethnicity, total_employed) %>% 
+  as_survey_design(weights = asecwt) %>%
+
+  survey_count(race_ethnicity, laborforce_f, employment_f,  union_f, name="count") %>%
+  group_by(race_ethnicity) %>%
+  mutate(total_employed = sum(count)) %>%
+  filter(union_f %in% c("Member of labor union", "Covered by union but not a member")) %>%
+  # group_by(race_ethnicity, total_employed) %>%
   mutate(prc = 100*round(count/total_employed, 4),
-            prc2 = paste0(prc, "%")) %>% 
-  select(race_ethnicity,union_f, total_employed,  count, prc2) %>% 
+            prc2 = paste0(prc, "%")) %>%
+  select(race_ethnicity,union_f, total_employed,  count, prc2) %>%
   pivot_wider(names_from = union_f, values_from = c(count, prc2))
-  
 
 
-table5b <- Union %>% 
-  select(race_ethnicity,  total_employed,  `count_Member of labor union`, `prc2_Member of labor union`, `count_Covered by union but not a member`, `prc2_Covered by union but not a member`  ) %>% 
+
+table5b <- Union %>%
+  select(race_ethnicity,  total_employed,  `count_Member of labor union`, `prc2_Member of labor union`, `count_Covered by union but not a member`, `prc2_Covered by union but not a member`  ) %>%
 
 
   kbl(booktabs = T,
@@ -2618,7 +2628,7 @@ table5b <- Union %>%
            # background = "#f2f0f7",
            font_size = 8) %>%
 
-  
+
   add_footnote(c( "Source: IPUMS-CPS database (2022). Tabulations by Great Cities Institute"),
  notation = "none")
 
@@ -2632,7 +2642,7 @@ table5b
 
 ```{r}
 # Define df at the top
-df <- usa_data %>% 
+df <- usa_data %>%
   select(race_ethnicity, citizen, perwt, year) %>%
   mutate(
     citizenship_status = case_when(
@@ -2647,59 +2657,59 @@ df <- usa_data %>%
 # 2022
   survey_design <- df %>%
     as_survey_design(weights = perwt)
-  
+
   numerator_2022 <- survey_design %>%
     filter(year == 2022 & citizen == 3) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
-  
+
   denominator_2022 <- survey_design %>%
      filter(year == 2022)%>%
     group_by(race_ethnicity) %>%
     summarise(total_pop = survey_total(vartype = "se"))
-  
+
   df_rates_2022 <- numerator_2022 %>%
     left_join(denominator_2022, by = "race_ethnicity") %>%
-    mutate(rate = round(weighted_n / total_pop, 4)*100) %>% 
+    mutate(rate = round(weighted_n / total_pop, 4)*100) %>%
     mutate(year = 2022)
-  
-  
+
+
 # 2012
-  
+
   numerator_2012 <- survey_design %>%
     filter(year == 2012 & citizen == 3) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
-  
+
   denominator_2012 <- survey_design %>%
      filter(year == 2012)%>%
     group_by(race_ethnicity) %>%
     summarise(total_pop = survey_total(vartype = "se"))
-  
+
   df_rates_2012 <- numerator_2012 %>%
     left_join(denominator_2012, by = "race_ethnicity") %>%
-    mutate(rate = round(weighted_n / total_pop, 4)*100) %>% 
+    mutate(rate = round(weighted_n / total_pop, 4)*100) %>%
     mutate(year = 2012)
-  
-  
-  
+
+
+
 # 2000
    numerator_2000 <- survey_design %>%
     filter(year == 2000 & citizen == 3) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
-  
+
   denominator_2000 <- survey_design %>%
      filter(year == 2000)%>%
     group_by(race_ethnicity) %>%
     summarise(total_pop = survey_total(vartype = "se"))
-  
+
   df_rates_2000 <- numerator_2000 %>%
     left_join(denominator_2000, by = "race_ethnicity") %>%
-    mutate(rate = round(weighted_n / total_pop, 4)*100) %>% 
+    mutate(rate = round(weighted_n / total_pop, 4)*100) %>%
     mutate(year = 2000)
-   
-  
+
+
 
 # Combine all years
 citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
@@ -2710,14 +2720,14 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
 ```{r}
  table_6.a1  <- citizenship %>%
   ungroup() %>%
-  filter(citizenship_status != "Unknown") %>% 
+  filter(citizenship_status != "Unknown") %>%
   select(year, race_ethnicity,  citizenship_status, rate) %>%
-  pivot_wider(id_cols = race_ethnicity,   names_from =c(citizenship_status, year) , values_from = rate) %>% 
-  mutate(change_non_citizen = round(`Not a Citizen_2022` - `Not a Citizen_2000`, 2)) %>% 
-    
+  pivot_wider(id_cols = race_ethnicity,   names_from =c(citizenship_status, year) , values_from = rate) %>%
+  mutate(change_non_citizen = round(`Not a Citizen_2022` - `Not a Citizen_2000`, 2)) %>%
+
     select(race_ethnicity, `Not a Citizen_2000` , `Not a Citizen_2012`,  `Not a Citizen_2022`,change_non_citizen) %>%
-  mutate(across(-race_ethnicity, ~ paste0(., "%"))) %>% 
-  
+  mutate(across(-race_ethnicity, ~ paste0(., "%"))) %>%
+
   kbl(booktabs = T,
       col.names = c("", "Non citizen Rate", "Non citizen Rate", "Non citizen Rate", "Non citizen Rate"),
       align = c("l",rep("c",4)),
@@ -2731,16 +2741,16 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
   column_spec(2:5, width = "6.45em") %>%
-  add_header_above(align = c("l", rep("c",4)), c("Race/Ethnicity", "2000" = 1, "2008-2012" = 1, "2018-2022" = 1, "Change from\n2000 to 2018-2022" = 1), 
+  add_header_above(align = c("l", rep("c",4)), c("Race/Ethnicity", "2000" = 1, "2008-2012" = 1, "2018-2022" = 1, "Change from\n2000 to 2018-2022" = 1),
                    bold = T, font_size =8) %>%
   # row_spec(0, bold = T,
   #          # background = "#f2f0f7",
   #          font_size = 8) %>%
 
-  
-  add_footnote(c( "Source: IPUMS-USA database (2000-2022). Tabulations by Great Cities Institute"),
- notation = "none")              
 
-table_6.a1                                                                                                                                                                                                                                                                                                                                                                                                      
+  add_footnote(c( "Source: IPUMS-USA database (2000-2022). Tabulations by Great Cities Institute"),
+ notation = "none")
+
+table_6.a1
 ```
 
