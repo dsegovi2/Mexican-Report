@@ -1195,7 +1195,7 @@ table_1d.1
 ```
 
 
-### 2. Poverty Rates, 2018-2022:
+
 
 ```{r}
 # analysis
