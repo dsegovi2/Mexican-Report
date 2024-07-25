@@ -278,16 +278,9 @@ chicago_ca_2000_sf <- chicago_ca %>% st_join(chicago_ca_2000) %>% rename(communi
 
 
 
-# export tracts
-st_write(tract_pop_2018_2022, "Data Tables/tract_pop_2018_2022_sf", driver = "ESRI Shapefile")
-st_write(tract_pop_2008_2012, "Data Tables/tract_pop_2008_2012_sf", driver = "ESRI Shapefile")
-st_write(tract_pop_2000, "Data Tables/tract_pop_2000_sf", driver = "ESRI Shapefile")
-
 
 # export community areas
 st_write(chicago_ca_2018_22_sf, "Data Tables/shp/comm_pop_chi_2022.shp", driver = "ESRI Shapefile")
-st_write(chicago_ca_2008_12_sf, "Data Tables/chicago_ca_2008_12_sf", driver = "ESRI Shapefile")
-st_write(chicago_ca_2000_sf, "Data Tables/chicago_ca_2000_sf", driver = "ESRI Shapefile")
 
 
 

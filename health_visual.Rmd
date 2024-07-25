@@ -90,10 +90,10 @@ chicago_health <- read_csv("Health Data/Chicago Health Atlas Data Download - Com
 )
 
 # merge chicago ca with health atlas
-
-df_health <- chicago_ca_pop %>% arrange(desc(prc)) %>%   slice_max(prc, n = 10) %>% select(commnty, prc) %>% mutate(commnty = str_to_title(tolower(commnty))) %>% left_join(chicago_health, by = c("commnty" = "name")) %>% select(-layer) %>%
+df_health <- chicago_ca_pop %>% select(commnty, prc_mxc, prc_nh_w, prc_nh_b) %>% mutate(commnty = str_to_title(tolower(commnty))) %>% left_join(chicago_health, by = c("commnty" = "name")) %>% select(-layer) %>%
  mutate(across(matches("rate$|crimes$"), ~ round(as.numeric(.), 1))) %>%
  mutate(across(matches("rate$|prc$"), ~ ifelse(is.na(.), "missing data", paste0(., "%")))) %>% mutate(across(ends_with("crimes"), ~ ifelse(is.na(.), "missing data", paste0(., " crimes"))))
+
 
 ```
 
