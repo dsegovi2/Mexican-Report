@@ -74,7 +74,27 @@ usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexi
                                     TRUE ~ NA_character_)) %>% 
   mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")))
 
+# Construct the full file path
+chicago_ca_pop <- read_sf("Data Tables/shp/comm_pop_chi_2022.shp") %>% as.data.frame()
+
+chicago_health <- read_csv("Health Data/Chicago Health Atlas Data Download - Community areas.csv") %>% clean_names() %>% rename(
+  obesity_rate = hcsobp_2022_2023,
+  diabetes_rate = hcsdiap_2022_2023,
+  asthma_rate = hcsathp_2022_2023,
+  lbw_rate = vrbwp_2017_2021,
+  drinking_rate = hcsbdp_2022_2023,
+  smoking_rate = hcssmkp_2022_2023,
+  fruit_veg_rate = hcsfvp_2022_2023, 
+  sexual_assault_rate =  czs_2023, 
+  unmet_mental_health_rate = hcsumhap_2022_2023
+)
+
+# merge chicago ca with health atlas
+
+df_health <- chicago_ca_pop %>% arrange(desc(prc)) %>%   slice_max(prc, n = 10) %>% select(commnty, prc) %>% mutate(commnty = str_to_title(tolower(commnty))) %>% left_join(chicago_health, by = c("commnty" = "name"))
 ```
+
+
 
 
 
@@ -156,6 +176,11 @@ table_1a
 ```
 
 
+
+
+```{r}
+df_health
+```
 
 
 
