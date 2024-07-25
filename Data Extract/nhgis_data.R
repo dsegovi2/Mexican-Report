@@ -79,6 +79,7 @@ extract_1980_2010 <- define_extract_nhgis(
                   ds_spec("2000_SF1a", data_tables = c("NP004A", "NP011A", "NPCT011B", "NPCT011C", "NP001A"), geog_levels = "tract"),
                   ds_spec("2010_SF1b", data_tables = c("PCT11"), geog_levels = "tract")
                   ),
+  
   shapefiles = list("us_tract_1980_tl2000", 
                     "us_place_1980_tl2000", 
                     "us_tract_1990_tl2000", 
@@ -88,6 +89,7 @@ extract_1980_2010 <- define_extract_nhgis(
                     "us_tract_2010_tl2010", 
                     "us_place_2010_tl2010"
                     )) %>%
+  
   submit_extract() %>%
   wait_for_extract() %>%
   download_extract()
@@ -321,5 +323,5 @@ extract_1980_2010 <- define_extract_nhgis(
 # # write.csv(pop_county_chicago_1980_2020, "Data Tables/pop_county_chicago_1980_2020.csv")
 
 
-library(usethis)
+
 
