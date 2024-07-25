@@ -73,7 +73,7 @@ data_chi_2000  <- data_chi %>% filter(year == 2000)  %>% clean_names()
 
 final_data <- rbind(data_chi_pumas_2018_2022, data_chi_pumas_2008_12, data_chi_2000)
 
-# export to csv
+# export to csv(change)
 
 
 # write.csv(final_data, "C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv")

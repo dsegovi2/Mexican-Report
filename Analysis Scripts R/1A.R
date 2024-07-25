@@ -41,6 +41,11 @@ extract_2018_2022_df <- read_nhgis(nhgis_csv_file, file_select = matches("nhgis0
 extract_2018_2022_sf <- read_ipums_sf(nhgis_shp_file, file_select = matches("nhgis0051_shapefile_tl2022_us_tract_2022.zip"), verbose = FALSE)
 extract_2018_2022 <- ipums_shape_full_join(extract_2018_2022_df, extract_2018_2022_sf, by = "GISJOIN")
 
+```{r}
+extract_2018_2022 %>% as.data.frame() %>% group_by(STATE, COUNTY) %>% summarize(sum_mexico = sum(AQYYE004)) %>% arrange(desc(sum_mexico))
+```
+
+
 # variable: AQYYE004:    Hispanic or Latino: Mexican
 tract_pop_2018_2022 <- extract_2018_2022 %>% filter(STATE == "Illinois" & COUNTY == "Cook County") %>% select(GISJOIN, YEAR, STUSAB, STATE, COUNTY,TL_GEO_ID, TRACTA, NAME_E,  AQYYE004,  AQYYM004)
 
