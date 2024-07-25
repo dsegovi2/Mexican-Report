@@ -711,6 +711,7 @@ comm_mexican_map_2000
 ```
 
 
+
 ### Mexican Population by Community Areas in Chicago, 2000
 
 
@@ -781,4 +782,4 @@ comm_mexican_pop_map_2000
 ```
 
 
-
+# 
