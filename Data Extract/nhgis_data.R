@@ -321,7 +321,3 @@ extract_1980_2010 <- define_extract_nhgis(
 #   select(-x)
 # 
 # # write.csv(pop_county_chicago_1980_2020, "Data Tables/pop_county_chicago_1980_2020.csv")
-
-
-
-
