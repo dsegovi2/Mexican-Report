@@ -52,7 +52,7 @@ usa_extract <- define_extract_usa(
 
 # Read Data
 
-ddi_file <- read_ipums_ddi("C:/Users/elhamp2/Documents/GCI_Elly/Mexican Report/Mexican Report/usa_00011.xml") %>% 
+ddi_file <- read_ipums_ddi("C:/Users/elhamp2/Documents/GCI_Elly/Mexican Report/Mexican Report/usa_00013.xml") 
   
   
   
