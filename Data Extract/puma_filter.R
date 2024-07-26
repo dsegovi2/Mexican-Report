@@ -18,30 +18,28 @@ getwd()
 
 # Read Data
 
-ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa_00052.xml") 
+ddi_file <- read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00013.xml") 
   
   
   
   
 data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190 & STATEICP == 21)  %>% clean_names()
 
-```{r}
-data_chi
-```
+
 
 
 # read previou filtered data
 
-usa_data <- read_csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv")
+#usa_data <- read_csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv")
 
-puma_2020 <- c("3168", "3155", "3166", "3162", "3163", "3154", "3159", "3152", 
+pumas_2020 <- c("3168", "3155", "3166", "3162", "3163", "3154", "3159", "3152", 
                 "3167", "3151", "3158", "3161", "3165", "3153", "3157", "3160", 
                 "3156", "3164")
                 
-puma_2010 <- c("3501", "3502", "3503", "3504", "3520", "3521", "3522", 
+pumas_2010 <- c("3501", "3502", "3503", "3504", "3520", "3521", "3522", 
                 "3523", "3525", "3526", "3527", "3529", "3530", "3531", "3532")
 
-puma_2000 <- c("3512", "3508", "3505", "3511", "3502", "3513", "3504", 
+pumas_2000 <- c("3512", "3508", "3505", "3511", "3502", "3513", "3504", 
                 "3503", "3514", "3510", "3507", "3519", "3501", "3518", 
                 "3515", "3517", "3516", "3506")
 
@@ -84,7 +82,7 @@ final_data <- final_data %>%  mutate(across(16:54, as.factor, .names = "{col}_f"
 # export to csv(change)
 
 
-write.csv(final_data, "C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv")
+write.csv(final_data, "C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv")
   
   
   
