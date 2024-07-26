@@ -64,6 +64,11 @@ library("RColorBrewer")
 Chicago_boundary_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
   st_transform(crs = 4326)
 # mapview(community_shp)
+collar_county_border <- st_read("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/cb_2018_us_county_500k/cb_2018_us_county_500k.shp") %>% 
+  filter(GEOID %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>% 
+  st_transform(crs = 4326) %>% 
+  select(GEOID,NAME, geometry) %>% 
+  mutate(label = paste0(NAME, " County"))
 
 # Get the current bounding box of the data
 bbox_data <- st_bbox(Chicago_boundary_shp)
@@ -84,6 +89,36 @@ bbox_new <- c(center_x - 0.24,
 # osm_chicago <- read_osm(bbox_new, 
 #                         type = "bing")
 
+bbox_data2 <- st_bbox(collar_county_border)
+
+# Calculate the range of x and y values in degrees
+xrange2 <- bbox_data2$xmax - bbox_data2$xmin
+yrange2 <- bbox_data2$ymax - bbox_data2$ymin
+
+# Calculate the center of the bounding box
+center_x2 <- (bbox_data2$xmin + bbox_data2$xmax) / 2
+center_y2 <- (bbox_data2$ymin + bbox_data2$ymax) / 2
+# Modify the bounding box to fit the desired width while keeping the height the same
+bbox_new_collar <- c(center_x - 0.24,
+              center_y - 0.23,
+              center_x + 0.23,
+              center_y + 0.23)
+theme_plots <-
+  theme_minimal() +
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(color="#969696", linewidth = 1),
+        plot.title = element_text(face ="bold", size = 10, hjust = 0.5),
+      plot.subtitle = element_text(face ="italic", size = 8, color = "#636363"),
+      axis.text = element_text(size = 9),
+      axis.title = element_text(face ="bold", size = 9),
+      plot.caption = element_text(hjust = 0, size = 8, color = "black"),
+      legend.text = element_text(size = 8, color = "#636363"),
+      legend.title = element_text(face = "bold", size = 8, color = "#636363")) 
+
+
+
 
 
 ```
@@ -103,54 +138,65 @@ bbox_new <- c(center_x - 0.24,
 
 ######################################## 1980
 
-# # chicago_tracts_1980 <- st_read("Data Tables/shp/intersect_census_1980.shp")
-# #
-# # mexican_pop_1980 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
-# #                                file_select = "nhgis0044_csv/nhgis0044_ds104_1980_tract.csv") %>%
-# #
-# #   filter(STATEA == 17) %>%
-# #   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
-# #   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>%
-# #   select(GISJOIN, YEAR, STATE, COUNTY, state_county,C9F001, C9E002, C7L001) %>%
-# #   rename("Mexican" = "C9E002",
-# #          "total_pop" = "C7L001",
-# #          "total_his" = "C9F001")
-# #
-# # county_pop_1980 <- mexican_pop_1980 %>%
-# #   group_by(YEAR, COUNTY, state_county) %>%
-# #   summarise(Mexican = sum(Mexican, na.rm = TRUE),
-# #             total_pop = sum(total_pop, na.rm = TRUE),
-# #             total_his = sum(total_his, na.rm = TRUE))
-# #
-# # chicago_pop_1980 <- mexican_pop_1980 %>%
-# #   filter(GISJOIN%in%chicago_tracts_1980$GISJOIN) %>%
-# #   filter(!GISJOIN %in% c("G17003107609", "G17004308400")) %>%  ### exclude the O'Hare
-# #   group_by(YEAR, COUNTY, state_county) %>%
-# #   summarise(Mexican = sum(Mexican, na.rm = TRUE),
-# #             total_pop = sum(total_pop, na.rm = TRUE),
-# #             total_his = sum(total_his, na.rm = TRUE)) %>%
-# #   mutate(COUNTY = "Chicago")
-# #
-# # pop_county_chicago_1980 <- rbind(county_pop_1980, chicago_pop_1980)
-# # #
-# # write.csv(pop_county_chicago_1980, "Data Tables/pop_county_chicago_1980.csv")
+# chicago_tracts_1980 <- st_read("Data Tables/shp/intersect_census_1980.shp")
+# 
+# mexican_pop_1980 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+#                                file_select = "nhgis0044_csv/nhgis0044_ds104_1980_tract.csv") %>%
+# 
+#   filter(STATEA == 17) %>%
+#   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
+#   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>%
+#   select(GISJOIN, YEAR, STATE, COUNTY, state_county,C9F001, C9E002, C7L001) %>%
+#   rename("Mexican" = "C9E002",
+#          "total_pop" = "C7L001",
+#          "total_his" = "C9F001")
+# 
+# ### Exporting to csv
+# ##write.csv(mexican_pop_1980, "Data Tables/mexican_collar_tract_1980.csv")
+# 
+# ### county 1980
+# county_pop_1980 <- mexican_pop_1980 %>%
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE))
+# 
+# 
+# 
+# chicago_pop_1980 <- mexican_pop_1980 %>%
+#   filter(GISJOIN%in%chicago_tracts_1980$GISJOIN) %>%
+#   filter(!GISJOIN %in% c("G17003107609", "G17004308400")) %>%  ### exclude the O'Hare
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE)) %>%
+#   mutate(COUNTY = "Chicago")
+# 
+# pop_county_chicago_1980 <- rbind(county_pop_1980, chicago_pop_1980)
+# 
+# write.csv(pop_county_chicago_1980, "Data Tables/pop_county_chicago_1980.csv")
+
+
 # 
 # 
 # ####################################################   1990
-# # chicago_tracts_1990 <- st_read("Data Tables/shp/intersect_census_1990.shp")
-# #
-# #
-# # mexican_pop_1990 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
-# #                                file_select = "nhgis0044_csv/nhgis0044_ds120_1990_tract.csv") %>%
-# #
-# #   filter(STATEA == 17) %>%
-# #   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
-# #   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>%
-# #   select(GISJOIN, YEAR, STATE, COUNTY, state_county, EU1002, ET1001,
-# #          EU0001) %>%
-# #   rename("Mexican" = "EU1002",
-# #          "total_pop" = "ET1001",
-# #          "total_his" = "EU0001")
+# chicago_tracts_1990 <- st_read("Data Tables/shp/intersect_census_1990.shp")
+# 
+# 
+# mexican_pop_1990 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+#                                file_select = "nhgis0044_csv/nhgis0044_ds120_1990_tract.csv") %>%
+# 
+#   filter(STATEA == 17) %>%
+#   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
+#   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>%
+#   select(GISJOIN, YEAR, STATE, COUNTY, state_county, EU1002, ET1001,
+#          EU0001) %>%
+#   rename("Mexican" = "EU1002",
+#          "total_pop" = "ET1001",
+#          "total_his" = "EU0001")
+
+### Exporting to csv
+##write.csv(mexican_pop_1990, "Data Tables/mexican_collar_tract_1990.csv")
 # #
 # #
 # # county_pop_1990 <- mexican_pop_1990 %>%
@@ -176,19 +222,22 @@ bbox_new <- c(center_x - 0.24,
 # 
 # ####################################################   2000
 # 
-# # chicago_tracts_2000 <- st_read("Data Tables/shp/intersect_census_2000.shp")
-# #
-# #
-# # mexican_pop_2000 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
-# #                                file_select = "nhgis0044_csv/nhgis0044_ds146_2000_tract.csv") %>%
-# #
-# #   filter(STATEA == 17) %>%
-# #   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
-# #   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>%
-# #   select(GISJOIN, STATE, COUNTY, state_county, YEAR, FUH001, FL5001, FMX001) %>%
-# #   rename("Mexican" = "FUH001",
-# #          "total_pop" = "FL5001",
-# #          "total_his" = "FMX001")
+# chicago_tracts_2000 <- st_read("Data Tables/shp/intersect_census_2000.shp")
+# 
+# 
+# mexican_pop_2000 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+#                                file_select = "nhgis0044_csv/nhgis0044_ds146_2000_tract.csv") %>%
+# 
+#   filter(STATEA == 17) %>%
+#   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
+#   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>%
+#   select(GISJOIN, STATE, COUNTY, state_county, YEAR, FUH001, FL5001, FMX001) %>%
+#   rename("Mexican" = "FUH001",
+#          "total_pop" = "FL5001",
+#          "total_his" = "FMX001")
+
+### Exporting to csv
+##write.csv(mexican_pop_2000, "Data Tables/mexican_collar_tract_2000.csv")
 # #
 # #
 # # county_pop_2000 <- mexican_pop_2000 %>%
@@ -213,20 +262,25 @@ bbox_new <- c(center_x - 0.24,
 # #
 # # ####################################################   2010
 # #
-# # chicago_tracts_2010 <- st_read("Data Tables/shp/intersect_census_2010.shp")
+# chicago_tracts_2010 <- st_read("Data Tables/shp/intersect_census_2010.shp")
+# 
+# 
+# mexican_pop_2010 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+#                                file_select = "nhgis0044_csv/nhgis0044_ds173_2010_tract.csv") %>%
+# 
+#   filter(STATEA == 17) %>%
+#   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
+#   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>%
+#   select(GISJOIN, STATE, COUNTY,state_county, YEAR, IC2004, IC2001, IC2003 ) %>%
+#   rename("Mexican" = "IC2004",
+#          "total_pop" = "IC2001",
+#         "total_his" = "IC2003")
 # #
-# #
-# # mexican_pop_2010 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
-# #                                file_select = "nhgis0044_csv/nhgis0044_ds173_2010_tract.csv") %>%
-# #
-# #   filter(STATEA == 17) %>%
-# #   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
-# #   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>%
-# #   select(GISJOIN, STATE, COUNTY,state_county, YEAR, IC2004, IC2001, IC2003 ) %>%
-# #   rename("Mexican" = "IC2004",
-# #          "total_pop" = "IC2001",
-# #         "total_his" = "IC2003")
-# #
+
+### Exporting to csv
+##write.csv(mexican_pop_2010, "Data Tables/mexican_collar_tract_2010.csv")
+
+
 # # county_pop_2010 <- mexican_pop_2010 %>%
 # #   group_by(YEAR, COUNTY, state_county) %>%
 # #   summarise(Mexican = sum(Mexican, na.rm = TRUE),
@@ -248,45 +302,50 @@ bbox_new <- c(center_x - 0.24,
 # #
 # # ####################################################   2020
 # #
-# # chicago_tracts_2020 <- st_read("Data Tables/shp/intersect_census_2020.shp") %>%
-# #   select(GISJOIN, geometry, GEOID) %>%
-# #   filter(!GISJOIN %in% c("G1700310980000", "G1700430840000")) %>% # parcels in O'hare
-# #   st_transform( crs = 4326)
-# #
-# #
-# #
-# #
-# # mexican_pop_18_22 <- get_acs(
-# #   cache_table = TRUE,
-# #   geography = "tract",
-# #   variables = c(Mexican = "B03001_004",
-# #                 total_pop = "B03001_001",
-# #                 total_his = "B03001_003"),
-# #   state = 17,
-# #
-# #   year = 2022
-# #   # geometry = TRUE
-# #   ) %>%
-# #
-# #   separate(NAME, c("Census", "COUNTY", "state"), sep = "; ") %>%
-# #
-# #   # rename("Origin" = "variable",
-# #   #        "Value" = "estimate") %>%
-# #   pivot_wider(id_cols = c(GEOID, Census, COUNTY, state),
-# #                names_from = "variable",
-# #                values_from  = "estimate") %>%
-# #   mutate(YEAR = "2018-2022") %>%
-# #   mutate(state_county = substr(GEOID, 1, 5)) %>%
-# #   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197))
-# #
-# #
-# # chicago_pop_2020 <- mexican_pop_18_22 %>%
-# #   filter(GEOID %in% chicago_tracts_2020$GEOID) %>% #
-# #   group_by(YEAR, COUNTY, state_county) %>%
-# #   summarise(Mexican = sum(Mexican, na.rm = TRUE),
-# #             total_pop = sum(total_pop, na.rm = TRUE),
-# #             total_his = sum(total_his, na.rm = TRUE)) %>%
-# #   mutate(COUNTY = "Chicago")
+# chicago_tracts_2020 <- st_read("Data Tables/shp/intersect_census_2020.shp") %>%
+#   select(GISJOIN, geometry, GEOID) %>%
+#   filter(!GISJOIN %in% c("G1700310980000", "G1700430840000")) %>% # parcels in O'hare
+#   st_transform( crs = 4326)
+# 
+# 
+# 
+# 
+# mexican_pop_18_22 <- get_acs(
+#   cache_table = TRUE,
+#   geography = "tract",
+#   variables = c(Mexican = "B03001_004",
+#                 total_pop = "B03001_001",
+#                 total_his = "B03001_003"),
+#   state = 17,
+# 
+#   year = 2022
+#   # geometry = TRUE
+#   ) %>%
+# 
+#   separate(NAME, c("Census", "COUNTY", "state"), sep = "; ") %>%
+# 
+#   # rename("Origin" = "variable",
+#   #        "Value" = "estimate") %>%
+#   pivot_wider(id_cols = c(GEOID, Census, COUNTY, state),
+#                names_from = "variable",
+#                values_from  = "estimate") %>%
+#   mutate(YEAR = "2018-2022") %>%
+#   mutate(state_county = substr(GEOID, 1, 5)) %>%
+#   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197))
+# 
+# 
+# ## Exporting to csv
+# ## write.csv(mexican_pop_18_22, "Data Tables/mexican_collar_tract_18_22.csv")
+# 
+# chicago_pop_2020 <- mexican_pop_18_22 %>%
+#   filter(GEOID %in% chicago_tracts_2020$GEOID) %>% #
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE)) %>%
+#   mutate(COUNTY = "Chicago")
+
+#
 # #
 # #
 # #
@@ -303,12 +362,12 @@ bbox_new <- c(center_x - 0.24,
 # 
 # 
 # 
-# # ######### Joining Data
-# # pop_county_chicago_1980 <- read.csv("Data Tables/pop_county_chicago_1980.csv") %>% mutate(YEAR = as.character(YEAR))
-# # pop_county_chicago_1990 <- read.csv("Data Tables/pop_county_chicago_1990.csv") %>% mutate(YEAR = as.character(YEAR))
-# # pop_county_chicago_2000 <- read.csv("Data Tables/pop_county_chicago_2000.csv")%>% mutate(YEAR = as.character(YEAR))
-# # pop_county_chicago_2010 <- read.csv("Data Tables/pop_county_chicago_2010.csv") %>% mutate(state_county = as.character(state_county))
-# #
+# # # ######### Joining Data
+# pop_county_chicago_1980 <- read.csv("Data Tables/pop_county_chicago_1980.csv") %>% mutate(YEAR = as.character(YEAR))
+# pop_county_chicago_1990 <- read.csv("Data Tables/pop_county_chicago_1990.csv") %>% mutate(YEAR = as.character(YEAR))
+# pop_county_chicago_2000 <- read.csv("Data Tables/pop_county_chicago_2000.csv")%>% mutate(YEAR = as.character(YEAR))
+# pop_county_chicago_2010 <- read.csv("Data Tables/pop_county_chicago_2010.csv") %>% mutate(state_county = as.character(state_county))
+
 # # pop_county_chicago_2020 <- read.csv("Data Tables/pop_county_chicago_2020.csv")%>% mutate(state_county = as.character(state_county),
 # #                                                                                          )
 # #
@@ -432,5 +491,283 @@ county_pop_1980_2020_tb2 <- county_pop_1980_2020 %>%
  # notation = "symbol")
 
 county_pop_1980_2020_tb2
+```
+
+### Graph
+
+```{r}
+line_chart <- county_pop_1980_2020 %>% 
+  ggplot() +
+  geom_line(data = filter(county_pop_1980_2020, county!= "Cook County") ,
+            aes(x = year, y = mexican, group = county),
+            color = "#636363",
+            linewidth =1 ) +
+  # geom_line(data = filter(county_pop_1980_2020, county == "Cook County") ,
+  #           aes(x = year, y = mexican, group = county),
+  #           color = "#C91835",
+  #           linewidth =1 ) +
+  # geom_point(data = filter(county_pop_1980_2020, county!= "Cook County") ,
+  #           aes(x = year, y = mexican, group = county),
+  #           shape = 21,
+  #           color = "#636363",
+  #           size = 2 ) +
+  theme_plots
+  
+
+```
+
+### Maps
+
+```{r fig.height=11, fig.width=8}
+
+
+county_pop_1980_2020_2 = county_pop_1980_2020 %>% mutate(state_county = as.character(state_county))
+
+Collar_county_pop_shp <- 
+  left_join(collar_county_border , county_pop_1980_2020_2, by = join_by("GEOID" == "state_county"))
+
+
+collar_mexican_map_2022 <-
+
+  tm_shape(Collar_county_pop_shp
+           # , bbox = bbox_new
+           ) +
+  tm_borders(col = "#6c757d",
+             alpha = 1,
+             lwd = 1) +
+  tm_symbols(shape = 20,
+             size = "prc_mex_total",
+             alpha = 0.5,
+             scale = 11,
+             "#C91835",
+             legend.size.show = FALSE)+
+  tm_polygons(
+    col = "mexican",
+              style = "jenks",
+              border.col = "#ced4da",
+              palette="Blues",
+              alpha = 0.7,
+              n = 5,
+              title = "Mexican Population",
+              lwd = 0.3) +
+  tm_borders(col = "#6c757d",
+             alpha = 1,
+             lwd = 1) +
+    tm_facets(by = "year",
+              ncol = 2) +
+  tm_text("prc_mex_total2" , size = 1.5, alpha = 1, fontface="bold", fontfamily = "sans", col = "black") +
+    tm_layout( frame = TRUE,
+            legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("right", "bottom"),
+            legend.position = c(-0.6, 0.12)
+    
+            )       # manually position legend) +
+  
+
+
+collar_mexican_map_2022
+
+ 
+```
+
+
+## By Year
+
+
+```{r}
+
+```
+
+
+```{r fig.height=11, fig.width=8}
+
+mexican_pop_1980 <- read.csv("Data Tables/mexican_collar_tract_1980.csv")
+mexican_shp_1980 <- st_read("Data Tables/shp/MSA_dots_1980_origin_50.shp") %>% 
+  filter(Origin == "Mexican") %>% 
+  filter(GISJOIN %in% mexican_pop_1980$GISJOIN) %>% 
+  st_transform(crs = 4326)
+
+# 
+# map_origin_MSA_1980 <- 
+#   tm_shape(osm_chicago)+
+#   tm_rgb(alpha=.4 , saturation = .6) +
+#   tm_shape(MSA_county) +
+#   tm_polygons(col = "white",
+#              alpha = 0.3)+
+# 
+#   tm_shape(MSA_dots_1980_origin_50) +
+#   tm_dots(col = "Origin",
+#           palette = origin_colors_1980,
+#           legend.show = FALSE,
+#           size = 0.035)+
+#   
+#   tm_shape(state) +
+#   tm_borders(col = "#343a40",
+#              alpha = 0.7,
+#              lwd = 2,
+#              lty= "dashed")+
+#    tm_text("NAME" , size = 0.8, alpha = .8, fontface="bold", fontfamily = "sans") +
+#   
+#   tm_shape(MSA_county) +
+#   tm_borders(col = "#343a40",
+#              alpha = 0.7,
+#              lwd = 2)+
+#   tm_text("NAME" , size = 0.8, alpha = .8, fontface="bold", fontfamily = "sans") +
+#   
+#   
+#   tm_shape(MSA_place) +
+#   tm_borders(col = "#6c757d",
+#              alpha = .6,
+#              lwd = 1) +
+#   
+#   # tm_text("label" , size = 0.7, alpha = .8, fontface="bold", fontfamily = "sans") +
+#   
+#   tm_shape(Chicago_shp) +
+#   tm_borders(col = "#6c757d",
+#              alpha = 0.5,
+#              lwd = 2.5) +
+#   tm_shape(MSA_Boundary) +
+#   tm_borders(col = "#343a40",
+#              alpha = 0.7,
+#              lwd = 3) +
+#   
+#   tm_layout( frame = TRUE,
+#              # main.title.position = c("left", "top"),
+#              # main.title = "Density of Persons of Spanish Origin in Chicago City, 1980",
+#              # main.title.size = 1.2,
+#             legend.outside = FALSE,
+#             legend.width = 1.5,
+#             legend.title.size = .9,
+#             legend.text.size = 0.7,
+#             legend.title.fontface = "bold",
+#             # legend.position = c("left", "bottom"),
+#             legend.position = c(0.03, 0.09),
+#             legend.bg.color = "white",
+#             legend.bg.alpha = .3) +       # manually position legend) +
+#   
+#   tm_credits("Spanish/Hispanic Origin or Descent in Chicago Metropolitan\nStatistical Area, 1980",
+#              fontface = "bold",
+#              position = c("left","top"), size = 1.3) +
+#   
+#   tm_credits("Data source:\nIPUMS NHGIS (1980)\nMap Generated by:\nThe Great Cities Institute",
+#              fontface = "bold",
+#              position = c("left","bottom"), size = 0.7)+
+#   
+#   tm_add_legend("symbol", 
+#                 labels = c("Mexican", "Other Spanish", "Puerto Rican", "Cuban"), 
+#                 col = c("#9eb7e5", "#8b5e34", "#ff8500", "#d00000"),
+#                 size = 0.5,
+#                 title = "1 dot = 50 People") +
+#   
+#   tm_add_legend("line", 
+#                 labels = c("MSA Counties", "Place Borders"), 
+#                 col = c("#343a40", "#6c757d"), 
+#                 lwd = c(3, 1),
+#                 title = "Border Types",
+#                 size = 0.7) +
+#   
+#   
+#   # tm_credits("1 dot = 50 People",
+#   #            position = c(0.03, 0.18), size = 0.8, fontface = "bold") +
+#   tm_compass(position = c("right", "bottom"), size = 2) +
+#   tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+# 
+# map_origin_MSA_1980
+
+```
+
+```{r fig.height=11, fig.width=8}
+
+
+bbox_new_collar <- c(center_x - 1.25,
+              center_y - 0.7,
+              center_x + 0.45,
+              center_y + 0.8)
+
+
+
+collar_county_1980 <-
+  
+  tm_shape(Collar_county_pop_shp %>% filter(year == "1980"), bbox = bbox_new_collar) +
+  tm_polygons(col = "prc_mex_total",
+              palette = "YlOrRd",
+              style = "jenks",
+              # border.col = "#ced4da",
+              # palette="Blues",
+              alpha = 0.4,
+              n = 5,
+              title = "Percentage",
+              lwd = 0.3)+
+
+  tm_shape(mexican_shp_1980, bbox = bbox_new_collar) +
+  tm_dots(col = "Origin",
+          palette = "#1565c0",
+          size = 0.025,
+          legend.show = FALSE,
+          alpha = 0.3) +
+
+  tm_shape(collar_county_border) +
+  tm_borders(col = "#6c757d",
+             alpha = 1,
+             lwd = 3)+
+  tm_text("label" , size = 0.6, alpha = 0.9, fontface="bold", fontfamily = "sans") +
+
+  # tm_shape(Chicago_boundary_shp) +
+  # tm_borders(col = "#343a40",
+  #            alpha = 0.7,
+  #            lwd = 2.5) +
+
+  tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            # legend.bg.color = "white",
+            # legend.bg.alpha = .3
+            ) +       # manually position legend) +
+  tm_credits("Data source:\nIPUMS NHGIS (1980 Census)\nMap Generated by:\nThe Great Cities Institute",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+
+  tm_credits("Distribution of Mexican Population in Cook County and\nCollar Counties, Illinois, 1980",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25)+
+
+
+  tm_add_legend("symbol",
+                labels = "Mexican",
+                col = "#1565c0",
+                size = 0.6,
+                title = "1 dot = 50 People") +
+
+  tm_add_legend("line",
+                labels = c("Chicago Border", "Community Area Border"),
+                col = c("#343a40", "#6c757d"),
+                lwd = c(2.5, 2),
+                title = "Border Types",
+                size = 0.8) +
+
+  # tm_credits("1 dot = 20 People",
+  #            position = c(0.03, 0.32), size = 0.8, fontface = "bold") +
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+collar_county_1980
+
+
+```
+
+
+```{r}
+
 ```
 
