@@ -35,7 +35,7 @@ usa_extract <- define_extract_usa(
   description = "2000 Census, 2012 ACS, 2022 ACS",
   samples = c("us2000g", "us2012e", "us2022c"),
   variables = list(
-                   "CITY", "PUMA", "HISPAN", "AGE", "FAMSIZE", "RACE", "HHINCOME", "POVERTY",   
+                   "CITY", "PUMA", "COUNTYICP", "HISPAN", "AGE", "FAMSIZE", "RACE", "HHINCOME", "POVERTY",   
                 "SCHLTYPE", "SPEAKENG", "SCHOOL", "CITIZEN", "GRADEATT", "EDUC", "OWNERSHP", "ROOMS", 
                 "RENTGRS", "VALUEH",  "MORTGAGE", "UNITSSTR", "SERIAL", "EMPSTAT", "IND", "OCC", "GQTYPE", 
                 "ANCESTR1", "TRIBE", "OWNCOST", "NUMPREC", "LABFORCE", "HCOVANY", "STATEICP", "BPL", "HINSEMP" )) %>% 

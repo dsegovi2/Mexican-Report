@@ -119,10 +119,10 @@ mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% filter(prc_mxc >50) %>% 
 mexican_average_row <- mexican_top %>%
   summarise(
     commnty = "Average of Community Areas with 50% or more Mexican population",
-    obesity_rate = mean(obesity_rate, na.rm = TRUE),
-    diabetes_rate = mean(diabetes_rate, na.rm = TRUE),
-    asthma_rate = mean(asthma_rate, na.rm = TRUE),
-    lbw_rate = mean(lbw_rate, na.rm = TRUE)
+    obesity_rate = round(mean(obesity_rate, na.rm = TRUE), 1),
+    diabetes_rate = round(mean(diabetes_rate, na.rm = TRUE), 1),
+    asthma_rate = round(mean(asthma_rate, na.rm = TRUE), 1),
+    lbw_rate = round(mean(lbw_rate, na.rm = TRUE), 1)
   )
 
 # Add the new row to the existing dataframe
@@ -135,10 +135,10 @@ white_top <- df_health %>% arrange(desc(prc_nh_w)) %>% filter(prc_nh_w >50) %>% 
 white_average_row <- white_top %>%
   summarise(
     commnty = "Average of Community Areas with 50% or more Non-Hispanic White population",
-    obesity_rate = mean(obesity_rate, na.rm = TRUE),
-    diabetes_rate = mean(diabetes_rate, na.rm = TRUE),
-    asthma_rate = mean(asthma_rate, na.rm = TRUE),
-    lbw_rate = mean(lbw_rate, na.rm = TRUE)
+    obesity_rate = round(mean(obesity_rate, na.rm = TRUE), 1),
+    diabetes_rate = round(mean(diabetes_rate, na.rm = TRUE), 1),
+    asthma_rate = round(mean(asthma_rate, na.rm = TRUE), 1),
+    lbw_rate = round(mean(lbw_rate, na.rm = TRUE), 1)
   )
 
 # Add the new row to the existing dataframe
@@ -155,10 +155,10 @@ nh_black_top <- df_health %>% arrange(desc(prc_nh_b)) %>% filter(prc_nh_b >50) %
 nh_black_average_row <- nh_black_top %>%
   summarise(
     commnty = "Average of Community Areas with 50% or more Non-Hispanic Black population",
-    obesity_rate = mean(obesity_rate, na.rm = TRUE),
-    diabetes_rate = mean(diabetes_rate, na.rm = TRUE),
-    asthma_rate = mean(asthma_rate, na.rm = TRUE),
-    lbw_rate = mean(lbw_rate, na.rm = TRUE)
+    obesity_rate = round(mean(obesity_rate, na.rm = TRUE), 1),
+    diabetes_rate = round(mean(diabetes_rate, na.rm = TRUE), 1),
+    asthma_rate = round(mean(asthma_rate, na.rm = TRUE), 1),
+    lbw_rate = round(mean(lbw_rate, na.rm = TRUE), 1)
   )
 
 # Add the new row to the existing dataframe
@@ -312,15 +312,65 @@ df_rates <- numerator_without_insurance %>%
 ## 4D: Health behaviors and risk factors
 
 ```{r}
+# analysis
+
+# analysis
+mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% filter(prc_mxc >50) %>% select(commnty, drinking_rate, smoking_rate, fruit_veg_rate)  
+
+mexican_average_row <- mexican_top %>%
+  summarise(
+    commnty = "Average of Community Areas with 50% or more Mexican population",
+    drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
+    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
+    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
+  )
+
+# Add the new row to the existing dataframe
+mexican_top <- bind_rows(mexican_top, mexican_average_row)
+
+## white 50% or more
+
+white_top <- df_health %>% arrange(desc(prc_nh_w)) %>% filter(prc_nh_w >50) %>% select(commnty, drinking_rate, smoking_rate, fruit_veg_rate)  
+
+white_average_row <- white_top %>%
+  summarise(
+    commnty = "Average of Community Areas with 50% or more Non-Hispanic White population",
+    drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
+    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
+    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
+  )
+# Add the new row to the existing dataframe
+mexican_top <- bind_rows(mexican_top, white_average_row)
+
+
+## black 50% or more
+
+
+nh_black_top <- df_health %>% arrange(desc(prc_nh_b)) %>% filter(prc_nh_b >50) %>% select(commnty, drinking_rate, smoking_rate, fruit_veg_rate)  
+
+nh_black_average_row <- nh_black_top %>%
+  summarise(
+    commnty = "Average of Community Areas with 50% or more Non-Hispanic Black population",
+     drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
+    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
+    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
+  )
+# Add the new row to the existing dataframe
+df_final <- bind_rows(mexican_top, nh_black_average_row) %>% mutate(across(matches("rate"), ~ ifelse(is.na(.), "missing data", paste0(., "%"))))
+
+```
+
+
+```{r}
 # visuals
-table_4d <- df_health  %>% select(commnty, prc_mxc, drinking_rate, smoking_rate, fruit_veg_rate)   %>% 
+table_4d <- df_final  %>%
  
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Community Area", "Percent Mexican", "Adult Binge Drinking Rate", "Adult Smoking Rate", "Adult Healthy Diet Rate"),
-      align = c("l",rep("c",4)),
-      caption = "Health Behaviors, 2022-2023 and 2017-2021",
+      col.names = c("Community Areas with 50% or more Mexican Population", "Adult Binge Drinking Rate", "Adult Smoking Rate", "Adult Healthy Diet Rate"),
+      align = c("l",rep("c",3)),
+      caption = "Health behaviors and risk factors, 2022-2023",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -329,13 +379,11 @@ table_4d <- df_health  %>% select(commnty, prc_mxc, drinking_rate, smoking_rate,
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:5, width = "5.16em") %>%  
+  column_spec(2:4, width = "8.6em") %>%  
+row_spec(0, bold = TRUE, font_size = 8) %>%
+  row_spec(16:18, bold = TRUE, background = "#f2f0f7") %>%
 
-  row_spec(0, bold = T,
-             #background = "#f2f0f7",
-            font_size = 8) %>%
-
-  footnote(general = "Source: Chicago Health Atlas (2022-2023). Tabulations by Great Cities Institute",
+  footnote(general = "Source: Chicago Health Atlas (2022-2023 and 2017-21). Tabulations by Great Cities Institute",
            general_title = "")   
 
 
@@ -347,7 +395,59 @@ table_4d
 ## 4E: Social and Public Health 
 
 ```{r}
+# analysis
+# analysis
+
+# analysis
+mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% filter(prc_mxc >50) %>% select(commnty, sexual_assault_crimes, unmet_mental_health_rate)  
+
+mexican_average_row <- mexican_top %>%
+  summarise(
+    commnty = "Average of Community Areas with 50% or more Mexican population",
+    drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
+    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
+    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
+  )
+
+# Add the new row to the existing dataframe
+mexican_top <- bind_rows(mexican_top, mexican_average_row)
+
+## white 50% or more
+
+white_top <- df_health %>% arrange(desc(prc_nh_w)) %>% filter(prc_nh_w >50) %>% select(commnty, drinking_rate, smoking_rate, fruit_veg_rate)  
+
+white_average_row <- white_top %>%
+  summarise(
+    commnty = "Average of Community Areas with 50% or more Non-Hispanic White population",
+    drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
+    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
+    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
+  )
+# Add the new row to the existing dataframe
+mexican_top <- bind_rows(mexican_top, white_average_row)
+
+
+## black 50% or more
+
+
+nh_black_top <- df_health %>% arrange(desc(prc_nh_b)) %>% filter(prc_nh_b >50) %>% select(commnty, drinking_rate, smoking_rate, fruit_veg_rate)  
+
+nh_black_average_row <- nh_black_top %>%
+  summarise(
+    commnty = "Average of Community Areas with 50% or more Non-Hispanic Black population",
+     drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
+    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
+    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
+  )
+# Add the new row to the existing dataframe
+df_final <- bind_rows(mexican_top, nh_black_average_row) %>% mutate(across(matches("rate"), ~ ifelse(is.na(.), "missing data", paste0(., "%"))))
+
+```
+
+
+```{r}
 # visuals
+#c("Community Area", "Percent Mexican", "Criminal Sexual Assault", "Unmet Mental Health Need Rate"),
 table_4e <- df_health  %>% select(commnty, prc_mxc, sexual_assault_crimes, unmet_mental_health_rate)   %>% 
  
    # using kable 

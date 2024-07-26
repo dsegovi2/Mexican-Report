@@ -435,7 +435,9 @@ table_1d.1
 # analysis
 
 # poverty
+# filter for 2022
 
+data_chi_2018_22 <- usa_data %>% filter(year == 2022)
 
 # Define the survey design using srvyr with only weights
 survey_design2 <- data_chi_2018_22  %>%
@@ -452,7 +454,7 @@ total_weighted_pop_count <- survey_design2 %>%
 
 # Calculate total weighted count in poverty by race_category and ethnicity
 total_weighted_poverty_count <- survey_design2 %>%
-  filter(poverty <= 1) %>%
+  filter(poverty <= 100) %>%
   group_by(race_ethnicity) %>%
   summarise(total_weighted_poverty_count = survey_total())
 
@@ -477,7 +479,7 @@ table_1d.2 <- poverty_rate  %>% select(race_ethnicity, total_weighted_poverty_co
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number", "Percent"),
       align = c("l",rep("c",2)),
-      caption = "Mexican Population at or Below 1% Poverty Threshold, 2018-2022",
+      caption = "Mexican Population at or Below 100% Poverty Threshold, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  

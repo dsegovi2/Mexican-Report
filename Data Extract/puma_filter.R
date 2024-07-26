@@ -18,12 +18,17 @@ getwd()
 
 # Read Data
 
-ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa_00012.xml") 
+ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa_00052.xml") 
   
   
   
   
 data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190 & STATEICP == 21)  %>% clean_names()
+
+```{r}
+data_chi
+```
+
 
 # read previou filtered data
 
