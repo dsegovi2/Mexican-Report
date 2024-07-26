@@ -52,6 +52,20 @@ extract <- define_extract_nhgis(
   wait_for_extract() %>%
   download_extract()
 
+# 2nd extract: get other race populations
+extract_2 <- define_extract_nhgis(
+  "Multiple ACS Data via IPUMS API",
+  datasets = list(
+    ds_spec("2018_2022_ACS5a", data_tables = c("B03002"), geog_levels = c("tract"))
+  ),
+  shapefiles = list(
+    "us_tract_2022_tl2022"
+  )
+) %>%
+  submit_extract() %>%
+  wait_for_extract() %>%
+  download_extract()
+
 
 ################### extract_1980_2010
 
