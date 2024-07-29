@@ -35,7 +35,7 @@ getwd()
 
 #### OR
 
-usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00045.xml")) 
+usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00013.xml")) 
 # view(usa_ddi)
 colnames(usa_ddi)
 
@@ -47,22 +47,27 @@ ipums_val_labels(housing_ddi$race)
 ipums_val_labels(housing_ddi$hispan)
 
 
-############### 3A: Homeownership
-homeownership = housing_ddi %>% 
-  filter( city == 1190, pernum == 1) %>%  #### dont forget to filter PUMA 
-  mutate(race_f = as_factor(race),
-         hispan_f = as_factor(hispan),
-         ownershp_f = as_factor(ownershp)) %>% 
+
+################ 3A: Homeownership nation
+
+homeownership_nation = housing_ddi %>% 
+  filter(pernum == 1) %>%
+  
+  mutate(ownershp_f = as_factor(ownershp)) %>% 
   
   mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
                                     hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
-                                    hispan %in% c(2,3,4) ~ "Hispanics other than Mexican",
+                                    hispan %in% c(2,3,4) ~ "Other Latinos",
                                     hispan ==1 ~ "Mexican", 
                                     hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
-                                    TRUE ~ NA_character_)) %>% 
+                                    TRUE ~ NA_character_)) %>%
+  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)"))) %>% 
+  
   as_survey_design(weights = hhwt) %>% 
   
   survey_count(year, race_ethnicity, ownershp_f, name="count") %>% 
+  filter(ownershp_f != "N/A") %>% 
+   
   
   filter(!is.na(race_ethnicity)) %>% 
   
@@ -71,11 +76,11 @@ homeownership = housing_ddi %>%
          per = 100*round(count/total, 4),
          per2 = paste0(per,"%"))
 
-
-  
+# homeownership %>% 
+#   filter(race_ethnicity == "Mexican")
 
 #### Export 
-write.csv(homeownership, "Data Tables/3.A.homeownership.csv")
+write.csv(homeownership_nation, "Data Tables/homeownership_nation.csv")
 
 
 
