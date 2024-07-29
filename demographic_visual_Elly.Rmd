@@ -10,6 +10,10 @@ output:
     extra_dependencies: ["float"]
     fig_caption: true
 mainfont: "Arial"
+header-includes:
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
 editor_options: 
   chunk_output_type: console
 ---
@@ -82,9 +86,12 @@ bbox_new <- c(center_x - 0.24,
 
 ####### 2018-2022 ##################
 comm_2022 <- st_read("Data Tables/shp/comm_pop_chi_2022.shp") %>% 
-  mutate(lable_prc = paste0(lable, ": ", prc),
-         prc2 = paste0( prc, "%")) %>% 
-  mutate(ttl_mxc2 = scales::comma(ttl_mxc))
+  mutate(lable_prc = paste0(lable, ": ", prc_mxc),
+         prc2 = paste0( prc_mxc, "%")) %>% 
+  mutate(ttl_mxc2 = scales::comma(ttl_mxc)) %>% 
+  rename(prc = prc_mxc) %>%
+  mutate(year = "2018-2022") %>% 
+  select(year, commnty, lable, ttl_mxc, ttl_mxc2, prc, geometry)
 
 tract_2022 <- st_read("Data Tables/shp/tract_pop_chi_2022.shp") 
 
@@ -93,7 +100,9 @@ pop_dots_2022_origin_50 <- read_sf("Data Tables/shp/pop_dots_2022_origin_50.shp"
 ####### 2010 ######################
 comm_2012 <- st_read("Data Tables/shp/comm_pop_chi_2012.shp") %>%
   mutate(lable_prc = paste0(lable, ": ", prc)) %>% 
-  mutate(ttl_mxc2 = scales::comma(ttl_mxc))
+  mutate(ttl_mxc2 = scales::comma(ttl_mxc)) %>% 
+  mutate(year = "2010") %>% 
+  select(year, commnty, lable, ttl_mxc, ttl_mxc2, prc, geometry)
 
 tract_2012 <- st_read("Data Tables/shp/tract_pop_chi_2012.shp")
 
@@ -102,12 +111,18 @@ pop_dots_2010_origin_50 <- read_sf("Data Tables/shp/pop_dots_2010_origin_50.shp"
 ####### 2000 ######################
 comm_2000 <- st_read("Data Tables/shp/comm_pop_chi_2000.shp") %>%
   mutate(lable_prc = paste0(lable, ": ", prc)) %>% 
-  mutate(ttl_mxc2 = scales::comma(ttl_mxc))
+  mutate(ttl_mxc2 = scales::comma(ttl_mxc)) %>% 
+  mutate(year = "2000") %>% 
+  select(year, commnty, lable, ttl_mxc, ttl_mxc2, prc, geometry)
 
 tract_2000 <- st_read("Data Tables/shp/tract_pop_chi_2000.shp")
 
 pop_dots_2000_origin_50 <- read_sf("Data Tables/shp/pop_dots_2000_origin_50.shp")
 
+####### Combine data
+comm_2000_2022 <- rbind(comm_2022, comm_2012,  comm_2000)
+### st_write(comm_2000_2022, "Data Tables/shp/comm_pop_chi_2000_2022.shp" )
+comm_2000_2022 <- st_read ("Data Tables/shp/comm_pop_chi_2000_2022.shp" )
 ```
 
 \renewcommand{\arraystretch}{1.4}
@@ -192,9 +207,6 @@ Mexican_map_2020 <-
 Mexican_map_2020
 
 ```
-
-
-
 
 ### Percentage of the Mexican Population by Community Areas in Chicago, 2018-2022
 
@@ -416,8 +428,6 @@ Mexican_map_2010 <-
 Mexican_map_2010
 
 ```
-
-
 
 
 ### Percentage of the Mexican Population by Community Areas in Chicago, 2008-2012
@@ -780,6 +790,70 @@ comm_mexican_pop_map_2000
 
 ```
 
+\blandscape
+
+## All in one Map
+
+
+```{r fig.height=10, fig.width=15}
+# fig.height=11, fig.width=24
+map_2000_2022 <-
+
+  tm_shape(comm_2000_2022) +
+  tm_polygons(
+    col = "prc",
+              style = "jenks",
+              border.col = "#6c757d",
+              palette="Blues",
+              alpha = 0.7,
+              n = 5,
+              title = "Percentage",
+              lwd = 0.3) +
+
+  tm_facets(by = "year",
+            ncol = 3, 
+            scale.factor = 3) +
+  
+  tm_text("lable" , size = 0.5, alpha = 0.7, fontface="bold", fontfamily = "sans")+
+  
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+  
+  
+
+   tm_layout( frame = TRUE,
+            legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("right", "bottom"),
+            legend.position = c(0.1, 0.12),
+
+            main.title = "Percentage of the Mexican Population by Community Areas in Chicago, 2000 to 2018-2022"
+    
+            ) +
+  
+  tm_add_legend("line",
+                labels = c("Chicago Border", "Community Area Border"),
+                col = c("#343a40","#6c757d"),
+                lwd = c(2.5, 2),
+                title = "Border Types",
+                size = 0.8) +
+
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+map_2000_2022
+
+
+
+```
+
+\elandscape
+
 
 # Changing Over Time
 
@@ -1027,10 +1101,4 @@ pop_county_chicago_1980_2020 <- read_csv("Data Tables/pop_county_chicago_1980_20
 ```
 
 
-
-```{r}
-
-
-
-```
 
