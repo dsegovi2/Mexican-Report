@@ -60,6 +60,8 @@ Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Re
   st_transform(crs = 4326)
 # mapview(community_shp)
 
+# Construct the full file path
+chicago_ca_pop <- read_sf("Data Tables/shp/comm_pop_chi_2022.shp") %>% as.data.frame()
 
 ### usa data
 
@@ -873,4 +875,13 @@ table_1d.4 <- poverty_rate  %>% select(race_ethnicity, total_weighted_poverty_co
 
 table_1d.4
 ```
+
+
+## 1F: Top 10 Mexican Community Areas
+
+```{r}
+# Construct the full file path
+chicago_ca_pop
+```
+
 
