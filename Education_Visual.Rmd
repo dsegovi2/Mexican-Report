@@ -493,19 +493,21 @@ table_2f
 
 
 ```{r}
-df <- usa_data  %>%  filter(year == 2022) %>% select(race_ethnicity, educ, age, perwt)
+df <- usa_data  %>%  filter(year == 2022) %>% select(race_ethnicity, educd, age, perwt)
 
-
-
-
-# collapse educational categories
-df <- df %>%   mutate(educ = as.character(educ)) %>% mutate(education_level = case_when(
-    educ %in% c("0", "1", "2") ~ "Grade School or Less",
-    educ %in% c("3", "4", "5") ~ "Some High School",
-    educ %in% c("6") ~ "High School",
-    educ %in% c("7") ~ "Some College",
-     educ %in% c("8", "9", "10", "11") ~ "2 years of college or higher",
-    TRUE ~ "Other"
+# collapse educdational categories
+df <- df %>%
+  mutate(educd = as.character(educd)) %>%
+  mutate(education_level = case_when(
+    educd %in% c("1") ~ "NA",
+    educd %in% c("2") ~ "No Schooling Completed",
+    educd %in% c("11", "12", "14", "15", "16", "17", "22", "23", "25", "26", "30", "40", "50", "61") ~ "Less than High School",
+    educd %in% c("63", "64") ~ "Regular High School Diploma, GED or Alternative Credential",
+    educd %in% c("65", "71") ~ "Some College, No Degree", 
+    educd %in% c("81") ~ "Associate's Degree",
+    educd %in% c("101") ~ "Bachelor's Degree",
+    educd %in% c("114", "115") ~ "Master's Degree or Professional Degree Beyond Bachelor's",
+    TRUE ~ "Other"  # Default case if educd is not in the specified categories
   ))
 
 
@@ -526,44 +528,69 @@ denominator <- survey_design %>%
   summarise(total_pop = survey_total(vartype = "se"))
 
 # Merge numerator and denominator by race_ethnicity
-education_levels <- c("Grade School or Less", "Some High School", "High School","Some College", "2 years of college or higher")
+education_levels <- c("No Schooling Completed", "Less than High School", "Regular High School Diploma, GED or Alternative Credential","Some College, No Degree", "Associate's Degree", "Bachelor's Degree", "Master's Degree or Professional Degree Beyond Bachelor's")
 
 education_rates <- numerator %>%
   left_join(denominator, by = "race_ethnicity") %>%
   mutate(educational_rate = (weighted_n / total_pop) * 100,
-  education_level = factor(education_level, levels = education_levels))    %>%  arrange(race_ethnicity, education_level)  %>% mutate(educational_rate = paste0(round(educational_rate, 1), "%"))
+  education_level = factor(education_level, levels = education_levels))    %>%  arrange(race_ethnicity, education_level)  %>% mutate(educational_rate = paste0(round(educational_rate, 1), "%")) %>% filter(!is.na(education_level))
   
 ```
 
 
+
 ```{r}
-table_2g <- education_rates %>% select(race_ethnicity, education_level, weighted_n, educational_rate)  %>% pivot_wider(id_cols =  c(race_ethnicity), names_from = "education_level", values_from = c(weighted_n, educational_rate))   %>% select(race_ethnicity, 'weighted_n_Grade School or Less', 'educational_rate_Grade School or Less',  'weighted_n_Some High School', 'educational_rate_Some High School', 'weighted_n_High School', 'educational_rate_High School', 'weighted_n_Some College', 'educational_rate_Some College', 'weighted_n_2 years of college or higher', 'educational_rate_2 years of college or higher') %>% 
+table_2g <- education_rates %>% select(race_ethnicity, education_level, weighted_n, educational_rate)  %>% pivot_wider(id_cols =  c(race_ethnicity), names_from = "education_level", values_from = c(weighted_n, educational_rate))   %>% select(
+    race_ethnicity,
+    `weighted_n_No Schooling Completed`, `educational_rate_No Schooling Completed`,
+    `weighted_n_Less than High School`, `educational_rate_Less than High School`,
+    `weighted_n_Regular High School Diploma, GED or Alternative Credential`, `educational_rate_Regular High School Diploma, GED or Alternative Credential`,
+    `weighted_n_Some College, No Degree`, `educational_rate_Some College, No Degree`,
+    `weighted_n_Associate's Degree`, `educational_rate_Associate's Degree`,
+    `weighted_n_Bachelor's Degree`, `educational_rate_Bachelor's Degree`,
+    `weighted_n_Master's Degree or Professional Degree Beyond Bachelor's`, `educational_rate_Master's Degree or Professional Degree Beyond Bachelor's`
+  ) %>%
 
 
  
    # using kable 
   
-  kbl(, booktabs = T,
-      col.names = c("",  "Number", "Percent", "Number", "Percent" , "Number", "Percent" , "Number", "Percent" , "Number", "Percent" ),
-      align = c("l",rep("c",11)),
-      caption = "Educational Attainment of Mexicans 25 and Older, 2018-2022",
-      format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
-                font_size = 8,
-                html_font = "Arial",
-                position = "center",
-                latex_options = "HOLD_position") %>% 
-  column_spec(1, width = "14.2em")  %>%
-  column_spec(2:11, width = "2.58em")  %>%
-  add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity",  "Grade School\nor Less" = 2, "Some High School" = 2, "High School" = 2, "Some College" = 2, "2 years or more\nof college" = 2),
-                    # background = "#cbc9e2", 
-                    bold = T, font_size =8) %>% 
-
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "") 
-
-
+  kbl(
+  , booktabs = TRUE,
+  col.names = c("", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent"),
+  align = c("l", rep("c", 14)),
+  caption = "Educational Attainment of Mexicans 25 and Older, 2018-2022",
+  format.args = list(big.mark = ","),
+  linesep = ""
+) %>%
+  kable_classic(
+    full_width = FALSE,
+    font_size = 8,
+    html_font = "Arial",
+    position = "center",
+    latex_options = "HOLD_position"
+  ) %>%
+  column_spec(1, width = "14.8em") %>%
+  column_spec(2:15, width = "1.8em") %>%
+  add_header_above(
+    align = c("l", rep("c", 2)),
+    c(
+      "Race/Ethnicity", 
+      "No Schooling\nCompleted" = 2, 
+      "Less than\nHigh School" = 2, 
+      "High School\nDiploma or GED" = 2, 
+      "Some College,\nNo Degree" = 2, 
+      "Associate's\nDegree" = 2, 
+      "Bachelor's\nDegree" = 2, 
+      "Master's Degree or\nProfessional Degree" = 2
+    ),
+    bold = TRUE, 
+    font_size = 8
+  ) %>%
+  footnote(
+    general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+    general_title = ""
+  )
 table_2g
 
 ```

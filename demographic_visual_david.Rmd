@@ -768,7 +768,7 @@ table_1d.3 <- poverty_rate  %>% select(race_ethnicity, total_weighted_poverty_co
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number", "Percent"),
       align = c("l",rep("c",2)),
-      caption = "Mexican Population at or Below 100% Poverty Threshold, 2018-2022",
+      caption = "Mexican Population at or Below Poverty Threshold, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
