@@ -54,18 +54,24 @@ extract_2018_2022_df <- read_nhgis(nhgis_csv_file, file_select = matches("nhgis0
 extract_2018_2022_sf <- read_ipums_sf(nhgis_shp_file, file_select = matches("nhgis0042_shapefile_tl2022_us_tract_2022.zip"), verbose = FALSE)
 extract_2018_2022 <- ipums_shape_full_join(extract_2018_2022_df, extract_2018_2022_sf, by = "GISJOIN")
 
+```{r}
+extract_2018_2022
+```
+
+
 # variable: AQYYE004:    Hispanic or Latino: Mexican
 tract_pop_2018_2022 <- extract_2018_2022 %>% 
   filter(STATE == "Illinois" & COUNTY == "Cook County") %>% 
-  select(GISJOIN, YEAR, STUSAB, STATE, COUNTY,TL_GEO_ID, TRACTA, NAME_E, AQYYE004, AQYYM004, AQYYE001) %>% 
+  select(GISJOIN, YEAR, STUSAB, STATE, COUNTY,TL_GEO_ID, TRACTA, NAME_E, AQYYE003, AQYYM003, AQYYE004, AQYYM004, AQYYE001) %>% 
   group_by(GISJOIN, YEAR, TL_GEO_ID) %>% 
   mutate(total_pop = sum(AQYYE001, na.rm = T),
             total_mexican = sum(AQYYE004, na.rm = T),
-            prc_mexican = 100* round(total_mexican /total_pop, 4)) %>% 
+            prc_mexican = 100* round(total_mexican /total_pop, 4),
+             total_hisp_pop = sum(AQYYE003, na.rm = T),
+              prc_mexican_hisp = 100* round(total_mexican /total_hisp_pop, 4)) %>% 
   st_transform(4326)
 
 
-########## community area
 
 # set crs
 chicago_ca <- st_transform(chicago_ca, 4326)
@@ -86,7 +92,9 @@ chicago_ca_2018_2022 <- tract_2018_22_ca_point %>%
   group_by(community) %>% 
   summarise(total_pop = sum(AQYYE001, na.rm = T),
             total_mexican = sum(AQYYE004, na.rm = T),
-            prc_mexican = 100* round(total_mexican /total_pop, 4)) %>% 
+            prc_mexican = 100* round(total_mexican /total_pop, 4),
+            total_hisp_pop = sum(AQYYE003, na.rm = T),
+              prc_mexican_hisp = 100* round(total_mexican /total_hisp_pop, 4)) %>% 
   mutate(lable = str_to_title(community)) %>% 
   mutate(lable = gsub(" ", "\n", lable))
   
@@ -155,9 +163,6 @@ chicago_ca_2018_2022_df <- tract_2018_22_ca_point %>%
   mutate(lable = gsub(" ", "\n", lable))  %>% as.data.frame() %>% select(community, total_nh_white, prc_nh_white, total_nh_black, prc_nh_black)
 
 
-```{r}
-chicago_ca_2018_2022_df
-```
 
 
 
