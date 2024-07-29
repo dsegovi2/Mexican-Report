@@ -1,0 +1,1106 @@
+---
+title: "Mexican Report"
+author: "Demographic"
+date: "Great Cities Institute"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    highlight: pygments
+    extra_dependencies: ["float"]
+    fig_caption: true
+mainfont: "Arial"
+header-includes:
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.pos="H")
+
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+
+library(ipumsr)
+library(tidyverse)
+library(purrr)
+library(sf)
+library(tidycensus)
+library(tidyr)
+library(readxl)
+library(sf)
+library(htmltools)
+library(leaflet)
+library(janitor)
+library(data.table)
+library(tinytex)
+library(survey) # for survey analysis
+library(srvyr)  # for tidy survey analysis
+library(tmap)
+library("kableExtra") 
+library(tmaptools)
+library("RColorBrewer") 
+library(janitor)
+# library(OpenStreetMap)
+# remotes::install_github('yihui/knitr')
+# install.packages("knitr")
+# library(knitr)
+# options(tinytex.verbose = TRUE)
+# tinytex::reinstall_tinytex()
+# install.packages('tinytex')
+
+# update.packages(ask = FALSE, checkBuilt = TRUE)
+# tinytex::tlmgr_update()
+# tinytex::latexmk("demographic_visual.tex")
+
+
+##### Chicago boarder
+Chicago_boundary_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
+  st_transform(crs = 4326)
+# mapview(community_shp)
+
+# Get the current bounding box of the data
+bbox_data <- st_bbox(Chicago_boundary_shp)
+
+# Calculate the range of x and y values in degrees
+xrange <- bbox_data$xmax - bbox_data$xmin
+yrange <- bbox_data$ymax - bbox_data$ymin
+
+# Calculate the center of the bounding box
+center_x <- (bbox_data$xmin + bbox_data$xmax) / 2
+center_y <- (bbox_data$ymin + bbox_data$ymax) / 2
+# Modify the bounding box to fit the desired width while keeping the height the same
+bbox_new <- c(center_x - 0.24,
+              center_y - 0.23,
+              center_x + 0.23,
+              center_y + 0.23)
+
+# osm_chicago <- read_osm(bbox_new, 
+#                         type = "bing")
+
+####### 2018-2022 ##################
+comm_2022 <- st_read("Data Tables/shp/comm_pop_chi_2022.shp") %>% 
+  mutate(lable_prc = paste0(lable, ": ", prc_mxc),
+         prc2 = paste0( prc_mxc, "%")) %>% 
+  mutate(ttl_mxc2 = scales::comma(ttl_mxc)) %>% 
+  rename(prc = prc_mxc) %>%
+  mutate(year = "2018-2022") %>% 
+  select(year, commnty, lable, ttl_mxc, ttl_mxc2, prc, geometry)
+
+tract_2022 <- st_read("Data Tables/shp/tract_pop_chi_2022.shp") 
+
+pop_dots_2022_origin_50 <- read_sf("Data Tables/shp/pop_dots_2022_origin_50.shp") 
+
+####### 2010 ######################
+comm_2012 <- st_read("Data Tables/shp/comm_pop_chi_2012.shp") %>%
+  mutate(lable_prc = paste0(lable, ": ", prc)) %>% 
+  mutate(ttl_mxc2 = scales::comma(ttl_mxc)) %>% 
+  mutate(year = "2010") %>% 
+  select(year, commnty, lable, ttl_mxc, ttl_mxc2, prc, geometry)
+
+tract_2012 <- st_read("Data Tables/shp/tract_pop_chi_2012.shp")
+
+pop_dots_2010_origin_50 <- read_sf("Data Tables/shp/pop_dots_2010_origin_50.shp") 
+
+####### 2000 ######################
+comm_2000 <- st_read("Data Tables/shp/comm_pop_chi_2000.shp") %>%
+  mutate(lable_prc = paste0(lable, ": ", prc)) %>% 
+  mutate(ttl_mxc2 = scales::comma(ttl_mxc)) %>% 
+  mutate(year = "2000") %>% 
+  select(year, commnty, lable, ttl_mxc, ttl_mxc2, prc, geometry)
+
+tract_2000 <- st_read("Data Tables/shp/tract_pop_chi_2000.shp")
+
+pop_dots_2000_origin_50 <- read_sf("Data Tables/shp/pop_dots_2000_origin_50.shp")
+
+####### Combine data
+comm_2000_2022 <- rbind(comm_2022, comm_2012,  comm_2000)
+### st_write(comm_2000_2022, "Data Tables/shp/comm_pop_chi_2000_2022.shp" )
+comm_2000_2022 <- st_read ("Data Tables/shp/comm_pop_chi_2000_2022.shp" ) %>% 
+  mutate(prc2 = paste0(prc, "%"))
+``` 
+
+\renewcommand{\arraystretch}{1.4}
+
+
+# Demographic
+
+## 1A.1: Mexican population in Chicago, 2018-2022:
+
+
+### Dot Density
+```{r fig.height=11, fig.width=8}
+
+Mexican_18_22 <- pop_dots_2022_origin_50 %>% 
+  filter(Origin == 'Mexican')
+
+# st_write(Mexican, "data/2020/origin_Mexican_2020_50.shp")
+Mexican_map_2020 <-
+
+  # tm_shape(community_shp) +
+  # tm_polygons(col = "white",
+  #            alpha = 0.3)+
+  
+  tm_shape(Mexican_18_22,  bbox = bbox_new) +
+  tm_dots(col = "Origin",
+          palette = "#1565c0",
+          size = 0.025,
+          legend.show = FALSE,
+          alpha = 0.3) +
+  
+  tm_shape(comm_2022) +
+  tm_borders(col = "#6c757d",
+             alpha = 1,
+             lwd = 1)+
+  tm_text("lable" , size = 0.6, alpha = 0.9, fontface="bold", fontfamily = "sans")+
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 0.7,
+             lwd = 2.5) +
+
+  tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) +       # manually position legend) +
+  tm_credits("Data source:\nIPUMS NHGIS (2018-2022)\nMap Generated by:\nThe Great Cities Institute",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+  
+  tm_credits("Distribution of Mexican Population in Chicago, 2018-2022",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25)+
+
+  
+  tm_add_legend("symbol", 
+                labels = "Mexican", 
+                col = "#1565c0",
+                size = 0.6,
+                title = "1 dot = 50 People") +
+  
+  tm_add_legend("line",
+                labels = c("Chicago Border", "Community Area Border"),
+                col = c("#343a40", "#6c757d"),
+                lwd = c(2.5, 2),
+                title = "Border Types",
+                size = 0.8) +
+
+  # tm_credits("1 dot = 20 People",
+  #            position = c(0.03, 0.32), size = 0.8, fontface = "bold") +
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+Mexican_map_2020
+
+```
+
+<!-- ### Percentage of the Mexican Population by Community Areas in Chicago, 2018-2022 -->
+
+
+<!-- ```{r fig.height=11, fig.width=8} -->
+
+<!-- comm_mexican_map_2022 <- -->
+
+<!--   tm_shape(comm_2022, bbox = bbox_new) + -->
+<!--   tm_polygons( -->
+<!--     col = "prc", -->
+<!--               style = "jenks", -->
+<!--               border.col = "#ced4da", -->
+<!--               palette="Blues", -->
+<!--               alpha = 0.7, -->
+<!--               n = 5, -->
+<!--               title = "Percentage of the Mexican Population", -->
+<!--               lwd = 0.3) + -->
+<!--   tm_shape(comm_2022) + -->
+<!--   tm_borders(col = "#6c757d", -->
+<!--              alpha = 1, -->
+<!--              lwd = 1)+ -->
+
+<!--   # tm_shape(comm_2022 %>% filter(prc>=50)) + -->
+<!--   # tm_borders(col = "#9b2226", -->
+<!--   #            alpha = 1, -->
+<!--   #            lwd = 2)+ -->
+<!--   tm_text("lable" , size = 0.6, alpha = 0.7, fontface="bold", fontfamily = "sans")+ -->
+
+<!--   tm_shape(Chicago_boundary_shp) + -->
+<!--   tm_borders(col = "#343a40", -->
+<!--              alpha = 1, -->
+<!--              lwd = 2.5) + -->
+
+<!--   tm_layout( frame = TRUE, -->
+<!--              # main.title.position = c("left", "top"), -->
+<!--              # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010", -->
+<!--              # main.title.size = 1.2, -->
+<!--             legend.outside = FALSE, -->
+<!--             legend.width = 1.5, -->
+<!--             legend.title.size = .9, -->
+<!--             legend.text.size = 0.8, -->
+<!--             legend.title.fontface = "bold", -->
+<!--             # legend.position = c("left", "bottom"), -->
+<!--             legend.position = c(0.03, 0.12), -->
+<!--             legend.bg.color = "white", -->
+<!--             legend.bg.alpha = .3) +      # manually position legend) + -->
+
+<!--   tm_credits("Data source:\nIPUMS NHGIS (2018-2022)\nMap Generated by:The Great Cities Institute", -->
+<!--              fontface = "bold", -->
+<!--              position = c("left","bottom"), size = 0.8)+ -->
+
+
+<!--   tm_credits("Percentage of the Mexican Population by Community Areas\nin Chicago, 2018-2022", -->
+<!--              fontface = "bold", -->
+<!--              position = c("left","top"), size = 1.25)+ -->
+
+
+<!--   tm_add_legend("line", -->
+<!--                 labels = c("Chicago Border", "Community Area Border"), -->
+<!--                 col = c("#343a40","#6c757d"), -->
+<!--                 lwd = c(2.5, 2), -->
+<!--                 title = "Border Types", -->
+<!--                 size = 0.8) + -->
+
+<!--   # tm_credits("1 dot = 20 People", -->
+<!--   #            position = c(0.03, 0.32), size = 0.8, fontface = "bold") + -->
+<!--   tm_compass(position = c("right", "bottom"), size = 1) + -->
+<!--   tm_scale_bar(position = c("right", "bottom"), width = 0.15) -->
+
+<!-- comm_mexican_map_2022 -->
+
+
+<!-- ``` -->
+
+
+### Mexican Population by Community Areas in Chicago, 2018-2022
+
+
+```{r fig.height=11, fig.width=8}
+
+comm_mexican_pop_map_2022 <-
+
+  tm_shape(comm_2022, bbox = bbox_new) +
+  tm_polygons(
+    col = "ttl_mxc",
+              style = "jenks",
+              border.col = "#ced4da",
+              palette="Blues",
+              alpha = 0.7,
+              n = 5,
+              title = "Mexican Population",
+              lwd = 0.3) +
+  tm_shape(comm_2022) +
+  tm_borders(col = "#6c757d",
+             alpha = 1,
+             lwd = 1)+
+  
+  # tm_shape(comm_2022 %>% filter(prc>=50)) +
+  # tm_borders(col = "#9b2226",
+  #            alpha = 1,
+  #            lwd = 2)+
+  tm_text("ttl_mxc2" , size = 0.7, alpha = 0.7, fontface="bold", fontfamily = "sans")+
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+
+  tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) +      # manually position legend) +
+  
+  tm_credits("Data source:\nIPUMS NHGIS (2018-2022)\nMap Generated by:The Great Cities Institute",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+
+
+  tm_credits("Mexican Population by Community Areas in Chicago, 2018-2022",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25)+
+
+
+  tm_add_legend("line",
+                labels = c("Chicago Border", "Community Area Border"),
+                col = c("#343a40","#6c757d"),
+                lwd = c(2.5, 2),
+                title = "Border Types",
+                size = 0.8) +
+
+  # tm_credits("1 dot = 20 People",
+  #            position = c(0.03, 0.32), size = 0.8, fontface = "bold") +
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+comm_mexican_pop_map_2022
+
+```
+
+
+## 1A.2: Mexican population in Chicago, 2008-2012:
+
+### Dot Density
+
+```{r fig.height=11, fig.width=8}
+
+Mexican_2010 <- pop_dots_2010_origin_50 %>% 
+  filter(Origin == 'Mexican')
+
+Mexican_map_2010 <-
+  tm_shape(Mexican_2010,  bbox = bbox_new) +
+  tm_dots(col = "Origin",
+          palette = "#1565c0",
+          size = 0.025,
+          legend.show = FALSE,
+          alpha = 0.3) +
+  
+  tm_shape(comm_2012) +
+  tm_borders(col = "#6c757d",
+             alpha = 1,
+             lwd = 1)+
+  tm_text("lable" , size = 0.6, alpha = 0.9, fontface="bold", fontfamily = "sans")+
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 0.7,
+             lwd = 2.5) +
+
+  tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) +       # manually position legend) +
+  tm_credits("Data source:\nIPUMS NHGIS (2010)\nMap Generated by:\nThe Great Cities Institute",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+  
+  tm_credits("Distribution of Mexican Population in Chicago, 2010",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25)+
+
+  
+  tm_add_legend("symbol", 
+                labels = "Mexican", 
+                col = "#1565c0",
+                size = 0.6,
+                title = "1 dot = 50 People") +
+  
+  tm_add_legend("line",
+                labels = c("Chicago Border", "Community Area Border"),
+                col = c("#343a40", "#6c757d"),
+                lwd = c(2.5, 2),
+                title = "Border Types",
+                size = 0.8) +
+
+  # tm_credits("1 dot = 20 People",
+  #            position = c(0.03, 0.32), size = 0.8, fontface = "bold") +
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+Mexican_map_2010
+
+```
+
+
+<!-- ### Percentage of the Mexican Population by Community Areas in Chicago, 2008-2012 -->
+
+
+<!-- ```{r fig.height=11, fig.width=8} -->
+
+<!-- comm_mexican_map_2012 <- -->
+
+<!--   tm_shape(comm_2012, bbox = bbox_new) + -->
+<!--   tm_polygons( -->
+<!--     col = "prc", -->
+<!--               style = "jenks", -->
+<!--               border.col = "#ced4da", -->
+<!--               palette="Blues", -->
+<!--               alpha = 0.7, -->
+<!--               n = 5, -->
+<!--               title = "Percentage of the Mexican Population", -->
+<!--               lwd = 0.3) + -->
+<!--   tm_shape(comm_2012) + -->
+<!--   tm_borders(col = "#6c757d", -->
+<!--              alpha = 1, -->
+<!--              lwd = 1)+ -->
+
+<!--   # tm_shape(comm_2022 %>% filter(prc>=50)) + -->
+<!--   # tm_borders(col = "#9b2226", -->
+<!--   #            alpha = 1, -->
+<!--   #            lwd = 2)+ -->
+<!--   tm_text("lable" , size = 0.6, alpha = 0.7, fontface="bold", fontfamily = "sans")+ -->
+
+<!--   tm_shape(Chicago_boundary_shp) + -->
+<!--   tm_borders(col = "#343a40", -->
+<!--              alpha = 1, -->
+<!--              lwd = 2.5) + -->
+
+<!--   tm_layout( frame = TRUE, -->
+<!--              # main.title.position = c("left", "top"), -->
+<!--              # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010", -->
+<!--              # main.title.size = 1.2, -->
+<!--             legend.outside = FALSE, -->
+<!--             legend.width = 1.5, -->
+<!--             legend.title.size = .9, -->
+<!--             legend.text.size = 0.8, -->
+<!--             legend.title.fontface = "bold", -->
+<!--             # legend.position = c("left", "bottom"), -->
+<!--             legend.position = c(0.03, 0.12), -->
+<!--             legend.bg.color = "white", -->
+<!--             legend.bg.alpha = .3) +      # manually position legend) + -->
+
+<!--   tm_credits("Data source:\nIPUMS NHGIS (2018-2022)\nMap Generated by:The Great Cities Institute", -->
+<!--              fontface = "bold", -->
+<!--              position = c("left","bottom"), size = 0.8)+ -->
+
+
+<!--   tm_credits("Percentage of the Mexican Population by Community Areas\nin Chicago, 2008-2012", -->
+<!--              fontface = "bold", -->
+<!--              position = c("left","top"), size = 1.25)+ -->
+
+
+<!--   tm_add_legend("line", -->
+<!--                 labels = c("Chicago Border", "Community Area Border"), -->
+<!--                 col = c("#343a40","#6c757d"), -->
+<!--                 lwd = c(2.5, 2), -->
+<!--                 title = "Border Types", -->
+<!--                 size = 0.8) + -->
+
+<!--   # tm_credits("1 dot = 20 People", -->
+<!--   #            position = c(0.03, 0.32), size = 0.8, fontface = "bold") + -->
+<!--   tm_compass(position = c("right", "bottom"), size = 1) + -->
+<!--   tm_scale_bar(position = c("right", "bottom"), width = 0.15) -->
+
+<!-- comm_mexican_map_2012 -->
+
+
+<!-- ``` -->
+
+
+### Mexican Population by Community Areas in Chicago, 2008-2012
+
+
+```{r fig.height=11, fig.width=8}
+
+comm_mexican_pop_map_2012 <-
+
+  tm_shape(comm_2012, bbox = bbox_new) +
+  tm_polygons(
+    col = "ttl_mxc",
+              style = "jenks",
+              border.col = "#ced4da",
+              palette="Blues",
+              alpha = 0.7,
+              n = 5,
+              title = "Mexican Population",
+              lwd = 0.3) +
+  tm_shape(comm_2012) +
+  tm_borders(col = "#6c757d",
+             alpha = 1,
+             lwd = 1) +
+  
+  tm_text("ttl_mxc2" , size = 0.7, alpha = 0.7, fontface="bold", fontfamily = "sans") +
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+
+  tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) +      # manually position legend) +
+  
+  tm_credits("Data source:\nIPUMS NHGIS (2008-2012)\nMap Generated by:The Great Cities Institute",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+
+
+  tm_credits("Mexican Population by Community Areas in Chicago, 2008-2012",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25)+
+
+
+  tm_add_legend("line",
+                labels = c("Chicago Border", "Community Area Border"),
+                col = c("#343a40","#6c757d"),
+                lwd = c(2.5, 2),
+                title = "Border Types",
+                size = 0.8) +
+
+  # tm_credits("1 dot = 20 People",
+  #            position = c(0.03, 0.32), size = 0.8, fontface = "bold") +
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+comm_mexican_pop_map_2012
+
+```
+
+
+## 1A.3: Mexican population in Chicago, 2000:
+
+### Dot Density
+
+```{r fig.height=11, fig.width=8}
+
+Mexican_2000 <- pop_dots_2000_origin_50 %>% 
+  filter(Origin == 'Mexican')
+
+Mexican_map_2000 <-
+  tm_shape(Mexican_2000,  bbox = bbox_new) +
+  tm_dots(col = "Origin",
+          palette = "#1565c0",
+          size = 0.025,
+          legend.show = FALSE,
+          alpha = 0.3) +
+  
+  tm_shape(comm_2000) +
+  tm_borders(col = "#6c757d",
+             alpha = 1,
+             lwd = 1)+
+  tm_text("lable" , size = 0.6, alpha = 0.9, fontface="bold", fontfamily = "sans")+
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 0.7,
+             lwd = 2.5) +
+
+  tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) +       # manually position legend) +
+  tm_credits("Data source:\nIPUMS NHGIS (2000)\nMap Generated by:\nThe Great Cities Institute",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+  
+  tm_credits("Distribution of Mexican Population in Chicago, 2000",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25)+
+
+  
+  tm_add_legend("symbol", 
+                labels = "Mexican", 
+                col = "#1565c0",
+                size = 0.6,
+                title = "1 dot = 50 People") +
+  
+  tm_add_legend("line",
+                labels = c("Chicago Border", "Community Area Border"),
+                col = c("#343a40", "#6c757d"),
+                lwd = c(2.5, 2),
+                title = "Border Types",
+                size = 0.8) +
+
+  # tm_credits("1 dot = 20 People",
+  #            position = c(0.03, 0.32), size = 0.8, fontface = "bold") +
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+Mexican_map_2000
+
+```
+
+<!-- ### Percentage of the Mexican Population by Community Areas in Chicago, 2000 -->
+
+
+<!-- ```{r fig.height=11, fig.width=8} -->
+
+<!-- comm_mexican_map_2000 <- -->
+
+<!--   tm_shape(comm_2000, bbox = bbox_new) + -->
+<!--   tm_polygons( -->
+<!--     col = "prc", -->
+<!--               style = "jenks", -->
+<!--               border.col = "#ced4da", -->
+<!--               palette="Blues", -->
+<!--               alpha = 0.7, -->
+<!--               n = 5, -->
+<!--               title = "Percentage of the Mexican Population", -->
+<!--               lwd = 0.3) + -->
+<!--   tm_shape(comm_2000) + -->
+<!--   tm_borders(col = "#6c757d", -->
+<!--              alpha = 1, -->
+<!--              lwd = 1)+ -->
+
+<!--   # tm_shape(comm_2022 %>% filter(prc>=50)) + -->
+<!--   # tm_borders(col = "#9b2226", -->
+<!--   #            alpha = 1, -->
+<!--   #            lwd = 2)+ -->
+<!--   tm_text("lable" , size = 0.6, alpha = 0.7, fontface="bold", fontfamily = "sans")+ -->
+
+<!--   tm_shape(Chicago_boundary_shp) + -->
+<!--   tm_borders(col = "#343a40", -->
+<!--              alpha = 1, -->
+<!--              lwd = 2.5) + -->
+
+<!--   tm_layout( frame = TRUE, -->
+<!--              # main.title.position = c("left", "top"), -->
+<!--              # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010", -->
+<!--              # main.title.size = 1.2, -->
+<!--             legend.outside = FALSE, -->
+<!--             legend.width = 1.5, -->
+<!--             legend.title.size = .9, -->
+<!--             legend.text.size = 0.8, -->
+<!--             legend.title.fontface = "bold", -->
+<!--             # legend.position = c("left", "bottom"), -->
+<!--             legend.position = c(0.03, 0.12), -->
+<!--             legend.bg.color = "white", -->
+<!--             legend.bg.alpha = .3) +      # manually position legend) + -->
+
+<!--   tm_credits("Data source:\nIPUMS NHGIS (2000)\nMap Generated by:The Great Cities Institute", -->
+<!--              fontface = "bold", -->
+<!--              position = c("left","bottom"), size = 0.8)+ -->
+
+
+<!--   tm_credits("Percentage of the Mexican Population by Community Areas\nin Chicago, 2000", -->
+<!--              fontface = "bold", -->
+<!--              position = c("left","top"), size = 1.25)+ -->
+
+
+<!--   tm_add_legend("line", -->
+<!--                 labels = c("Chicago Border", "Community Area Border"), -->
+<!--                 col = c("#343a40","#6c757d"), -->
+<!--                 lwd = c(2.5, 2), -->
+<!--                 title = "Border Types", -->
+<!--                 size = 0.8) + -->
+
+<!--   # tm_credits("1 dot = 20 People", -->
+<!--   #            position = c(0.03, 0.32), size = 0.8, fontface = "bold") + -->
+<!--   tm_compass(position = c("right", "bottom"), size = 1) + -->
+<!--   tm_scale_bar(position = c("right", "bottom"), width = 0.15) -->
+
+<!-- comm_mexican_map_2000 -->
+
+
+<!-- ``` -->
+
+### Mexican Population by Community Areas in Chicago, 2000
+
+
+```{r fig.height=11, fig.width=8}
+
+comm_mexican_pop_map_2000 <-
+
+  tm_shape(comm_2000, bbox = bbox_new) +
+  tm_polygons(
+    col = "ttl_mxc",
+              style = "jenks",
+              border.col = "#ced4da",
+              palette="Blues",
+              alpha = 0.7,
+              n = 5,
+              title = "Mexican Population",
+              lwd = 0.3) +
+  tm_shape(comm_2000) +
+  tm_borders(col = "#6c757d",
+             alpha = 1,
+             lwd = 1) +
+  
+  tm_text("ttl_mxc2" , size = 0.7, alpha = 0.7, fontface="bold", fontfamily = "sans") +
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+
+  tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) +      # manually position legend) +
+  
+  tm_credits("Data source:\nIPUMS NHGIS (2000)\nMap Generated by:The Great Cities Institute",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+
+
+  tm_credits("Mexican Population by Community Areas in Chicago, 2000",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25)+
+
+
+  tm_add_legend("line",
+                labels = c("Chicago Border", "Community Area Border"),
+                col = c("#343a40","#6c757d"),
+                lwd = c(2.5, 2),
+                title = "Border Types",
+                size = 0.8) +
+
+  # tm_credits("1 dot = 20 People",
+  #            position = c(0.03, 0.32), size = 0.8, fontface = "bold") +
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+comm_mexican_pop_map_2000
+
+```
+
+\blandscape
+
+## Percentage of the Mexican Population by Community Areas in Chicago, 2000 to 2018-2022
+
+```{r fig.height=8, fig.width=11}
+# fig.height=11, fig.width=24
+map_2000_2022 <-
+
+  tm_shape(comm_2000_2022) +
+  tm_polygons(
+    col = "prc",
+              style = "jenks",
+              border.col = "#6c757d",
+              palette="Blues",
+              alpha = 1,
+              n = 5,
+              title = "Percentage",
+              lwd = 0.3) +
+   tm_text("prc" , size = 0.8, alpha = 1, fontface="bold", fontfamily = "sans")+
+
+  tm_facets(by = "year",
+            ncol = 3) +
+  
+ 
+  
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+  
+
+   tm_layout( frame = TRUE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("right", "bottom"),
+            # legend.position = c(0.1, 0.12),
+            legend.outside.position = "bottom",
+            attr.outside = T, attr.outside.position = "bottom", attr.just = "left",
+
+            main.title = "Percentage of the Mexican Population by Community Areas in Chicago, 2000 to 2018-2022"
+    
+            ) +
+  
+  tm_add_legend("line",
+                labels = c("Chicago Border", "Community Area Border"),
+                col = c("#343a40","#6c757d"),
+                lwd = c(2.5, 2),
+                title = "Border Types",
+                size = 0.8) 
+  # tm_credits("Data source:\nIPUMS NHGIS (2000)\nMap Generated by:The Great Cities Institute",
+  #            fontface = "bold",
+  #            position = c("left","bottom"), size = 0.8)
+
+  # tm_compass(position = c("left", "bottom"), size = 1) +
+  # tm_scale_bar(position = c("left", "bottom"), width = 0.7)
+
+map_2000_2022
+
+```
+
+\elandscape
+
+
+# Changing Over Time
+
+```{r}
+
+# 17043 DuPage County
+# 17089  Kane County
+# 17031  Cook County
+# 17097 Lake county 
+# 17111 McHenry County
+# 17197 Will County
+
+######################################## 1980
+
+# chicago_tracts_1980 <- st_read("Data Tables/shp/intersect_census_1980.shp")
+# 
+# mexican_pop_1980 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+#                                file_select = "nhgis0044_csv/nhgis0044_ds104_1980_tract.csv") %>%
+# 
+#   filter(STATEA == 17) %>%
+#   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
+#   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>%
+#   select(GISJOIN, YEAR, STATE, COUNTY, state_county,C9F001, C9E002, C7L001) %>%
+#   rename("Mexican" = "C9E002",
+#          "total_pop" = "C7L001",
+#          "total_his" = "C9F001")
+# 
+# county_pop_1980 <- mexican_pop_1980 %>%
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE))
+# 
+# chicago_pop_1980 <- mexican_pop_1980 %>%
+#   filter(GISJOIN%in%chicago_tracts_1980$GISJOIN) %>%
+#   filter(!GISJOIN %in% c("G17003107609", "G17004308400")) %>%  ### exclude the O'Hare
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE)) %>%
+#   mutate(COUNTY = "Chicago")
+# 
+# pop_county_chicago_1980 <- rbind(county_pop_1980, chicago_pop_1980)
+# #
+# write.csv(pop_county_chicago_1980, "Data Tables/pop_county_chicago_1980.csv")
+
+
+####################################################   1990
+# chicago_tracts_1990 <- st_read("Data Tables/shp/intersect_census_1990.shp")
+# 
+# 
+# mexican_pop_1990 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+#                                file_select = "nhgis0044_csv/nhgis0044_ds120_1990_tract.csv") %>%
+# 
+#   filter(STATEA == 17) %>%
+#   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
+#   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>%
+#   select(GISJOIN, YEAR, STATE, COUNTY, state_county, EU1002, ET1001,
+#          EU0001) %>%
+#   rename("Mexican" = "EU1002",
+#          "total_pop" = "ET1001",
+#          "total_his" = "EU0001")
+# 
+# 
+# county_pop_1990 <- mexican_pop_1990 %>%
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE))
+# 
+# chicago_pop_1990 <- mexican_pop_1990 %>%
+#   filter(GISJOIN%in%chicago_tracts_1990$GISJOIN) %>%
+#   filter(!GISJOIN %in% c("G17004308400", "G17003107609")) %>% # parcels in O'hare
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE)) %>%
+#   mutate(COUNTY = "Chicago")
+# 
+# pop_county_chicago_1990 <- rbind(county_pop_1990, chicago_pop_1990)
+#
+# write.csv(pop_county_chicago_1990, "Data Tables/pop_county_chicago_1990.csv")
+
+
+
+####################################################   2000
+
+# chicago_tracts_2000 <- st_read("Data Tables/shp/intersect_census_2000.shp")
+# 
+# 
+# mexican_pop_2000 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+#                                file_select = "nhgis0044_csv/nhgis0044_ds146_2000_tract.csv") %>%
+# 
+#   filter(STATEA == 17) %>%
+#   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
+#   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>% 
+#   select(GISJOIN, STATE, COUNTY, state_county, YEAR, FUH001, FL5001, FMX001) %>%
+#   rename("Mexican" = "FUH001",
+#          "total_pop" = "FL5001",
+#          "total_his" = "FMX001")
+#   
+# 
+# county_pop_2000 <- mexican_pop_2000 %>%
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE))
+# 
+# chicago_pop_2000 <- mexican_pop_2000 %>%
+#   filter(GISJOIN%in%chicago_tracts_2000$GISJOIN) %>%
+#   filter(!GISJOIN %in% c("G1700430840000", "G1700310760900")) %>%  # parcels in O'hare
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE)) %>%
+#   mutate(COUNTY = "Chicago")
+# 
+# pop_county_chicago_2000 <- rbind(county_pop_2000, chicago_pop_2000)
+# # 
+# # write.csv(pop_county_chicago_2000, "Data Tables/pop_county_chicago_2000.csv")
+# 
+# 
+# ####################################################   2010
+# 
+# chicago_tracts_2010 <- st_read("Data Tables/shp/intersect_census_2010.shp")
+# 
+# 
+# mexican_pop_2010 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+#                                file_select = "nhgis0044_csv/nhgis0044_ds173_2010_tract.csv") %>%
+# 
+#   filter(STATEA == 17) %>%
+#   mutate(state_county = paste0(STATEA,COUNTYA)) %>%
+#   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>% 
+#   select(GISJOIN, STATE, COUNTY,state_county, YEAR, IC2004, IC2001, IC2003 ) %>%
+#   rename("Mexican" = "IC2004",
+#          "total_pop" = "IC2001",
+#         "total_his" = "IC2003")
+#   
+# county_pop_2010 <- mexican_pop_2010 %>%
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE))
+# 
+# chicago_pop_2010 <- mexican_pop_2010 %>%
+#   filter(GISJOIN%in%chicago_tracts_2010$GISJOIN) %>%
+#   filter(GISJOIN != "G1700430840000") %>%  # parcels in O'hare
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE)) %>%
+#   mutate(COUNTY = "Chicago")  
+#   
+# pop_county_chicago_2010 <- rbind(county_pop_2010, chicago_pop_2010)
+#  
+# # write.csv(pop_county_chicago_2010, "Data Tables/pop_county_chicago_2010.csv")
+# 
+# ####################################################   2020
+# 
+# chicago_tracts_2020 <- st_read("Data Tables/shp/intersect_census_2020.shp") %>% 
+#   select(GISJOIN, geometry, GEOID) %>% 
+#   filter(!GISJOIN %in% c("G1700310980000", "G1700430840000")) %>% # parcels in O'hare 
+#   st_transform( crs = 4326)
+# 
+# 
+# 
+# 
+# mexican_pop_18_22 <- get_acs(
+#   cache_table = TRUE,
+#   geography = "tract",
+#   variables = c(Mexican = "B03001_004",
+#                 total_pop = "B03001_001",
+#                 total_his = "B03001_003"),
+#   state = 17,
+# 
+#   year = 2022
+#   # geometry = TRUE
+#   ) %>% 
+#   
+#   separate(NAME, c("Census", "COUNTY", "state"), sep = "; ") %>% 
+#   
+#   # rename("Origin" = "variable",
+#   #        "Value" = "estimate") %>% 
+#   pivot_wider(id_cols = c(GEOID, Census, COUNTY, state),
+#                names_from = "variable",
+#                values_from  = "estimate") %>% 
+#   mutate(YEAR = "2018-2022") %>% 
+#   mutate(state_county = substr(GEOID, 1, 5)) %>% 
+#   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197))
+# 
+# 
+# chicago_pop_2020 <- mexican_pop_18_22 %>%
+#   filter(GEOID %in% chicago_tracts_2020$GEOID) %>% #
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE)) %>%
+#   mutate(COUNTY = "Chicago")  
+# 
+# 
+# 
+# county_pop_2020 <- mexican_pop_18_22 %>%
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE))
+# 
+# pop_county_chicago_2020 <- rbind(county_pop_2020, chicago_pop_2020)
+#  
+# # write.csv(pop_county_chicago_2020, "Data Tables/pop_county_chicago_2020.csv")
+# 
+
+
+
+# ######### Joining Data 
+# pop_county_chicago_1980 <- read.csv("Data Tables/pop_county_chicago_1980.csv") %>% mutate(YEAR = as.character(YEAR))
+# pop_county_chicago_1990 <- read.csv("Data Tables/pop_county_chicago_1990.csv") %>% mutate(YEAR = as.character(YEAR))
+# pop_county_chicago_2000 <- read.csv("Data Tables/pop_county_chicago_2000.csv")%>% mutate(YEAR = as.character(YEAR))
+# pop_county_chicago_2010 <- read.csv("Data Tables/pop_county_chicago_2010.csv") %>% mutate(state_county = as.character(state_county))
+# 
+# pop_county_chicago_2020 <- read.csv("Data Tables/pop_county_chicago_2020.csv")%>% mutate(state_county = as.character(state_county),
+#                                                                                          )
+# 
+# 
+# pop_county_chicago_1980_2020 <- rbind(pop_county_chicago_1980,
+#                                       pop_county_chicago_1990,
+#                                       pop_county_chicago_2000,
+#                                       pop_county_chicago_2010,
+#                                       pop_county_chicago_2020) %>% 
+#   mutate(COUNTY = case_when(COUNTY == "Cook" ~ "Cook County",
+#                             COUNTY == "Dupage" ~ "DuPage County",
+#                             COUNTY == "Kane" ~ "Kane County",
+#                             COUNTY == "Will" ~ "Will County",
+#                             COUNTY == "McHenry" ~ "McHenry County",
+#                             COUNTY == "Lake" ~ "Lake County" ,
+#                             TRUE ~ COUNTY)) %>% 
+#   clean_names() %>% 
+#   select(-x)
+# 
+# # write.csv(pop_county_chicago_1980_2020, "Data Tables/pop_county_chicago_1980_2020.csv")
+
+
+pop_county_chicago_1980_2020 <- read_csv("Data Tables/pop_county_chicago_1980_2020.csv") %>% 
+  rename("X" = "...1")
+```
+
+
+

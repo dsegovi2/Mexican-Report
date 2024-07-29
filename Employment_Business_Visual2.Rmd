@@ -52,6 +52,10 @@ usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexic
                                     TRUE ~ NA_character_)) %>% 
   mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)"))) 
 # install.packages("knitr")
+
+
+
+
 ```
 \renewcommand{\arraystretch}{1.4}
 \clearpage
@@ -108,6 +112,7 @@ table_5.a1
 ```
 
 \clearpage
+
 
 ## 5A.2: Numbers and percentages of Mexicans employed, by industry
 
@@ -188,6 +193,85 @@ table_5a.2 <-  industry %>%
 table_5a.2
 
 ```
+
+
+```{r}
+industry2 = usa_data %>%
+  filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+
+  as_survey_design(weights = perwt) %>%
+  survey_count(race_ethnicity, ind, employment=empstat_f, name="count") %>%
+  filter(employment == "Employed") %>%
+  group_by(race_ethnicity) %>%
+  mutate(total_employed = sum(count, na.rm = T)) %>%
+  mutate(prc = 100* round(count/total_employed, 4),
+         prc2 = paste0(prc,"%"))
+  # mutate(mexican_count = ifelse(race_ethnicity == "Mexican", count, NA)) %>%
+  # arrange(desc(mexican_count))
+
+top_industries <- industry2 %>%
+  filter(race_ethnicity == "Mexican") %>%
+  arrange(desc(count)) %>%
+  slice(1:10) %>%
+  pull(ind)
+
+
+
+industry3 <- industry2 %>% 
+  filter(ind %in% top_industries) %>% 
+  group_by(race_ethnicity) %>% 
+  mutate(sub_industry = case_when(ind == 8680 ~ "Accommodation and Food Services: Restaurants and other food services",
+                    ind == 770 ~ "Construction (the cleaning of buildings and dwellings is incidental during construction and immediately after construction)",
+                    ind == 7860 ~ "Educational Services: Elementary and secondary schools",
+                    ind == 8191 ~ "Health Care and Social Assistance: General medical and surgical hospitals, and specialty (except psychiatric and substance abuse) hospitals",
+                    ind == 7690 ~ "Administrative and support and waste management services: Services to buildings and dwellings (except cleaning during construction and immediately after construction)",
+                    ind == 4971 ~ "Retail Trade: Supermarkets and other grocery (except convenience) stores",
+                    ind == 8770 ~ "Other Services, Except Public Administration: Automotive repair and maintenance",
+                    ind == 7870 ~ "Educational Services: Colleges, universities, and professional schools, including junior colleges",
+                    ind == 7770 ~ "Administrative and support and waste management services: Landscaping services",
+                    ind == 3990 ~ "Manufacturing: Not specified manufacturing industries"
+                    
+                    )) %>% 
+  arrange(factor(race_ethnicity, levels = levels(industry2$race_ethnicity)), desc(count)) %>%
+  ungroup()
+
+
+
+table_5a.2_2 <-  industry3 %>%
+  filter(race_ethnicity == "Mexican") %>% 
+  # filter(race_ethnicity %in% c("Other Latinos")) %>% 
+  select(sub_industry, count,  prc2) %>%
+
+   # using kable
+  kable(booktabs = T,
+        col.names = c("Sub Industry", "Number", "% Share of Employed"   ),
+      align = c("l",rep("c",2)),
+      caption = "The Top 10 sub-industries where Mexican’s have the highest employment in Chicago, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                # latex_options = "HOLD_position",
+                ) %>%
+  column_spec(1, width = "40em") %>%
+  column_spec(2:3, width = "7em") %>%
+  # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T,
+           # background = "#f2f0f7",
+           font_size = 8) 
+
+  
+
+table_5a.2_2 
+
+```
+
+
+
 
 \clearpage
 

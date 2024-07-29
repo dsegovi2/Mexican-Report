@@ -123,6 +123,7 @@ homeownership = usa_data %>%
   
   survey_count(year, race_ethnicity, ownershp_f, name="count") %>% 
   
+  filter(ownershp_f != "N/A") %>% 
   filter(!is.na(race_ethnicity)) %>% 
   
   group_by(year, race_ethnicity) %>% 
@@ -184,6 +185,55 @@ table_a3
 
 ```
 
+
+
+```{r}
+ownership_nation <- read.csv("Data Tables/homeownership_nation.csv")
+
+
+
+
+
+table_a3_2 <-  ownership_nation %>% 
+  
+  filter(ownershp_f == "Owned or being bought (loan)") %>% 
+
+  pivot_wider(id_cols =  c(race_ethnicity, ownershp_f), names_from = "year", values_from = c(count, per, per2)) %>% 
+
+  mutate(diff2000_2022 = count_2022 - count_2000,
+         diff_per = round(per_2022 - per_2000, 4), 
+         diff_per2 = paste0(diff_per,"%")
+         ) %>% 
+  select(race_ethnicity, count_2000, per2_2000, count_2012, per2_2012, count_2022, per2_2022, diff2000_2022, diff_per2) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("", "Number", "Percent" , "Number", "Percent", "Number", "Percent", "Number", "Percent"),
+      align = c("l",rep("c",8)),
+      caption = "Homeownership by Race/Ethnicity in the USA, 2000, 2008-2012, and 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:9, width = "3.8em") %>%
+  add_header_above( align = c("l", rep("c",4)), c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
+                    # background = "#cbc9e2", 
+                    bold = T, font_size =8) %>% 
+  # row_spec(0, bold = T, 
+  #          # background = "#f2f0f7",
+  #          font_size = 8) %>% 
+  
+  footnote(general = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+table_a3_2
+
+```
 
 ## 3.B: Number and percentage of Mexicans who, live in crowded housing, or are rent-burdened.
 

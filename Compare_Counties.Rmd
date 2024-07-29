@@ -117,16 +117,16 @@ theme_plots <-
       legend.text = element_text(size = 8, color = "#636363"),
       legend.title = element_text(face = "bold", size = 8, color = "#636363")) 
 
-
-usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00012.xml")) 
-# view(usa_ddi)
-# colnames(usa_ddi)
-# ipums_view(usa_ddi)
-
-
-collar_data <- usa_ddi %>% 
-  select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, PERNUM, PERWT,HHWT, SERIAL,NUMPREC, EMPSTAT, IND, OCC, LABFORCE, HHINCOME) %>% 
-  clean_names() 
+# 
+# usa_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00013.xml")) 
+# # view(usa_ddi)
+# # colnames(usa_ddi)
+# # ipums_view(usa_ddi)
+# 
+# 
+# collar_data <- usa_ddi %>% 
+#   select(YEAR, MULTYEAR, RACE, RACED, CITY, PUMA, HISPAN, PERNUM, PERWT,HHWT, SERIAL,NUMPREC, EMPSTAT, IND, OCC, LABFORCE, HHINCOME) %>% 
+#   clean_names() 
 
 
 ```
