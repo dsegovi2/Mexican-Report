@@ -881,7 +881,7 @@ table_1d.4
 
 ```{r}
 # Construct the full file path
-chicago_ca_pop
+chicago_ca_pop %>% as.data.frame()
 ```
 
 
