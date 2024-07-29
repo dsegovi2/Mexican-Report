@@ -71,8 +71,42 @@ usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexi
                                     hispan %in% c(2,3,4) ~ "Other Latinos",
                                     hispan ==1 ~ "Mexican", 
                                     hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
-                                    TRUE ~ NA_character_)) %>% 
-  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")))
+                                    TRUE ~ NA_character_),
+  hispan_breakdown = case_when(
+  hispand == 0 ~ "Not Hispanic",
+  hispand == 100 ~ "Mexican", 
+  hispand == 200 ~ "Puerto Rican",
+  hispand == 300 ~ "Cuban",
+  hispand == 411 ~ "Costa Rican",
+  hispand == 412 ~ "Guatemalan",
+  hispand == 413 ~ "Honduran",
+  hispand == 414 ~ "Nicaraguan",
+  hispand == 415 ~ "Panamanian",
+  hispand == 416 ~ "Salvadoran",
+  hispand == 417 ~ "Central American, not specified",
+  hispand == 420 ~ "Argentinean",
+  hispand == 421 ~ "Bolivian",
+  hispand == 422 ~ "Chilean",
+  hispand == 423 ~ "Colombian",
+  hispand == 424 ~ "Ecuadorian",
+  hispand == 425 ~ "Paraguayan",
+  hispand == 426 ~ "Peruvian",
+  hispand == 427 ~ "Uruguayan",
+  hispand == 428 ~ "Venezuelan",
+  hispand == 431 ~ "South American, not specified",
+  hispand == 450 ~ "Spaniard",
+  hispand == 460 ~ "Dominican",
+  hispand == 498 ~ "Other, not specified",
+  TRUE ~ "Other"
+),
+mex_foreign_born = case_when(
+    race_ethnicity == "Mexican" & bpl %in% as.character(1:56) ~ "U.S. Born",
+    race_ethnicity == "Mexican" & bpl == "200" ~ "Mexico Born",
+    TRUE ~ NA_character_  # Optional: default case for other values or groups
+  )) %>% ## filter for hispanic groups here ##
+  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Venezuelan", "Other, not specified", "Colombian", "Salvadoran", "Peruvian", "Honduran", "Spaniard", "Dominican", "Argentinean", "Chilean", "Nicaraguan", "Panamanian", "Costa Rican", "Bolivian", "Uruguayan", "Paraguayan", "South American, not specified", "Central American, not specified", "Not Hispanic"))
+  )
+
 ```
 
 
@@ -100,7 +134,7 @@ df <-  data_chi_2018_22 %>%
   mutate(
     age_group = case_when(
       age < 20 ~ "Young (0-19)",
-      age >= 20 & age < 40 ~ "Young Adults (20-39)",
+      age >= 20 & age < 40 ~ "Adults (20-39)",
       age >= 40 & age < 60 ~ "Middle-aged (40-59)",
       age >= 60 & age < 80 ~ "Older Adults (60-79)",
       age >= 80 ~ "Elderly (80+)"
@@ -142,16 +176,12 @@ df_final  <- pop_pyramid %>% left_join(weighted_age)
 
 
 
-
-
-
-
 ```{r}
 # visual
 
 table_1b.1 <- df_final  %>% pivot_wider(id_cols = c("race_ethnicity"), names_from = age_group, values_from = c("total_weighted_count", "total_weighted_percentage")) %>% select(race_ethnicity, 
                                                                                                                                                 'total_weighted_count_Young (0-19)', 'total_weighted_percentage_Young (0-19)',
-                                                                                                                                                 'total_weighted_count_Young Adults (20-39)', 'total_weighted_percentage_Young Adults (20-39)',
+                                                                                                                                                 'total_weighted_count_Adults (20-39)', 'total_weighted_percentage_Adults (20-39)',
                                                                                                                                                  'total_weighted_count_Middle-aged (40-59)', 'total_weighted_percentage_Middle-aged (40-59)',
                                                                                                                                                  'total_weighted_count_Older Adults (60-79)', 'total_weighted_percentage_Older Adults (60-79)',
                                                                                                                                                  'total_weighted_count_Elderly (80+)', 'total_weighted_percentage_Elderly (80+)')   %>% 
@@ -172,7 +202,7 @@ table_1b.1 <- df_final  %>% pivot_wider(id_cols = c("race_ethnicity"), names_fro
   column_spec(1, width = "14.2em") %>%
   column_spec(2:11, width = "2.58em") %>%  
 
- add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "Young(0-19)" = 2, "Young Adults(0-19)" = 2, "Middle Aged (40-59)" = 2, "Older Adults (60-79)" = 2, "Elderly(80+)" = 2),
+ add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "Young(0-19)" = 2, "Adults(0-19)" = 2, "Middle Aged (40-59)" = 2, "Older Adults (60-79)" = 2, "Elderly(80+)" = 2),
                     # background = "#cbc9e2", 
                     bold = T, font_size =8) %>% 
 
@@ -184,7 +214,101 @@ table_1b.1
 ```
 
 
-## 1B(2): Median Age of Mexican population, 2018-2022:
+## 1B(Population Pyramid and Percentage of Hispanic/Latino breakdown, 2018-2022:
+
+```{r}
+# analysis
+
+# filter for year 2022
+
+data_chi_2018_22 <- usa_data %>% filter(year == 2022)
+
+# 1B: Population pyramid of the percentage of Mexican population by age group compared to the rest of the population in Chicago and median age in Chicago (Data source: 2018-2022 ACS data)
+
+df <-  data_chi_2018_22 %>%
+  mutate(
+    age_group = case_when(
+      age < 20 ~ "Young (0-19)",
+      age >= 20 & age < 40 ~ "Adults (20-39)",
+      age >= 40 & age < 60 ~ "Middle-aged (40-59)",
+      age >= 60 & age < 80 ~ "Older Adults (60-79)",
+      age >= 80 ~ "Elderly (80+)"
+    )
+  )
+# Create survey design object
+survey_design <- df %>%
+  as_survey_design(weights = perwt)
+
+
+# Calculate weighted population counts by age group and ethnicity
+
+# Calculate weighted population by ethnicity and age group
+pop_pyramid <- df %>%
+  as_survey_design(weights = perwt) %>% 
+  survey_count(hispan_breakdown, age_group, name="total_weighted_count")  %>%
+  group_by(hispan_breakdown) %>%
+  mutate(total_weighted_percentage = total_weighted_count / sum(total_weighted_count) * 100,
+         total_weighted_percentage  = paste0(round(total_weighted_percentage, 1), "%")) 
+
+
+
+# get median age
+
+weighted_age  <- df %>%
+  group_by(hispan_breakdown) %>%
+  summarize(
+    weighted_age = matrixStats::weightedMedian(age, perwt)
+  ) 
+
+
+
+# combined
+
+df_final  <- pop_pyramid %>% left_join(weighted_age) %>%  filter(!(hispan_breakdown %in% c("South American, not specified", 
+                                   "Central American, not specified", 
+                                   "Not Hispanic"))) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
+```
+
+```{r}
+# visual
+
+table_1b.2 <- df_final  %>% pivot_wider(id_cols = c("hispan_breakdown"), names_from = age_group, values_from = c("total_weighted_count", "total_weighted_percentage")) %>% select(hispan_breakdown, 
+                                                                                                                                                'total_weighted_count_Young (0-19)', 'total_weighted_percentage_Young (0-19)',
+                                                                                                                                                 'total_weighted_count_Adults (20-39)', 'total_weighted_percentage_Adults (20-39)',
+                                                                                                                                                 'total_weighted_count_Middle-aged (40-59)', 'total_weighted_percentage_Middle-aged (40-59)',
+                                                                                                                                                 'total_weighted_count_Older Adults (60-79)', 'total_weighted_percentage_Older Adults (60-79)',
+                                                                                                                                                 'total_weighted_count_Elderly (80+)', 'total_weighted_percentage_Elderly (80+)')   %>% 
+  mutate(across(everything(), ~replace(., is.na(.), "Missing Data"))) %>% 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("", "Number", "Percent" , "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent"),
+      align = c("l",rep("c",10)),
+      caption = "Population Pyramid of Hispanic/Latino Breakdown, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:11, width = "2.58em") %>%  
+
+ add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "Young(0-19)" = 2, "Adults(0-19)" = 2, "Middle Aged (40-59)" = 2, "Older Adults (60-79)" = 2, "Elderly(80+)" = 2),
+                    # background = "#cbc9e2", 
+                    bold = T, font_size =8) %>% 
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+
+table_1b.2
+```
+
+
+
+## 1B(3): Median Age of Mexican population, 2018-2022:
 
 ```{r}
 # analysis
@@ -242,7 +366,7 @@ df_final  <- pop_pyramid %>% left_join(weighted_age)
 # visuals
 # visuals
 
-table_1b.2 <- weighted_age  %>% select(race_ethnicity, weighted_age) %>% 
+table_1b.3 <- weighted_age  %>% select(race_ethnicity, weighted_age) %>% 
  
    # using kable 
   
@@ -267,16 +391,107 @@ table_1b.2 <- weighted_age  %>% select(race_ethnicity, weighted_age) %>%
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
            general_title = "")   
 
-table_1b.2
+table_1b.3
 
 
 ```
 
 
 
+## 1B(4): Median Age of Hispanic/Latino breakdown, 2018-2022:
+
+```{r}
+# analysis
+
+# filter for year 2022
+
+data_chi_2018_22 <- usa_data %>% filter(year == 2022)
+
+# 1B: Population pyramid of the percentage of Mexican population by age group compared to the rest of Latino Population and median age in Chicago (Data source: 2018-2022 ACS data)
+
+df <-  data_chi_2018_22 %>%
+  mutate(
+    age_group = case_when(
+      age < 20 ~ "Young (0-19)",
+      age >= 20 & age < 40 ~ "Young Adults (20-39)",
+      age >= 40 & age < 60 ~ "Middle-aged (40-59)",
+      age >= 60 & age < 80 ~ "Older Adults (60-79)",
+      age >= 80 ~ "Elderly (80+)"
+    )
+  )
+# Create survey design object
+survey_design <- df %>%
+  as_survey_design(weights = perwt)
+
+
+# Calculate weighted population counts by age group and ethnicity
+
+# Calculate weighted population by ethnicity and age group
+pop_pyramid <- df %>%
+  as_survey_design(weights = perwt) %>% 
+  survey_count(hispan_breakdown, age_group, name="total_weighted_count")  %>%
+  group_by(hispan_breakdown) %>%
+  mutate(total_weighted_percentage = total_weighted_count / sum(total_weighted_count) * 100,
+         total_weighted_percentage  = paste0(round(total_weighted_percentage, 1), "%")) 
+
+
+
+# get median age
+
+weighted_age  <- df %>%
+  group_by(hispan_breakdown) %>%
+  summarize(
+    weighted_age = matrixStats::weightedMedian(age, perwt)
+  ) %>% mutate(
+    weighted_age = round(weighted_age, 1)
+  )
+
+
+# combined
+
+df_final  <- pop_pyramid %>% left_join(weighted_age)
+```
+
+
+```{r}
+# visuals
+# visuals
+
+table_1b.4 <- weighted_age  %>% select(hispan_breakdown, weighted_age) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+       col.names = c("Race/Ethnicity", "Number"),
+      align = c("l",rep("c",1)),
+      caption = "Median Age of Hispanic/Latino breakdown, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2, width = "25.8em") %>%  
+
+  row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+table_1b.4
+
+
+```
+
+
 ## 1C: Average Family Size of the Mexican Population, 2018-2022:
 
 ```{r}
+table(usa_data$famsize)
 # analysis
 
 # filter for year 2022
@@ -302,11 +517,8 @@ avg_family_size <- survey_design %>%
   summarize(
         avg_family_size = survey_mean(famsize, vartype = "se", na.rm = TRUE)
   ) %>%  mutate(
-    avg_family_size = round(avg_family_size)
+    avg_family_size = round(avg_family_size, 1)
   )
-
-
-
 
 ```
 
@@ -396,7 +608,6 @@ income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
 
 ```{r}
 # visuals
-# visual
 
 
 
@@ -407,7 +618,7 @@ table_1d.1 <- income_levels %>% select(race_ethnicity, avg_hhincome, weighted_me
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Average Household Income", "Median Household Income"),
       align = c("l",rep("c",2)),
-      caption = "Average and Weighted Median Income of Mexican Population, 2018-2022",
+      caption = "Average and Median Income of Mexican Population, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -429,7 +640,170 @@ table_1d.1
 ```
 
 
-## 1D(2): Poverty Rates, 2018-2022:
+
+
+## 1D(2): Income Levels by Hispanic/Latino breakdown, 2018-2022:
+
+```{r}
+# analysis
+# filter for 2022
+
+data_chi_2018_22 <- usa_data %>% filter(year == 2022)
+
+# 1D Income Levels and poverty rates for Mexicans, other Latinos, Black and White Populations in Chicago.
+
+# Filter the data to remove negative and extreme values
+filtered_data <- data_chi_2018_22 %>%
+  filter(hhincome >= 0 & hhincome < 9999999, pernum == 1)
+  
+# Define the survey design using srvyr with only weights
+survey_design <- filtered_data  %>%
+  as_survey_design(weights = hhwt)
+
+# Calculate the weighted average household income by group
+weighted_avg_income <- survey_design %>% filter(pernum == 1) %>%
+  group_by(hispan_breakdown) %>%
+  summarize(
+    avg_hhincome = survey_mean(hhincome, vartype = "se", na.rm = TRUE)
+  )
+
+
+# weighted median: 
+
+weighted_median_income <- data_chi_2018_22 %>%  filter(pernum == 1) %>%
+  group_by(hispan_breakdown) %>%
+  summarize(
+    weighted_median_hhincome = matrixStats::weightedMedian(hhincome,  weights = hhwt)
+  ) %>%
+  ungroup()
+
+
+# final df with income levels
+income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
+  mutate(
+    avg_hhincome = paste0("$", format(avg_hhincome, big.mark = ",", scientific = FALSE)),
+    weighted_median_hhincome = paste0("$", format(weighted_median_hhincome, big.mark = ",", scientific = FALSE))
+  ) %>%  filter(!(hispan_breakdown %in% c("South American, not specified", 
+                                   "Central American, not specified", 
+                                   "Not Hispanic"))) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
+
+
+```
+
+
+```{r}
+# visuals
+
+
+table_1d.2 <- income_levels %>% select(hispan_breakdown, avg_hhincome, weighted_median_hhincome) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Race/Ethnicity", "Average Household Income", "Median Household Income"),
+      align = c("l",rep("c",2)),
+      caption = "Average and Median Income of Hispanic/Latino breakdown, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:3, width = "12.9em") %>%  
+
+  row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+table_1d.2
+```
+
+
+
+## 1D(3): Income levels between Mexicans born in Mexico vs United States.
+
+```{r}
+# analysis
+# filter for 2022
+
+data_chi_2018_22 <- usa_data %>% filter(year == 2022) %>% filter(!is.na(mex_foreign_born))
+
+# 1D Income Levels and poverty rates for Mexicans born in Mexico vs. United States
+# Filter the data to remove negative and extreme values
+filtered_data <- data_chi_2018_22 %>%
+  filter(hhincome >= 0 & hhincome < 9999999, pernum == 1)
+  
+# Define the survey design using srvyr with only weights
+survey_design <- filtered_data  %>%
+  as_survey_design(weights = hhwt)
+
+# Calculate the weighted average household income by group
+weighted_avg_income <- survey_design %>% filter(pernum == 1) %>%
+  group_by(mex_foreign_born) %>%
+  summarize(
+    avg_hhincome = survey_mean(hhincome, vartype = "se", na.rm = TRUE)
+  )
+
+
+# weighted median: 
+
+weighted_median_income <- data_chi_2018_22 %>%  filter(pernum == 1) %>%
+  group_by(mex_foreign_born) %>%
+  summarize(
+    weighted_median_hhincome = matrixStats::weightedMedian(hhincome,  weights = hhwt)
+  ) %>%
+  ungroup()
+
+
+# final df with income levels
+income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
+  mutate(
+    avg_hhincome = paste0("$", format(avg_hhincome, big.mark = ",", scientific = FALSE)),
+    weighted_median_hhincome = paste0("$", format(weighted_median_hhincome, big.mark = ",", scientific = FALSE))
+  ) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
+
+```
+
+```{r}
+
+# visuals
+
+
+
+table_1d.3 <- income_levels %>% select(mex_foreign_born, avg_hhincome, weighted_median_hhincome) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Mexican Nativity", "Average Household Income", "Median Household Income"),
+      align = c("l",rep("c",2)),
+      caption = "Average and Median Income of Mexican Population, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:3, width = "12.9em") %>%  
+
+  row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+table_1d.3
+```
+
+## 1D(4): Poverty Rates, 2018-2022:
 
 ```{r}
 # analysis
@@ -472,14 +846,14 @@ poverty_rate <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count
 # visuals
 
 
-table_1d.2 <- poverty_rate  %>% select(race_ethnicity, total_weighted_poverty_count, poverty_rate) %>% 
+table_1d.4 <- poverty_rate  %>% select(race_ethnicity, total_weighted_poverty_count, poverty_rate) %>% 
  
    # using kable 
   
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number", "Percent"),
       align = c("l",rep("c",2)),
-      caption = "Mexican Population at or Below 100% Poverty Threshold, 2018-2022",
+      caption = "Mexican Population at or Below Poverty Threshold, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -497,90 +871,6 @@ table_1d.2 <- poverty_rate  %>% select(race_ethnicity, total_weighted_poverty_co
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
            general_title = "")   
 
-table_1d.2
-```
-
-## 1E: Population by Mexican indigenous groups, 2018-2022:
-
-```{r}
-# analysis
-
-# filter for 2022
-
-data_chi_2018_22 <- usa_data %>% filter(year == 2022)
-
-
-# check ipums labels
-
-# Ensure data_chi_2018_22 is loaded
-
-# make tribe a character
-data_chi_2018_22$tribe_f <- as.character(data_chi_2018_22$tribe_f)
-
-
-# create native groups by collapsing categories
-
-data_recoded <- data_chi_2018_22  %>% mutate(
-    tribe_label_collapsed = case_when(
-      tribe_f %in% c("Not applicable or blank", "American Indian, tribe not specified", "American Indian and Alaska Native, not specified",
-                         "American Indian and Alaska Native, tribe not elsewhere classified", 
-                         "American Indian, tribe not elsewhere classified", "All other specified American Indian tribe combinations") ~ "Unspecified/Other",
-      TRUE ~ tribe_f
-    )
-  )
- 
-
-# Population by Mexican indigenous groups by Public Use Microdata Areas (PUMAs) in Chicago.  
-
-# Filter data for Mexican who identify as AIAN and select relevant columns
-mexican_indigenous <- data_recoded %>%
-  filter(hispan == 1 & race == 3) %>%
-  select(puma, tribe_label_collapsed, perwt)
-
-# Create survey design with weights
-survey_design <- mexican_indigenous %>%
-  as_survey_design(weights = perwt)
-
-# Count the number of individuals by indigenous tribe within each PUMA
-tribe_count <- survey_design %>%
-  survey_count(tribe_label_collapsed, name = "total_weighted_count")
-
-# round 
-tribe_count  <- tribe_count %>% mutate(
-  total_weighted_count_se = round(total_weighted_count_se, 1)
-)
-```
-
-
-```{r}
-# visuals
-
-
-table_1e <- tribe_count %>% select(tribe_label_collapsed, total_weighted_count) %>% 
- 
-   # using kable 
-  
-  kbl(, booktabs = T,
-      col.names = c("Race/Ethnicity", "Number"),
-      align = c("l",rep("c",1)),
-      caption = "Population by Mexican indigenous groups, 2018-2022",
-      format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
-                font_size = 8,
-                html_font = "Arial",
-                position = "center",
-                latex_options = "HOLD_position") %>% 
-  column_spec(1, width = "14.2em") %>%
-  column_spec(2, width = "25.8em") %>%  
-
-  row_spec(0, bold = T,
-             #background = "#f2f0f7",
-            font_size = 8) %>%
-
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
-
-table_1e
+table_1d.4
 ```
 

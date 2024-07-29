@@ -64,15 +64,47 @@ Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Re
 ### usa data
 
 # Read Data
-
 usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
   mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
                                     hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
                                     hispan %in% c(2,3,4) ~ "Other Latinos",
                                     hispan ==1 ~ "Mexican", 
                                     hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
-                                    TRUE ~ NA_character_)) %>% 
-  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")))
+                                    TRUE ~ NA_character_),
+  hispan_breakdown = case_when(
+  hispand == 0 ~ "Not Hispanic",
+  hispand == 100 ~ "Mexican", 
+  hispand == 200 ~ "Puerto Rican",
+  hispand == 300 ~ "Cuban",
+  hispand == 411 ~ "Costa Rican",
+  hispand == 412 ~ "Guatemalan",
+  hispand == 413 ~ "Honduran",
+  hispand == 414 ~ "Nicaraguan",
+  hispand == 415 ~ "Panamanian",
+  hispand == 416 ~ "Salvadoran",
+  hispand == 417 ~ "Central American, not specified",
+  hispand == 420 ~ "Argentinean",
+  hispand == 421 ~ "Bolivian",
+  hispand == 422 ~ "Chilean",
+  hispand == 423 ~ "Colombian",
+  hispand == 424 ~ "Ecuadorian",
+  hispand == 425 ~ "Paraguayan",
+  hispand == 426 ~ "Peruvian",
+  hispand == 427 ~ "Uruguayan",
+  hispand == 428 ~ "Venezuelan",
+  hispand == 431 ~ "South American, not specified",
+  hispand == 450 ~ "Spaniard",
+  hispand == 460 ~ "Dominican",
+  hispand == 498 ~ "Other, not specified",
+  TRUE ~ "Other"
+),
+mex_foreign_born = case_when(
+    race_ethnicity == "Mexican" & bpl %in% as.character(1:56) ~ "U.S. Born",
+    race_ethnicity == "Mexican" & bpl == "200" ~ "Mexico Born",
+    TRUE ~ NA_character_  # Optional: default case for other values or groups
+  )) %>% ## filter for hispanic groups here ##
+  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Venezuelan", "Other, not specified", "Colombian", "Salvadoran", "Peruvian", "Honduran", "Spaniard", "Dominican", "Argentinean", "Chilean", "Nicaraguan", "Panamanian", "Costa Rican", "Bolivian", "Uruguayan", "Paraguayan", "South American, not specified", "Central American, not specified", "Not Hispanic"))
+  )
 
 # Construct the full file path
 chicago_ca_pop <- read_sf("Data Tables/shp/comm_pop_chi_2022.shp") %>% as.data.frame()
@@ -94,8 +126,6 @@ df_health <- chicago_ca_pop %>% select(commnty, prc_mxc, prc_nh_w, prc_nh_b) %>%
  mutate(across(matches("rate$|crimes$"), ~ round(as.numeric(.), 1)))
 
 
-# mutate(across(matches("rate"), ~ ifelse(is.na(.), "missing data", paste0(., "%")))) %>%
-  #mutate(across(ends_with("crimes"), ~ ifelse(is.na(.), "missing data", paste0(., " crimes"))))
 
 ```
 
@@ -229,23 +259,27 @@ denominator <- survey_design %>%
 # Join numerator and denominator
 df_rates <- numerator_without_insurance %>%
   left_join(denominator, by = "race_ethnicity") %>%
-  mutate(no_insurance_rate = (weighted_n_without_insurance / total_pop) * 100, 
-         no_insurance_rate = paste0(round(no_insurance_rate, 1), "%"))
+  mutate(
+    no_insurance_rate = (weighted_n_without_insurance / total_pop) * 100,
+    no_insurance_rate = paste0(round(no_insurance_rate, 1), "%"),
+      unininsured_sum = sum(weighted_n_without_insurance),
+    no_insurance_rate_2 = (weighted_n_without_insurance / unininsured_sum) * 100,
+    no_insurance_rate_2 = paste0(round(no_insurance_rate_2, 1), "%")
+  )
   
-
 
 ```
 
 
 ```{r}
 # visuals
-table_4b <- df_rates  %>% select(race_ethnicity, weighted_n_without_insurance, no_insurance_rate)   %>% 
+table_4b <- df_rates  %>% select(race_ethnicity, weighted_n_without_insurance, no_insurance_rate, no_insurance_rate_2)   %>% 
  
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Race/Ethnicity", "Number without health insurance", "No Insurance Rate"),
-      align = c("l",rep("c",2)),
+      col.names = c("Race/Ethnicity", "Number without health insurance", "No Insurance Rate", "No Health Insurance among Uninsured Rate"),
+      align = c("l",rep("c",3)),
       caption = "No Health Insurance, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
@@ -255,7 +289,7 @@ table_4b <- df_rates  %>% select(race_ethnicity, weighted_n_without_insurance, n
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:4, width = "8.6em") %>%  
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
@@ -274,39 +308,68 @@ table_4b
 ## 4C: Number and Percentages of Mexicans born in U.S. versus Mexicans born in Mexico without job provided Health Insurance, 2018-2022:
 
 ```{r}
-# analysis
 ## select variables, filter for year 2022
-df <- usa_data %>%  filter(year == 2022) %>% select(race_ethnicity, hcovany, perwt)
+df <- usa_data %>%  filter(year == 2022) %>% select(mex_foreign_born, hinsemp, perwt) %>% filter(!is.na(mex_foreign_born))
 
 # Create survey design object
 survey_design <- df %>%
   as_survey_design(weights = perwt)
   
   
-# Calculate numerator: weighted count of individuals without health insurance by race_ethnicity
+# Calculate numerator: weighted count of individuals without job provided health insurance by race_ethnicity
 numerator_without_insurance <- survey_design %>%
-  filter(hcovany == 1) %>% 
-  group_by(race_ethnicity) %>%
+  filter(hinsemp == 1) %>% 
+  group_by(mex_foreign_born) %>%
   summarise(weighted_n_without_insurance = survey_total(vartype = "se"))
 
 # Calculate denominator: total population by race_ethnicity
 denominator <- survey_design %>%
-  group_by(race_ethnicity) %>%
+  group_by(mex_foreign_born) %>%
   summarise(total_pop = survey_total(vartype = "se")) 
   
 # calculate rate
 
 # Join numerator and denominator
 df_rates <- numerator_without_insurance %>%
-  left_join(denominator, by = "race_ethnicity") %>%
-  mutate(no_insurance_rate = (weighted_n_without_insurance / total_pop) * 100, 
-         no_insurance_rate = paste0(round(no_insurance_rate, 1), "%"))
+  left_join(denominator, by = "mex_foreign_born") %>%
+  mutate(
+    no_insurance_rate = (weighted_n_without_insurance / total_pop) * 100,
+    no_insurance_rate = paste0(round(no_insurance_rate, 1), "%")
+  )
   
-
-
 ```
 
+```{r}
+# visuals
+table_4c <- df_rates  %>% select(mex_foreign_born, weighted_n_without_insurance, no_insurance_rate)   %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Mexican Nativity", "Number without Job provided health insurance", "No Job provided health Insurance"),
+      align = c("l",rep("c",3)),
+      caption = "No Health Insurance, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:3, width = "8.6em") %>%  
 
+  row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+
+table_4c
+
+```
 
 
 ## 4D: Health behaviors and risk factors
@@ -396,7 +459,6 @@ table_4d
 
 ```{r}
 # analysis
-# analysis
 
 # analysis
 mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% filter(prc_mxc >50) %>% select(commnty, sexual_assault_crimes, unmet_mental_health_rate)  
@@ -404,25 +466,23 @@ mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% filter(prc_mxc >50) %>% 
 mexican_average_row <- mexican_top %>%
   summarise(
     commnty = "Average of Community Areas with 50% or more Mexican population",
-    drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
-    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
-    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
-  )
+    sexual_assault_crimes = round(mean(sexual_assault_crimes, na.rm = TRUE), 1),
+    unmet_mental_health_rate = round(mean(unmet_mental_health_rate, na.rm = TRUE), 1)
+    )
 
 # Add the new row to the existing dataframe
 mexican_top <- bind_rows(mexican_top, mexican_average_row)
 
 ## white 50% or more
 
-white_top <- df_health %>% arrange(desc(prc_nh_w)) %>% filter(prc_nh_w >50) %>% select(commnty, drinking_rate, smoking_rate, fruit_veg_rate)  
+white_top <- df_health %>% arrange(desc(prc_nh_w)) %>% filter(prc_nh_w >50) %>% select(commnty, sexual_assault_crimes, unmet_mental_health_rate)  
 
 white_average_row <- white_top %>%
   summarise(
     commnty = "Average of Community Areas with 50% or more Non-Hispanic White population",
-    drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
-    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
-    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
-  )
+    sexual_assault_crimes = round(mean(sexual_assault_crimes, na.rm = TRUE), 1),
+    unmet_mental_health_rate = round(mean(unmet_mental_health_rate, na.rm = TRUE), 1)
+    )
 # Add the new row to the existing dataframe
 mexican_top <- bind_rows(mexican_top, white_average_row)
 
@@ -430,32 +490,32 @@ mexican_top <- bind_rows(mexican_top, white_average_row)
 ## black 50% or more
 
 
-nh_black_top <- df_health %>% arrange(desc(prc_nh_b)) %>% filter(prc_nh_b >50) %>% select(commnty, drinking_rate, smoking_rate, fruit_veg_rate)  
+nh_black_top <- df_health %>% arrange(desc(prc_nh_b)) %>% filter(prc_nh_b >50) %>% select(commnty, sexual_assault_crimes, unmet_mental_health_rate)  
 
 nh_black_average_row <- nh_black_top %>%
   summarise(
     commnty = "Average of Community Areas with 50% or more Non-Hispanic Black population",
-     drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
-    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
-    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
-  )
+     sexual_assault_crimes = round(mean(sexual_assault_crimes, na.rm = TRUE), 1),
+    unmet_mental_health_rate = round(mean(unmet_mental_health_rate, na.rm = TRUE), 1)
+    )
+
 # Add the new row to the existing dataframe
-df_final <- bind_rows(mexican_top, nh_black_average_row) %>% mutate(across(matches("rate"), ~ ifelse(is.na(.), "missing data", paste0(., "%"))))
+df_final <- bind_rows(mexican_top, nh_black_average_row) %>% mutate(across(matches("rate"), ~ ifelse(is.na(.), "missing data", paste0(., "%")))) %>% mutate(across(matches("crimes"), ~ ifelse(is.na(.), "missing data", paste0(., " crimes"))))
 
 ```
 
 
 ```{r}
 # visuals
-#c("Community Area", "Percent Mexican", "Criminal Sexual Assault", "Unmet Mental Health Need Rate"),
-table_4e <- df_health  %>% select(commnty, prc_mxc, sexual_assault_crimes, unmet_mental_health_rate)   %>% 
+
+table_4e <- df_final  %>%
  
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Community Area", "Percent Mexican", "Criminal Sexual Assault", "Unmet Mental Health Need Rate"),
-      align = c("l",rep("c",3)),
-      caption = "Social and Public Health, 2022-2023",
+      col.names = c("Community Areas with 50% or more Mexican Population", "Criminal Sexual Assault", "Unmet Mental Health Need Rate"),
+      align = c("l",rep("c",2)),
+      caption = "Health behaviors and risk factors, 2022-2023",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -464,18 +524,15 @@ table_4e <- df_health  %>% select(commnty, prc_mxc, sexual_assault_crimes, unmet
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:4, width = "8.6em") %>%  
+  column_spec(2:3, width = "12.9em") %>%  
+row_spec(0, bold = TRUE, font_size = 8) %>%
+  row_spec(16:18, bold = TRUE, background = "#f2f0f7") %>%
 
-  row_spec(0, bold = T,
-             #background = "#f2f0f7",
-            font_size = 8) %>%
-
-  footnote(general = "Source: Chicago Health Atlas (2022-2023). Tabulations by Great Cities Institute",
-           general_title = "")   
+  footnote(general = "Source: Chicago Health Atlas (2022-2023 and 2017-21). Tabulations by Great Cities Institute",
+           general_title = "") 
 
 
 table_4e
 ```
-
 
 
