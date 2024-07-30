@@ -880,8 +880,93 @@ table_1d.4
 ## 1F: Top 10 Mexican Community Areas
 
 ```{r}
-# Construct the full file path
-chicago_ca_pop
+# analysis
+top_10 <- chicago_ca_pop %>% as.data.frame() %>% select(commnty, totl_pp, ttl_hs_,ttl_mxc, prc_mx_, prc_mxc) %>%   mutate(commnty = str_to_title(commnty)) %>% arrange(desc(prc_mxc)) %>%  slice_max(order_by = prc_mxc, n = 10)
+
+
+# top 10 row
+totals <- top_10 %>%
+  summarise(
+    commnty = "Top 10 Community Areas",
+    totl_pp = sum(totl_pp, na.rm = TRUE),
+    ttl_hs_ = sum(ttl_hs_, na.rm = TRUE),
+    ttl_mxc = sum(ttl_mxc, na.rm = TRUE),
+    prc_mx_ = (ttl_mxc/ttl_hs_) * 100,
+    prc_mxc = (ttl_mxc/totl_pp) * 100
+  )
+
+
+
+# rest of community areas
+min_67 <- chicago_ca_pop %>% as.data.frame() %>% select(commnty, totl_pp, ttl_hs_,ttl_mxc, prc_mx_, prc_mxc) %>%   mutate(commnty = str_to_title(commnty)) %>% slice_min(order_by = prc_mxc, n = 67)
+
+
+# the rest
+totals_min <- min_67 %>%
+  summarise(
+    commnty = "Rest of Community Areas",
+    totl_pp = sum(totl_pp, na.rm = TRUE),
+    ttl_hs_ = sum(ttl_hs_, na.rm = TRUE),
+    ttl_mxc = sum(ttl_mxc, na.rm = TRUE),
+    prc_mx_ = (ttl_mxc/ttl_hs_) * 100,
+    prc_mxc = (ttl_mxc/totl_pp) * 100
+  )
+
+
+
+# all of chicago
+df_all <- chicago_ca_pop %>% as.data.frame() %>% select(commnty, totl_pp, ttl_hs_,ttl_mxc, prc_mx_, prc_mxc) %>%   mutate(commnty = str_to_title(commnty)) %>% 
+  summarise(
+    commnty = "Total Population of Chicago",
+    totl_pp = sum(totl_pp, na.rm = TRUE),
+    ttl_hs_ = sum(ttl_hs_, na.rm = TRUE),
+    ttl_mxc = sum(ttl_mxc, na.rm = TRUE),
+    prc_mx_ = (ttl_mxc/ttl_hs_) * 100,
+    prc_mxc = (ttl_mxc/totl_pp) * 100
+  )
+
+
+
+
+
+df_final <- rbind(top_10, totals, totals_min, df_all) %>% mutate(
+                                    prc_mx_   = paste0(round(prc_mx_, 1), "%"),
+                                     prc_mxc   = paste0(round(prc_mxc, 1), "%")) 
+
 ```
 
+
+```{r}
+# visuals
+
+
+table_1f <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , prc_mxc) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Top 10 Mexican Communities", "Total Pop", "Hispanic/Latino Pop", "Mexican Pop", "% Mexicans of Hispanic/Latino", "% Mexicans of Total Pop"),
+      align = c("l",rep("c",5)),
+      caption = "Mexican Population , 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:6, width = "5.16em") %>%  
+
+  row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+table_1f 
+```
+
+```
 
