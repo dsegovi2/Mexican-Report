@@ -54,11 +54,6 @@ extract_2018_2022_df <- read_nhgis(nhgis_csv_file, file_select = matches("nhgis0
 extract_2018_2022_sf <- read_ipums_sf(nhgis_shp_file, file_select = matches("nhgis0042_shapefile_tl2022_us_tract_2022.zip"), verbose = FALSE)
 extract_2018_2022 <- ipums_shape_full_join(extract_2018_2022_df, extract_2018_2022_sf, by = "GISJOIN")
 
-```{r}
-extract_2018_2022
-```
-
-
 # variable: AQYYE004:    Hispanic or Latino: Mexican
 tract_pop_2018_2022 <- extract_2018_2022 %>% 
   filter(STATE == "Illinois" & COUNTY == "Cook County") %>% 

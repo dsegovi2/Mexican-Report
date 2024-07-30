@@ -103,7 +103,7 @@ mex_foreign_born = case_when(
     race_ethnicity == "Mexican" & bpl == "200" ~ "Mexico Born",
     TRUE ~ NA_character_  # Optional: default case for other values or groups
   )) %>% ## filter for hispanic groups here ##
-  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Venezuelan", "Other, not specified", "Colombian", "Salvadoran", "Peruvian", "Honduran", "Spaniard", "Dominican", "Argentinean", "Chilean", "Nicaraguan", "Panamanian", "Costa Rican", "Bolivian", "Uruguayan", "Paraguayan", "South American, not specified", "Central American, not specified", "Not Hispanic"))
+  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Venezuelan", "Other, not specified", "Colombian", "Salvadoran", "Peruvian", "Honduran", "Spaniard", "Dominican", "Argentinean", "Chilean", "Nicaraguan", "Panamanian", "Costa Rican", "Bolivian", "Uruguayan", "Paraguayan"))
   )
 
 # Construct the full file path
@@ -341,7 +341,7 @@ df_rates <- numerator_without_insurance %>%
 
 ```{r}
 # visuals
-table_4c <- df_rates  %>% select(mex_foreign_born, weighted_n_without_insurance, no_insurance_rate)   %>% 
+table_4b.2 <- df_rates  %>% select(mex_foreign_born, weighted_n_without_insurance, no_insurance_rate)   %>% 
  
    # using kable 
   
@@ -367,7 +367,7 @@ table_4c <- df_rates  %>% select(mex_foreign_born, weighted_n_without_insurance,
            general_title = "")   
 
 
-table_4c
+table_4b.2
 
 ```
 

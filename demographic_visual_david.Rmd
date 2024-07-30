@@ -106,7 +106,7 @@ mex_foreign_born = case_when(
     race_ethnicity == "Mexican" & bpl == "200" ~ "Mexico Born",
     TRUE ~ NA_character_  # Optional: default case for other values or groups
   )) %>% ## filter for hispanic groups here ##
-  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Venezuelan", "Other, not specified", "Colombian", "Salvadoran", "Peruvian", "Honduran", "Spaniard", "Dominican", "Argentinean", "Chilean", "Nicaraguan", "Panamanian", "Costa Rican", "Bolivian", "Uruguayan", "Paraguayan", "South American, not specified", "Central American, not specified", "Not Hispanic"))
+  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Venezuelan", "Other, not specified", "Colombian", "Salvadoran", "Peruvian", "Honduran", "Spaniard", "Dominican", "Argentinean", "Chilean", "Nicaraguan", "Panamanian", "Costa Rican", "Bolivian", "Uruguayan", "Paraguayan"))
   )
 
 ```
@@ -216,7 +216,7 @@ table_1b.1
 ```
 
 
-## 1B(Population Pyramid and Percentage of Hispanic/Latino breakdown, 2018-2022:
+## 1B(2) Population Pyramid and Percentage of Hispanic/Latino breakdown, 2018-2022:
 
 ```{r}
 # analysis
@@ -266,9 +266,7 @@ weighted_age  <- df %>%
 
 # combined
 
-df_final  <- pop_pyramid %>% left_join(weighted_age) %>%  filter(!(hispan_breakdown %in% c("South American, not specified", 
-                                   "Central American, not specified", 
-                                   "Not Hispanic"))) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
+df_final  <- pop_pyramid %>% left_join(weighted_age) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
 ```
 
 ```{r}
@@ -493,7 +491,6 @@ table_1b.4
 ## 1C: Average Family Size of the Mexican Population, 2018-2022:
 
 ```{r}
-table(usa_data$famsize)
 # analysis
 
 # filter for year 2022
@@ -685,9 +682,7 @@ income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
   mutate(
     avg_hhincome = paste0("$", format(avg_hhincome, big.mark = ",", scientific = FALSE)),
     weighted_median_hhincome = paste0("$", format(weighted_median_hhincome, big.mark = ",", scientific = FALSE))
-  ) %>%  filter(!(hispan_breakdown %in% c("South American, not specified", 
-                                   "Central American, not specified", 
-                                   "Not Hispanic"))) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
+  ) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
 
 
 ```
@@ -877,7 +872,7 @@ table_1d.4
 ```
 
 
-## 1F: Top 10 Mexican Community Areas
+## 1E: Top 10 Mexican Community Areas
 
 ```{r}
 # analysis
@@ -940,7 +935,7 @@ df_final <- rbind(top_10, totals, totals_min, df_all) %>% mutate(
 # visuals
 
 
-table_1f <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , prc_mxc) %>% 
+table_1e <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , prc_mxc) %>% 
  
    # using kable 
   
@@ -965,8 +960,7 @@ table_1f <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , 
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
            general_title = "")   
 
-table_1f 
+table_1e
 ```
 
-```
 
