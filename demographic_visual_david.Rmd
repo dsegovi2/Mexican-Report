@@ -56,7 +56,7 @@ library("RColorBrewer")
 # tinytex::latexmk("demographic_visual.tex")
 
 ##### Chicago boarder
-Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
+Chicago_boundary_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
   st_transform(crs = 4326)
 # mapview(community_shp)
 
@@ -67,7 +67,7 @@ chicago_ca_pop <- read_sf("Data Tables/shp/comm_pop_chi_2022.shp") %>% as.data.f
 
 # Read Data
 
-usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
+usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
   mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
                                     hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
                                     hispan %in% c(2,3,4) ~ "Other Latinos",
