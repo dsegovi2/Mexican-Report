@@ -18,7 +18,7 @@ getwd()
 
 # Read Data
 
-ddi_file <- read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00013.xml") 
+ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa_00055.xml") 
   
   
   
@@ -82,7 +82,7 @@ final_data <- final_data %>%  mutate(across(16:54, as_factor, .names = "{col}_f"
 # export to csv(change)
 
 
-write.csv(final_data, "C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv")
+write.csv(final_data, "C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv")
   
   
   
