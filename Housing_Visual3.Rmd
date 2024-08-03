@@ -110,8 +110,13 @@ usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexic
   mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")))
 
 
+
 ```
 
+
+# Housing
+
+## 3.A: Rates of home ownership and rental housing among Mexicans with historical trends and comparisons to other groups.
 
 ```{r}
 
@@ -133,16 +138,7 @@ homeownership = usa_data %>%
   
  # #### Export 
 #  
-  
-  
-```
 
-# Housing
-
-## 3.A: Rates of home ownership and rental housing among Mexicans with historical trends and comparisons to other groups.
-
-```{r}
-# homeownership = read.csv("Data Tables/3.A.homeownership.csv" )
 
 table_a3 <-  homeownership %>% 
   
@@ -186,12 +182,8 @@ table_a3
 ```
 
 
-
 ```{r}
 ownership_nation <- read.csv("Data Tables/homeownership_nation.csv")
-
-
-
 
 
 table_a3_2 <-  ownership_nation %>% 
