@@ -829,6 +829,14 @@ df_black_state <- data.frame(
   percent_science_proficiency = 24.4
 )
 
+df_asian_state <- data.frame(
+  school_name = "Asian Elem Students City-wide Average",
+  chronic_absenteeism = 21.2,
+  percent_ela_proficiency = 54.7,
+  percent_math_proficiency = 53.5, 
+  percent_science_proficiency = 68.8
+)
+
 
 df_state_avgs <- rbind(df_latino_state, df_white_state, df_black_state, df_asian_state)  %>%
   mutate(
