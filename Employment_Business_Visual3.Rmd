@@ -115,18 +115,21 @@ unemployment = usa_data %>%
   filter(laborforce == "Yes, in the labor force") %>% 
   group_by(race_ethnicity) %>% 
   mutate(in_laborforce = sum(count)) %>% 
-  filter(employment == "Unemployed") %>% 
-  mutate(unemployment_rate = 100*round(count/in_laborforce, 4),
+  select(-count_se) %>% 
+  pivot_wider(names_from = "employment",
+              values_from = "count") %>% 
+
+  mutate(unemployment_rate = 100*round(Unemployed/in_laborforce, 4),
          prc2 = paste0(unemployment_rate, "%"))
   
 
 table_5.a1 <- unemployment %>%
-  select(race_ethnicity,  in_laborforce, count, prc2) %>%
+  select(race_ethnicity,  in_laborforce, Employed, Unemployed, prc2) %>%
   
   # using kable
   kbl(booktabs = T,
-      col.names = c("Race/Ethnicity",  "In the Labor Force" ,"Unemployed", "Percent"),
-      align = c("l",rep("c",3)),
+      col.names = c("Race/Ethnicity",  "In the Labor Force" , "Employed" ,"Unemployed", "Unemployment Rate"),
+      align = c("l",rep("c",4)),
       caption = "Unemployment Rate by Race/Ethnicity in Chicago, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "") %>%
@@ -136,7 +139,7 @@ table_5.a1 <- unemployment %>%
                 position = "center",
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:4, width = "8.6em") %>% 
+  column_spec(2:5, width = "6.45em") %>% 
   # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity", "More than 30%" = 2, "More than 50%" = 2),
   #                   # background = "#cbc9e2",
   #                   bold = T, font_size =8) %>%
@@ -877,12 +880,11 @@ table_5a.3_2
   
 options(knitr.kable.NA = '-') 
 
-cps_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/cps_00170.xml")) %>% 
+cps_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/cps_00171.xml")) %>% 
   clean_names() 
 
 
 Union <- cps_ddi %>% 
-  
   filter( year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
   mutate(race_f = as_factor(race),
          hispan_f = as_factor(hispan), 
@@ -904,7 +906,7 @@ Union <- cps_ddi %>%
   
   filter(labforce != 0 |  empstat !=0) %>% 
   filter(employment_f == "Employed") %>%
-  as_survey_design(weights = asecwt) %>% 
+  as_survey_design(weights = earnwt) %>% 
   
   survey_count(race_ethnicity, laborforce_f, employment_f,  union_f, name="count") %>% 
   group_by(race_ethnicity) %>% 

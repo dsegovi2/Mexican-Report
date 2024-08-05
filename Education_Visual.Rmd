@@ -101,6 +101,9 @@ usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexi
                                     hispan ==1 ~ "Mexican", 
                                     hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
                                     TRUE ~ NA_character_),
+         
+  race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")),
+  
   hispan_breakdown = case_when(
   hispand == 0 ~ "Not Hispanic",
   hispand == 100 ~ "Mexican", 
