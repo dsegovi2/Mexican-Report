@@ -103,7 +103,7 @@ mex_foreign_born = case_when(
     race_ethnicity == "Mexican" & bpl == "200" ~ "Mexico Born",
     TRUE ~ NA_character_  # Optional: default case for other values or groups
   )) %>% ## filter for hispanic groups here ##
-  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Venezuelan", "Other, not specified", "Colombian", "Salvadoran", "Peruvian", "Honduran", "Spaniard", "Dominican", "Argentinean", "Chilean", "Nicaraguan", "Panamanian", "Costa Rican", "Bolivian", "Uruguayan", "Paraguayan", "South American, not specified", "Central American, not specified", "Not Hispanic"))
+  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Colombian"))
   )
 
 # Construct the full file path
@@ -114,12 +114,15 @@ chicago_health <- read_csv("Health Data/Chicago Health Atlas Data Download - Com
   diabetes_rate = hcsdiap_2022_2023,
   asthma_rate = hcsathp_2022_2023,
   lbw_rate = vrbwp_2017_2021,
-  drinking_rate = hcsbdp_2022_2023,
-  smoking_rate = hcssmkp_2022_2023,
-  fruit_veg_rate = hcsfvp_2022_2023, 
   sexual_assault_crimes =  czs_2023, 
-  unmet_mental_health_rate = hcsumhap_2022_2023
+  unmet_mental_health_rate = hcsumhap_2022_2023,
+  cancer_diagnosis_rate = ccr_2017_2021,
+  hyper_tension_rate = hcshytp_2022_2023,
+  psych_distress_rate =   hcsspdp_2022_2023,
+  lung_cancer_rate =ccg_2017_2021,
+  loneliness_rate = chavqos_2022_2023
 )
+
 
 # merge chicago ca with health atlas
 df_health <- chicago_ca_pop %>% select(commnty, prc_mxc, prc_nh_w, prc_nh_b) %>% mutate(commnty = str_to_title(tolower(commnty))) %>% left_join(chicago_health, by = c("commnty" = "name")) %>% select(-layer) %>%
@@ -140,60 +143,56 @@ df_health <- chicago_ca_pop %>% select(commnty, prc_mxc, prc_nh_w, prc_nh_b) %>%
 
 # Health 
 
-## 4A: Health Outcomes in top 10 Mexican Community Areas, 2018-2022:
+## 4A: Health Outcomes in top 4 Mexican Community Areas, (2017-2021 and 2022-2023):
+
+
 
 ```{r}
 # analysis
-mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% filter(prc_mxc >50) %>% select(commnty, obesity_rate, diabetes_rate, asthma_rate, lbw_rate) 
-
-mexican_average_row <- mexican_top %>%
-  summarise(
-    commnty = "Average of Community Areas with 50% or more Mexican population",
-    obesity_rate = round(mean(obesity_rate, na.rm = TRUE), 1),
-    diabetes_rate = round(mean(diabetes_rate, na.rm = TRUE), 1),
-    asthma_rate = round(mean(asthma_rate, na.rm = TRUE), 1),
-    lbw_rate = round(mean(lbw_rate, na.rm = TRUE), 1)
+mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% top_n(4, prc_mxc) %>% select(commnty, obesity_rate, diabetes_rate, asthma_rate, lbw_rate)   %>%
+  mutate(
+    obesity_rate = paste0(round(obesity_rate, 1), "%"),
+   diabetes_rate = paste0(round(diabetes_rate, 1), "%"),
+   asthma_rate = paste0(round(asthma_rate, 1), "%"),
+   lbw_rate = paste0(round(lbw_rate, 1), "%"),
   )
 
-# Add the new row to the existing dataframe
-mexican_top <- bind_rows(mexican_top, mexican_average_row)
 
-## white 50% or more
+df_white_city <- data.frame(
+  commnty = "White City Average",
+ obesity_rate = 24.5,
+  diabetes_rate = 6.9, 
+  asthma_rate = 9.1,
+  lbw_rate = 6.2
+)
 
-white_top <- df_health %>% arrange(desc(prc_nh_w)) %>% filter(prc_nh_w >50) %>% select(commnty, obesity_rate, diabetes_rate, asthma_rate, lbw_rate) 
+df_black_city <- data.frame(
+  commnty = "Black City Average",
+  obesity_rate = 47.6,
+  diabetes_rate = 19.6,
+  asthma_rate = 14.9, 
+  lbw_rate  =14.6
+)
 
-white_average_row <- white_top %>%
-  summarise(
-    commnty = "Average of Community Areas with 50% or more Non-Hispanic White population",
-    obesity_rate = round(mean(obesity_rate, na.rm = TRUE), 1),
-    diabetes_rate = round(mean(diabetes_rate, na.rm = TRUE), 1),
-    asthma_rate = round(mean(asthma_rate, na.rm = TRUE), 1),
-    lbw_rate = round(mean(lbw_rate, na.rm = TRUE), 1)
+# Create a data frame
+df_latino_city <- data.frame(
+  commnty = "Hispanic/Latino City Average",
+  obesity_rate = 39.9,
+  diabetes_rate = 13.9, 
+  asthma_rate = 9.7, 
+  lbw_rate = 8.0
+)
+
+df_city_avgs <- rbind(df_white_city, df_black_city, df_latino_city)  %>%
+  mutate(
+    obesity_rate = paste0(round(obesity_rate, 1), "%"),
+   diabetes_rate = paste0(round(diabetes_rate, 1), "%"),
+   asthma_rate = paste0(round(asthma_rate, 1), "%"),
+   lbw_rate = paste0(round(lbw_rate, 1), "%"),
   )
 
-# Add the new row to the existing dataframe
-mexican_top <- bind_rows(mexican_top, white_average_row)
 
-
-
-
-## black 50% or more
-
-
-nh_black_top <- df_health %>% arrange(desc(prc_nh_b)) %>% filter(prc_nh_b >50) %>% select(commnty, obesity_rate, diabetes_rate, asthma_rate, lbw_rate) 
-
-nh_black_average_row <- nh_black_top %>%
-  summarise(
-    commnty = "Average of Community Areas with 50% or more Non-Hispanic Black population",
-    obesity_rate = round(mean(obesity_rate, na.rm = TRUE), 1),
-    diabetes_rate = round(mean(diabetes_rate, na.rm = TRUE), 1),
-    asthma_rate = round(mean(asthma_rate, na.rm = TRUE), 1),
-    lbw_rate = round(mean(lbw_rate, na.rm = TRUE), 1)
-  )
-
-# Add the new row to the existing dataframe
-df_final <- bind_rows(mexican_top, nh_black_average_row) %>% mutate(across(matches("rate"), ~ ifelse(is.na(.), "missing data", paste0(., "%"))))
-
+df_final <- rbind(mexican_top, df_city_avgs)
 ```
 
 
@@ -204,9 +203,9 @@ table_4a <- df_final %>%
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Community Areas with 50% or more Mexican Population", "Adult Obesity Rate", "Adult Diabetes Rate", "Adult Asthma Rate", "Low Birthweight Rate"),
+      col.names = c("Top 4 Mexican Community Areas", "Adult Obesity Rate", "Adult Diabetes Rate", "Adult Asthma Rate", "Low Birthweight Rate"),
       align = c("l",rep("c",4)),
-      caption = "Health Outcomes, 2022-2023 and 2017-2021",
+      caption = "Health Outcomes, (2017-2021 and 2022-2023)",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -217,9 +216,9 @@ table_4a <- df_final %>%
   column_spec(1, width = "14.2em") %>%
   column_spec(2:5, width = "6.45em") %>%  
 row_spec(0, bold = TRUE, font_size = 8) %>%
-  row_spec(16:18, bold = TRUE, background = "#f2f0f7") %>%
+  row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
 
-  footnote(general = "Source: Chicago Health Atlas (2022-2023 and 2017-21). Tabulations by Great Cities Institute",
+  footnote(general = "Source: Chicago Health Atlas (2017-2021 and 2022-2023). Tabulations by Great Cities Institute",
            general_title = "")   
 
 
@@ -341,7 +340,7 @@ df_rates <- numerator_without_insurance %>%
 
 ```{r}
 # visuals
-table_4c <- df_rates  %>% select(mex_foreign_born, weighted_n_without_insurance, no_insurance_rate)   %>% 
+table_4b.2 <- df_rates  %>% select(mex_foreign_born, weighted_n_without_insurance, no_insurance_rate)   %>% 
  
    # using kable 
   
@@ -367,155 +366,41 @@ table_4c <- df_rates  %>% select(mex_foreign_born, weighted_n_without_insurance,
            general_title = "")   
 
 
-table_4c
+table_4b.2
 
 ```
 
 
-## 4D: Health behaviors and risk factors
+## 4D: Criminal Sexual Assault Crimes (2022-2023)
 
 ```{r}
 # analysis
 
 # analysis
-mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% filter(prc_mxc >50) %>% select(commnty, drinking_rate, smoking_rate, fruit_veg_rate)  
-
-mexican_average_row <- mexican_top %>%
-  summarise(
-    commnty = "Average of Community Areas with 50% or more Mexican population",
-    drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
-    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
-    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
-  )
-
-# Add the new row to the existing dataframe
-mexican_top <- bind_rows(mexican_top, mexican_average_row)
-
-## white 50% or more
-
-white_top <- df_health %>% arrange(desc(prc_nh_w)) %>% filter(prc_nh_w >50) %>% select(commnty, drinking_rate, smoking_rate, fruit_veg_rate)  
-
-white_average_row <- white_top %>%
-  summarise(
-    commnty = "Average of Community Areas with 50% or more Non-Hispanic White population",
-    drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
-    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
-    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
-  )
-# Add the new row to the existing dataframe
-mexican_top <- bind_rows(mexican_top, white_average_row)
+mexican_top <-  df_health %>% arrange(desc(prc_mxc)) %>% top_n(4, prc_mxc)  %>% select(commnty, sexual_assault_crimes) %>%  mutate(
+    rank = case_when(
+      commnty == "Gage Park" ~ 17,
+      commnty == "East Side" ~ 9,
+      commnty == "West Lawn" ~ 10,
+      commnty == "South Lawndale" ~ 29))
 
 
-## black 50% or more
-
-
-nh_black_top <- df_health %>% arrange(desc(prc_nh_b)) %>% filter(prc_nh_b >50) %>% select(commnty, drinking_rate, smoking_rate, fruit_veg_rate)  
-
-nh_black_average_row <- nh_black_top %>%
-  summarise(
-    commnty = "Average of Community Areas with 50% or more Non-Hispanic Black population",
-     drinking_rate = round(mean(drinking_rate, na.rm = TRUE), 1),
-    smoking_rate = round(mean(smoking_rate, na.rm = TRUE), 1),
-    fruit_veg_rate = round(mean(fruit_veg_rate, na.rm = TRUE), 1)
-  )
-# Add the new row to the existing dataframe
-df_final <- bind_rows(mexican_top, nh_black_average_row) %>% mutate(across(matches("rate"), ~ ifelse(is.na(.), "missing data", paste0(., "%"))))
+df_final <- mexican_top
 
 ```
 
 
 ```{r}
 # visuals
+
 table_4d <- df_final  %>%
  
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Community Areas with 50% or more Mexican Population", "Adult Binge Drinking Rate", "Adult Smoking Rate", "Adult Healthy Diet Rate"),
-      align = c("l",rep("c",3)),
-      caption = "Health behaviors and risk factors, 2022-2023",
-      format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
-                font_size = 8,
-                html_font = "Arial",
-                position = "center",
-                latex_options = "HOLD_position") %>% 
-  column_spec(1, width = "14.2em") %>%
-  column_spec(2:4, width = "8.6em") %>%  
-row_spec(0, bold = TRUE, font_size = 8) %>%
-  row_spec(16:18, bold = TRUE, background = "#f2f0f7") %>%
-
-  footnote(general = "Source: Chicago Health Atlas (2022-2023 and 2017-21). Tabulations by Great Cities Institute",
-           general_title = "")   
-
-
-table_4d
-
-```
-
-
-## 4E: Social and Public Health 
-
-```{r}
-# analysis
-
-# analysis
-mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% filter(prc_mxc >50) %>% select(commnty, sexual_assault_crimes, unmet_mental_health_rate)  
-
-mexican_average_row <- mexican_top %>%
-  summarise(
-    commnty = "Average of Community Areas with 50% or more Mexican population",
-    sexual_assault_crimes = round(mean(sexual_assault_crimes, na.rm = TRUE), 1),
-    unmet_mental_health_rate = round(mean(unmet_mental_health_rate, na.rm = TRUE), 1)
-    )
-
-# Add the new row to the existing dataframe
-mexican_top <- bind_rows(mexican_top, mexican_average_row)
-
-## white 50% or more
-
-white_top <- df_health %>% arrange(desc(prc_nh_w)) %>% filter(prc_nh_w >50) %>% select(commnty, sexual_assault_crimes, unmet_mental_health_rate)  
-
-white_average_row <- white_top %>%
-  summarise(
-    commnty = "Average of Community Areas with 50% or more Non-Hispanic White population",
-    sexual_assault_crimes = round(mean(sexual_assault_crimes, na.rm = TRUE), 1),
-    unmet_mental_health_rate = round(mean(unmet_mental_health_rate, na.rm = TRUE), 1)
-    )
-# Add the new row to the existing dataframe
-mexican_top <- bind_rows(mexican_top, white_average_row)
-
-
-## black 50% or more
-
-
-nh_black_top <- df_health %>% arrange(desc(prc_nh_b)) %>% filter(prc_nh_b >50) %>% select(commnty, sexual_assault_crimes, unmet_mental_health_rate)  
-
-nh_black_average_row <- nh_black_top %>%
-  summarise(
-    commnty = "Average of Community Areas with 50% or more Non-Hispanic Black population",
-     sexual_assault_crimes = round(mean(sexual_assault_crimes, na.rm = TRUE), 1),
-    unmet_mental_health_rate = round(mean(unmet_mental_health_rate, na.rm = TRUE), 1)
-    )
-
-# Add the new row to the existing dataframe
-df_final <- bind_rows(mexican_top, nh_black_average_row) %>% mutate(across(matches("rate"), ~ ifelse(is.na(.), "missing data", paste0(., "%")))) %>% mutate(across(matches("crimes"), ~ ifelse(is.na(.), "missing data", paste0(., " crimes"))))
-
-```
-
-
-```{r}
-# visuals
-
-table_4e <- df_final  %>%
- 
-   # using kable 
-  
-  kbl(, booktabs = T,
-      col.names = c("Community Areas with 50% or more Mexican Population", "Criminal Sexual Assault", "Unmet Mental Health Need Rate"),
+      col.names = c("Top 4 Mexican Community Areas", "Criminal Sexual Assault Crimes", "Rank"),
       align = c("l",rep("c",2)),
-      caption = "Health behaviors and risk factors, 2022-2023",
+      caption = "Criminal Sexual Assault, 2022-2023",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -526,13 +411,165 @@ table_4e <- df_final  %>%
   column_spec(1, width = "14.2em") %>%
   column_spec(2:3, width = "12.9em") %>%  
 row_spec(0, bold = TRUE, font_size = 8) %>%
-  row_spec(16:18, bold = TRUE, background = "#f2f0f7") %>%
 
-  footnote(general = "Source: Chicago Health Atlas (2022-2023 and 2017-21). Tabulations by Great Cities Institute",
+  footnote(general = "Source: Chicago Health Atlas (2022-2023). Tabulations by Great Cities Institute",
            general_title = "") 
 
 
+table_4d
+```
+
+
+
+
+
+
+## 4E: Mental Health  in top 4 Mexican Community Areas, 2022-2023:
+
+
+```{r}
+# analysis
+mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% top_n(4, prc_mxc) %>% select(commnty, psych_distress_rate, unmet_mental_health_rate, loneliness_rate)   %>%
+  mutate(
+    psych_distress_rate = paste0(round(psych_distress_rate, 1), "%"),
+   unmet_mental_health_rate = paste0(round(unmet_mental_health_rate, 1), "%"),
+   loneliness_rate = paste0(round(loneliness_rate, 1), "%")
+  )
+
+
+df_white_city <- data.frame(
+  commnty = "White City Average",
+ psych_distress_rate = 7.5,
+  unmet_mental_health_rate = 57.2,
+  loneliness_rate = 26.5
+)
+
+df_black_city <- data.frame(
+  commnty = "Black City Average",
+  psych_distress_rate = 9.9,
+  unmet_mental_health_rate = 81.4,
+  loneliness_rate = 30.2
+)
+
+# Create a data frame
+df_latino_city <- data.frame(
+  commnty = "Hispanic/Latino City Average",
+  psych_distress_rate = 14.9,
+  unmet_mental_health_rate = 80.0,
+  loneliness_rate = 29.9
+)
+
+df_city_avgs <- rbind(df_white_city, df_black_city, df_latino_city)  %>%
+  mutate(
+    psych_distress_rate = paste0(round(psych_distress_rate, 1), "%"),
+   unmet_mental_health_rate = paste0(round(unmet_mental_health_rate, 1), "%"),
+   loneliness_rate = paste0(round(loneliness_rate, 1), "%")
+  )
+
+
+df_final <- rbind(mexican_top, df_city_avgs)
+```
+
+
+```{r}
+# visuals
+table_4e <- df_final %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Top 4 Mexican Community Areas", "Adult Serious Psych Distress Rate", "Adult Unmet Mental Health Need Rate", "Adult Loneliness Rate"),
+      align = c("l",rep("c",3)),
+      caption = "Mental Health, 2022-2023",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:4, width = "9.2em") %>%  
+row_spec(0, bold = TRUE, font_size = 8) %>%
+  row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
+  footnote(general = "Source: Chicago Health Atlas (2022-2023). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+
 table_4e
+
+```
+
+
+## 4F: Chronic Health in top 4 Mexican Community Areas,(2017-2021, 2022-2023):
+
+```{r}
+# Analysis
+mexican_top <- df_health %>% 
+  arrange(desc(prc_mxc)) %>% 
+  top_n(4, prc_mxc) %>% 
+  select(commnty, cancer_diagnosis_rate, hyper_tension_rate, lung_cancer_rate) %>% 
+  mutate(
+    hyper_tension_rate = paste0(round(hyper_tension_rate, 1), "%")
+    
+  )
+
+df_white_city <- data.frame(
+  commnty = "White City Average",
+  cancer_diagnosis_rate = 676.16, 
+  hyper_tension_rate = 29.8, 
+  lung_cancer_rate = 83.41
+)
+
+df_black_city <- data.frame(
+  commnty = "Black City Average",
+  cancer_diagnosis_rate = 529.94, 
+  hyper_tension_rate = 43.9, 
+  lung_cancer_rate = 77.39
+)
+
+df_latino_city <- data.frame(
+  commnty = "Hispanic/Latino City Average",
+  cancer_diagnosis_rate = 253.29, 
+  hyper_tension_rate = 25.7, 
+  lung_cancer_rate = 13.93
+)
+
+df_city_avgs <- rbind(df_white_city, df_black_city, df_latino_city) %>% 
+  mutate(
+    hyper_tension_rate = paste0(round(hyper_tension_rate, 1), "%")
+  )
+
+df_final <- rbind(mexican_top, df_city_avgs)
+
+```
+
+```{r}
+# visuals
+table_4f <- df_final %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Top 4 Mexican Community Areas", "Adult Cancer Diagnosis Rate (per 100,000)", "Adult Hypertension Rate", "Adult Lung Cancer Diagnosis Rate (per 100,000)"),
+      align = c("l",rep("c",3)),
+      caption = "Chronic Health, (2017-2021, 2022-2023)",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:4, width = "9.2em") %>%  
+row_spec(0, bold = TRUE, font_size = 8) %>%
+  row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
+  footnote(general = "Source: Chicago Health Atlas (2017-2021, 2022-2023). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+
+table_4f
 ```
 
 

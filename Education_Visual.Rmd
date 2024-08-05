@@ -61,6 +61,9 @@ library("RColorBrewer")
 ##### Chicago boarder
 Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
   st_transform(crs = 4326)
+
+school_indicator <- read_csv("School/df_school.csv")
+
 # mapview(community_shp)
 
 # Get the current bounding box of the data
@@ -130,8 +133,11 @@ mex_foreign_born = case_when(
     race_ethnicity == "Mexican" & bpl == "200" ~ "Mexico Born",
     TRUE ~ NA_character_  # Optional: default case for other values or groups
   )) %>% ## filter for hispanic groups here ##
-  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Venezuelan", "Other, not specified", "Colombian", "Salvadoran", "Peruvian", "Honduran", "Spaniard", "Dominican", "Argentinean", "Chilean", "Nicaraguan", "Panamanian", "Costa Rican", "Bolivian", "Uruguayan", "Paraguayan", "South American, not specified", "Central American, not specified", "Not Hispanic"))
+ mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Colombian"))
   )
+
+# Chicago ca populationd data
+chicago_ca_pop <- read_sf("Data Tables/shp/comm_pop_chi_2022.shp") %>% as.data.frame()
 
 ```
 
@@ -749,5 +755,180 @@ table_2h
 
 
 \elandscape
+
+
+## 2.I: Performance of Schools in Mexican Community Areas compared to City-Wide Averages
+
+
+```{r}
+# analysis
+df_top_mex_schools <- chicago_ca_pop %>% arrange(desc(prc_mxc)) %>% top_n(4, prc_mxc) %>% left_join(school_indicator, by = c("commnty" = "commnty")) %>% select(school_name, chronic_absenteeism_hispanic_or_latino, ends_with("proficiency_hispanic_or_latino"))
+
+
+# Calculate the mean for the specified columns, ignoring NA values
+average_values <- colMeans(df_top_mex_schools[, c("chronic_absenteeism_hispanic_or_latino",
+                                                  "percent_ela_proficiency_hispanic_or_latino",
+                                                  "percent_math_proficiency_hispanic_or_latino",
+                                                  "percent_science_proficiency_hispanic_or_latino")], na.rm = TRUE)
+
+# Round the averages to the nearest decimal digit
+average_values_rounded <- round(average_values, 1)
+
+# Create a new row with these average values
+# Adding % sign to the appropriate columns
+new_row <- c("Average Metrics for Hispanic/Latino Students in Top 4 Mexican Community Area Schools", 
+             paste0(average_values_rounded[1], "%"), 
+             paste0(average_values_rounded[2], "%"), 
+             paste0(average_values_rounded[3], "%"), 
+             paste0(average_values_rounded[4], "%"), 
+             NA)
+
+# Set the column names of the new row to match the original data frame
+names(new_row) <- colnames(df_top_mex_schools)
+
+# Convert the new row to a data frame
+df_average <- as.data.frame(t(new_row), stringsAsFactors = FALSE)
+
+# Rename columns by removing "_hispanic_or_latino" suffix
+names(df_average) <- gsub("_hispanic_or_latino", "", names(df_average))
+
+# average schools 
+df_average_mex <- df_average %>% select(school_name, 
+chronic_absenteeism,
+percent_ela_proficiency,
+percent_math_proficiency,
+percent_science_proficiency)
+# Data Source: Hispanic/Latino District Total, 
+#https://www.illinoisreportcard.com/District.aspx?source=trends&source2=proficiency&Districtid=15016299025 #https://www.illinoisreportcard.com/District.aspx?source=studentcharacteristics&source2=chronicabsenteeism&Districtid=15016299025
+
+# Create a data frame
+df_latino_state <- data.frame(
+  school_name = "Hispanic/Latino Elem Students City-wide Average",
+  chronic_absenteeism = 40.3,
+  percent_ela_proficiency = 21.2,
+  percent_math_proficiency = 13.6,
+  percent_science_proficiency = 35.6
+)
+
+df_white_state <- data.frame(
+  school_name = "White Elem Students City-wide Average",
+  chronic_absenteeism = 27.1,
+  percent_ela_proficiency = 54.3,
+  percent_math_proficiency = 48.4,
+  percent_science_proficiency = 65
+)
+
+df_black_state <- data.frame(
+  school_name = "Black Elem Students City-wide Average",
+  chronic_absenteeism = 45.8,
+  percent_ela_proficiency = 16.5,
+  percent_math_proficiency = 8.1,
+  percent_science_proficiency = 24.4
+)
+
+
+df_state_avgs <- rbind(df_latino_state, df_white_state, df_black_state, df_asian_state)  %>%
+  mutate(
+    chronic_absenteeism = paste0(round(chronic_absenteeism, 1), "%"),
+    percent_ela_proficiency = paste0(round(percent_ela_proficiency, 1), "%"),
+    percent_math_proficiency = paste0(round(percent_math_proficiency, 1), "%"),
+    percent_science_proficiency = paste0(round(percent_science_proficiency, 1), "%")
+  )
+
+df_final <- rbind(df_average_mex, df_state_avgs)
+```
+
+
+```{r}
+# visuals
+table_2i <-df_final  %>% select(school_name, percent_ela_proficiency, percent_math_proficiency, percent_science_proficiency) %>% 
+
+
+ 
+   # using kable 
+  
+  kbl(
+  , booktabs = TRUE,
+  col.names = c("", "Percent", "Percent", "Percent"),
+  align = c("l", rep("c", 3)),
+  caption = "Hispanic/Latino Performance in CPS Elementary Schools in Mexican Community Areas vs. City-Wide Averages (2023)",
+  format.args = list(big.mark = ","),
+  linesep = ""
+) %>%
+  kable_classic(
+    full_width = FALSE,
+    font_size = 8,
+    html_font = "Arial",
+    position = "center",
+    latex_options = "HOLD_position"
+  ) %>%
+  column_spec(1, width = "14.8em") %>%
+  column_spec(2:4, width = "8.4em") %>%
+  add_header_above(
+    align = c("l", rep("c", 2)),
+    c(
+      "School Name", 
+      "ELA Proficiency Rate" = 1, 
+      "Math Proficiency Rate" = 1, 
+      "Science Proficiency Rate" = 1),
+    bold = TRUE, 
+    font_size = 8
+  ) %>%
+  footnote(
+    general = "Source: Illinois Report Card (2023). Tabulations by Great Cities Institute",
+    general_title = ""
+  ) 
+table_2i
+
+```
+
+## 2.I: Chronic Absenteeism of Schools in Mexican Community Areas compared to City-Wide Averages
+
+```{r}
+# visuals
+table_2j <-df_final  %>% select(school_name, chronic_absenteeism) %>% 
+
+
+ 
+   # using kable 
+  
+  kbl(
+  , booktabs = TRUE,
+  col.names = c("", "Percent"),
+  align = c("l", rep("c", 3)),
+  caption = "Hispanic/Latino Chronic Absenteeism in CPS Elementary Schools in Mexican Community Areas vs. City-Wide Averages (2023)",
+  format.args = list(big.mark = ","),
+  linesep = ""
+) %>%
+  kable_classic(
+    full_width = FALSE,
+    font_size = 8,
+    html_font = "Arial",
+    position = "center",
+    latex_options = "HOLD_position"
+  ) %>%
+  column_spec(1, width = "14.8em") %>%
+  column_spec(2, width = "25.2em") %>%
+  add_header_above(
+    align = c("l", rep("c", 2)),
+    c(
+      "School Name", 
+      "Chronic Absenteeism Rate" = 1),
+    bold = TRUE, 
+    font_size = 8
+  ) %>%
+  footnote(
+    general = "Source: Illinois Report Card (2023). Tabulations by Great Cities Institute",
+    general_title = ""
+  ) 
+table_2j
+
+```
+
+
+
+
+
+
 
 

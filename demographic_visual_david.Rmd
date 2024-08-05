@@ -106,7 +106,7 @@ mex_foreign_born = case_when(
     race_ethnicity == "Mexican" & bpl == "200" ~ "Mexico Born",
     TRUE ~ NA_character_  # Optional: default case for other values or groups
   )) %>% ## filter for hispanic groups here ##
-  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Venezuelan", "Other, not specified", "Colombian", "Salvadoran", "Peruvian", "Honduran", "Spaniard", "Dominican", "Argentinean", "Chilean", "Nicaraguan", "Panamanian", "Costa Rican", "Bolivian", "Uruguayan", "Paraguayan", "South American, not specified", "Central American, not specified", "Not Hispanic"))
+  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Colombian"))
   )
 
 ```
@@ -216,7 +216,7 @@ table_1b.1
 ```
 
 
-## 1B(Population Pyramid and Percentage of Hispanic/Latino breakdown, 2018-2022:
+## 1B(2) Population Pyramid and Percentage of Hispanic/Latino breakdown, 2018-2022:
 
 ```{r}
 # analysis
@@ -266,9 +266,7 @@ weighted_age  <- df %>%
 
 # combined
 
-df_final  <- pop_pyramid %>% left_join(weighted_age) %>%  filter(!(hispan_breakdown %in% c("South American, not specified", 
-                                   "Central American, not specified", 
-                                   "Not Hispanic"))) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
+df_final  <- pop_pyramid %>% left_join(weighted_age) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
 ```
 
 ```{r}
@@ -493,7 +491,6 @@ table_1b.4
 ## 1C: Average Family Size of the Mexican Population, 2018-2022:
 
 ```{r}
-table(usa_data$famsize)
 # analysis
 
 # filter for year 2022
@@ -561,7 +558,7 @@ table_1c
 
 
 
-## 1D(1): Income Levels, 2018-2022:
+## 1D(1): Household Income Levels, 2018-2022:
 
 ```{r}
 # analysis
@@ -592,7 +589,7 @@ weighted_avg_income <- survey_design %>% filter(pernum == 1) %>%
 weighted_median_income <- data_chi_2018_22 %>%  filter(pernum == 1) %>%
   group_by(race_ethnicity) %>%
   summarize(
-    weighted_median_hhincome = matrixStats::weightedMedian(hhincome,  weights = hhwt)
+    weighted_median_hhincome = matrixStats::weightedMedian(hhincome, hhwt)
   ) %>%
   ungroup()
 
@@ -644,7 +641,7 @@ table_1d.1
 
 
 
-## 1D(2): Income Levels by Hispanic/Latino breakdown, 2018-2022:
+## 1D(2): Individual Income Levels, 2018-2022:
 
 ```{r}
 # analysis
@@ -652,30 +649,33 @@ table_1d.1
 
 data_chi_2018_22 <- usa_data %>% filter(year == 2022)
 
+
 # 1D Income Levels and poverty rates for Mexicans, other Latinos, Black and White Populations in Chicago.
 
 # Filter the data to remove negative and extreme values
 filtered_data <- data_chi_2018_22 %>%
-  filter(hhincome >= 0 & hhincome < 9999999, pernum == 1)
-  
+  filter(incwage  > 0 & incwage  < 999999, empstat == 1, uhrswork >= 35, wkswork1 >= 48)
+
+
+
 # Define the survey design using srvyr with only weights
 survey_design <- filtered_data  %>%
-  as_survey_design(weights = hhwt)
+  as_survey_design(weights = perwt)
 
 # Calculate the weighted average household income by group
-weighted_avg_income <- survey_design %>% filter(pernum == 1) %>%
-  group_by(hispan_breakdown) %>%
+weighted_avg_income <- survey_design %>%
+  group_by(race_ethnicity) %>%
   summarize(
-    avg_hhincome = survey_mean(hhincome, vartype = "se", na.rm = TRUE)
+    avg_incwage  = survey_mean(incwage , vartype = "se", na.rm = TRUE)
   )
 
 
 # weighted median: 
 
-weighted_median_income <- data_chi_2018_22 %>%  filter(pernum == 1) %>%
-  group_by(hispan_breakdown) %>%
+weighted_median_income <- filtered_data %>% 
+  group_by(race_ethnicity) %>%
   summarize(
-    weighted_median_hhincome = matrixStats::weightedMedian(hhincome,  weights = hhwt)
+    weighted_median_incwage  = matrixStats::weightedMedian(incwage , perwt)
   ) %>%
   ungroup()
 
@@ -683,12 +683,9 @@ weighted_median_income <- data_chi_2018_22 %>%  filter(pernum == 1) %>%
 # final df with income levels
 income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
   mutate(
-    avg_hhincome = paste0("$", format(avg_hhincome, big.mark = ",", scientific = FALSE)),
-    weighted_median_hhincome = paste0("$", format(weighted_median_hhincome, big.mark = ",", scientific = FALSE))
-  ) %>%  filter(!(hispan_breakdown %in% c("South American, not specified", 
-                                   "Central American, not specified", 
-                                   "Not Hispanic"))) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
-
+    avg_incwage  = paste0("$", format(avg_incwage , big.mark = ",", scientific = FALSE)),
+    weighted_median_incwage  = paste0("$", format(weighted_median_incwage , big.mark = ",", scientific = FALSE))
+  )
 
 ```
 
@@ -697,14 +694,15 @@ income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
 # visuals
 
 
-table_1d.2 <- income_levels %>% select(hispan_breakdown, avg_hhincome, weighted_median_hhincome) %>% 
+
+table_1d.2 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_median_incwage) %>% 
  
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Race/Ethnicity", "Average Household Income", "Median Household Income"),
+      col.names = c("Race/Ethnicity", "Average Income", "Median Income"),
       align = c("l",rep("c",2)),
-      caption = "Average and Median Income of Hispanic/Latino breakdown, 2018-2022",
+      caption = "Average and Median Income of Mexican Population, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -727,37 +725,40 @@ table_1d.2
 
 
 
-## 1D(3): Income levels between Mexicans born in Mexico vs United States.
+
+## 1D(3): Individual Income Levels by Hispanic/Latino breakdown, 2018-2022:
 
 ```{r}
 # analysis
 # filter for 2022
 
-data_chi_2018_22 <- usa_data %>% filter(year == 2022) %>% filter(!is.na(mex_foreign_born))
+data_chi_2018_22 <- usa_data %>% filter(year == 2022)
 
-# 1D Income Levels and poverty rates for Mexicans born in Mexico vs. United States
+# 1D Income Levels and poverty rates for Mexicans, other Latinos, Black and White Populations in Chicago.
+
 # Filter the data to remove negative and extreme values
 filtered_data <- data_chi_2018_22 %>%
-  filter(hhincome >= 0 & hhincome < 9999999, pernum == 1)
+  filter(incwage  > 0 & incwage  < 999999, empstat == 1, uhrswork >= 35, wkswork1 >= 48)
+
   
 # Define the survey design using srvyr with only weights
 survey_design <- filtered_data  %>%
-  as_survey_design(weights = hhwt)
+  as_survey_design(weights = perwt)
 
 # Calculate the weighted average household income by group
-weighted_avg_income <- survey_design %>% filter(pernum == 1) %>%
-  group_by(mex_foreign_born) %>%
+weighted_avg_income <- survey_design %>% 
+  group_by(hispan_breakdown) %>%
   summarize(
-    avg_hhincome = survey_mean(hhincome, vartype = "se", na.rm = TRUE)
+    avg_incwage  = survey_mean(incwage , vartype = "se", na.rm = TRUE)
   )
 
 
 # weighted median: 
 
-weighted_median_income <- data_chi_2018_22 %>%  filter(pernum == 1) %>%
-  group_by(mex_foreign_born) %>%
+weighted_median_income <- filtered_data %>% 
+  group_by(hispan_breakdown) %>%
   summarize(
-    weighted_median_hhincome = matrixStats::weightedMedian(hhincome,  weights = hhwt)
+    weighted_median_incwage  = matrixStats::weightedMedian(incwage , perwt)
   ) %>%
   ungroup()
 
@@ -765,26 +766,26 @@ weighted_median_income <- data_chi_2018_22 %>%  filter(pernum == 1) %>%
 # final df with income levels
 income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
   mutate(
-    avg_hhincome = paste0("$", format(avg_hhincome, big.mark = ",", scientific = FALSE)),
-    weighted_median_hhincome = paste0("$", format(weighted_median_hhincome, big.mark = ",", scientific = FALSE))
-  ) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
+    avg_incwage  = paste0("$", format(avg_incwage , big.mark = ",", scientific = FALSE)),
+    weighted_median_incwage  = paste0("$", format(weighted_median_incwage , big.mark = ",", scientific = FALSE))
+  ) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data"))) %>% filter(!is.na( hispan_breakdown))
+
 
 ```
 
-```{r}
 
+```{r}
 # visuals
 
 
-
-table_1d.3 <- income_levels %>% select(mex_foreign_born, avg_hhincome, weighted_median_hhincome) %>% 
+table_1d.3 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighted_median_incwage ) %>% 
  
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Mexican Nativity", "Average Household Income", "Median Household Income"),
+      col.names = c("Race/Ethnicity", "Average Income", "Median Income"),
       align = c("l",rep("c",2)),
-      caption = "Average and Median Income of Mexican Population, 2018-2022",
+      caption = "Average and Median Income of Hispanic/Latino breakdown, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -805,57 +806,67 @@ table_1d.3 <- income_levels %>% select(mex_foreign_born, avg_hhincome, weighted_
 table_1d.3
 ```
 
-## 1D(4): Poverty Rates, 2018-2022:
+
+
+## 1D(4):  Individual Income Levels between Mexicans born in Mexico vs United States.
 
 ```{r}
 # analysis
-
-# poverty
 # filter for 2022
 
-data_chi_2018_22 <- usa_data %>% filter(year == 2022)
+data_chi_2018_22 <- usa_data %>% filter(year == 2022) %>% filter(!is.na(mex_foreign_born))
 
+# 1D Income Levels and poverty rates for Mexicans born in Mexico vs. United States
+# Filter the data to remove negative and extreme values
+filtered_data <- data_chi_2018_22 %>%
+  filter(incwage  > 0 & incwage  < 999999, empstat == 1, uhrswork >= 35, wkswork1 >= 48)
+
+  
 # Define the survey design using srvyr with only weights
-survey_design2 <- data_chi_2018_22  %>%
+survey_design <- filtered_data  %>%
   as_survey_design(weights = perwt)
-  
 
-  
-# Calculate poverty rates by group
-
-# Calculate total weighted count by race_category and ethnicity
-total_weighted_pop_count <- survey_design2 %>%
-  group_by(race_ethnicity) %>%
-  summarise(total_weighted_pop_count = survey_total())
-
-# Calculate total weighted count in poverty by race_category and ethnicity
-total_weighted_poverty_count <- survey_design2 %>%
-  filter(poverty <= 100) %>%
-  group_by(race_ethnicity) %>%
-  summarise(total_weighted_poverty_count = survey_total())
-
-# Combine total counts and poverty counts
-combined <- left_join(total_weighted_pop_count, total_weighted_poverty_count)
+# Calculate the weighted average household income by group
+weighted_avg_income <- survey_design %>%
+  group_by(mex_foreign_born) %>%
+  summarize(
+    avg_incwage  = survey_mean(incwage , vartype = "se", na.rm = TRUE)
+  )
 
 
-poverty_rate <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count/total_weighted_pop_count)*100,
-                                    poverty_rate   = paste0(round(poverty_rate, 1), "%")) 
+# weighted median: 
+
+weighted_median_income <- filtered_data %>% 
+  group_by(mex_foreign_born) %>%
+  summarize(
+    weighted_median_incwage  = matrixStats::weightedMedian(incwage ,perwt)
+  ) %>%
+  ungroup()
+
+
+# final df with income levels
+income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
+  mutate(
+    avg_incwage  = paste0("$", format(avg_incwage , big.mark = ",", scientific = FALSE)),
+    weighted_median_incwage  = paste0("$", format(weighted_median_incwage , big.mark = ",", scientific = FALSE))
+  ) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
 
 ```
 
-
 ```{r}
+
 # visuals
 
 
-table_1d.4 <- poverty_rate  %>% select(race_ethnicity, total_weighted_poverty_count, poverty_rate) %>% 
+
+table_1d.4 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighted_median_incwage ) %>% 
  
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Race/Ethnicity", "Number", "Percent"),
+      col.names = c("Mexican Nativity", "Average Income", "Median Income"),
       align = c("l",rep("c",2)),
-      caption = "Mexican Population at or Below Poverty Threshold, 2018-2022",
+      caption = "Average and Median Income of Mexican Population, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -876,8 +887,99 @@ table_1d.4 <- poverty_rate  %>% select(race_ethnicity, total_weighted_poverty_co
 table_1d.4
 ```
 
+## 1D(5): Poverty Rates Over Time, 2000, 2008-2012, 2018-2022:
 
-## 1F: Top 10 Mexican Community Areas
+```{r}
+# analysis
+
+# poverty
+# filter for 2022
+
+data_chi_2018_22 <- usa_data 
+
+# Define the survey design using srvyr with only weights
+survey_design2 <- data_chi_2018_22  %>%
+  as_survey_design(weights = perwt)
+  
+
+  
+# Calculate poverty rates by group
+
+# Calculate total weighted count by race_category and ethnicity
+total_weighted_pop_count <- survey_design2 %>%
+  group_by(race_ethnicity, year) %>%
+  summarise(total_weighted_pop_count = survey_total())
+
+# Calculate total weighted count in poverty by race_category and ethnicity
+total_weighted_poverty_count <- survey_design2 %>%
+  filter(poverty <= 100) %>%
+  group_by(race_ethnicity, year) %>%
+  summarise(total_weighted_poverty_count = survey_total())
+
+# Combine total counts and poverty counts
+combined <- left_join(total_weighted_pop_count, total_weighted_poverty_count)
+
+
+poverty_rate_trends <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count/total_weighted_pop_count)*100)
+
+poverty_rate_trends_wide <- poverty_rate_trends %>%  pivot_wider(
+  id_cols = race_ethnicity,
+    names_from = year,
+    values_from = c(
+      total_weighted_poverty_count,
+      poverty_rate
+    ),
+    names_sep = "_"
+  ) %>% select(race_ethnicity, total_weighted_poverty_count_2000, poverty_rate_2000,  total_weighted_poverty_count_2012, poverty_rate_2012,  total_weighted_poverty_count_2022, poverty_rate_2022) %>% mutate(diff_2022_2012 = poverty_rate_2022-poverty_rate_2012, diff_2022_2000 = poverty_rate_2022-poverty_rate_2000) %>%  mutate(across(starts_with("poverty_rate") | starts_with("diff"), ~ paste0(round(.x, 1), "%")))
+
+
+```
+
+
+```{r}
+# visuals
+
+
+table_1d.5 <- poverty_rate_trends_wide  %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Percent", "Percent"),
+      align = c("l",rep("c",8)),
+      caption = "Mexican Population at or Below Poverty Threshold Trends over Time",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:9, width = "3.225em") %>%  
+ add_header_above(
+    align = c("l", rep("c", 2)),
+    c(
+      "Race", 
+      "Poverty in 2000 " = 2, 
+      "Poverty in 2012 " = 2, 
+      "Poverty in 2022 " = 2, 
+      "Differences in Poverty From 2012 through 2022" = 1,
+     "Differences in Poverty From 2000 through 2022" = 1),
+    bold = TRUE, 
+    font_size = 8) %>%
+  row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+
+  footnote(general = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute",
+           general_title = "")   
+
+table_1d.5
+```
+
+
+## 1E: Top 10 Mexican Community Areas
 
 ```{r}
 # analysis
@@ -940,7 +1042,7 @@ df_final <- rbind(top_10, totals, totals_min, df_all) %>% mutate(
 # visuals
 
 
-table_1f <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , prc_mxc) %>% 
+table_1e <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , prc_mxc) %>% 
  
    # using kable 
   
@@ -957,16 +1059,16 @@ table_1f <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , 
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
   column_spec(2:6, width = "5.16em") %>%  
+ 
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+  footnote(general = "Source: IPUMS-NHGIS database (2018-2022). Tabulations by Great Cities Institute",
            general_title = "")   
 
-table_1f 
+table_1e
 ```
 
-```
 

@@ -38,7 +38,7 @@ usa_extract <- define_extract_usa(
                    "CITY", "PUMA", "COUNTYICP", "HISPAN", "AGE", "FAMSIZE", "RACE", "HHINCOME", "POVERTY",   
                 "SCHLTYPE", "SPEAKENG", "SCHOOL", "CITIZEN", "GRADEATT", "EDUC", "OWNERSHP", "ROOMS", 
                 "RENTGRS", "VALUEH",  "MORTGAGE", "UNITSSTR", "SERIAL", "EMPSTAT", "IND", "OCC", "GQTYPE", 
-                "ANCESTR1", "TRIBE", "OWNCOST", "NUMPREC", "LABFORCE", "HCOVANY", "STATEICP", "BPL", "HINSEMP" )) %>% 
+                "ANCESTR1", "TRIBE", "OWNCOST", "NUMPREC", "LABFORCE", "HCOVANY", "STATEICP", "BPL", "HINSEMP", "TRANWORK", "INCWAGE", "UHRSWORK", "WKSWORK1")) %>% 
   submit_extract() %>%
   wait_for_extract() %>%
   download_extract() 

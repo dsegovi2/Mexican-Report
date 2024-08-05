@@ -1,0 +1,111 @@
+# List of packages to install and load
+packages <- c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", 
+              "readxl", "leaflet", "janitor", "data.table", "survey", 
+              "matrixStats", "htmltools")
+
+# Function to install and load packages
+install_and_load <- function(packages) {
+  # Check if package is installed, if not install it
+  for (package in packages) {
+    if (!requireNamespace(package, quietly = TRUE)) {
+      install.packages(package, dependencies = TRUE)
+    }
+    library(package, character.only = TRUE)
+  }
+}
+
+# Call the function to install and load packages
+install_and_load(packages)
+
+
+getwd()
+# import packages
+chicago_ca <- st_read("Boundaries - Community Areas (current)/geo_export_2081dd0e-84f5-45c8-b501-f07b67ad9491.shp") %>% 
+  st_transform(crs = 4326)
+
+
+# Mexican Report
+
+# 1A: Mexican population, concentration by census tract and community area along with historic trends in Chicago (Data source: 2018-2022, 2008-2012 ACS and 2000 census). 
+
+
+################## 2018-2022 ACS
+
+# tract 
+
+nhgis_csv_file <- "C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/nhgis0042_csv.zip"
+nhgis_shp_file <- "C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/nhgis0042_shape.zip"
+
+community_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries - Community Areas (current)/geo_export_2081dd0e-84f5-45c8-b501-f07b67ad9491.shp") %>% 
+  st_transform( crs = 4326) %>% 
+  select(community,geometry)
+
+Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
+  st_transform(crs = 4326)
+
+
+chicago_shp <- read_sf("Data Tables/shp/intersect_census_2020.shp") %>% 
+  select(GEOID, geometry) %>% 
+  st_transform( crs = 4326)
+
+
+# merge sf with df
+extract_2018_2022_df <- read_nhgis(nhgis_csv_file, file_select = matches("nhgis0042_ds263_20225_tract"), verbose = TRUE)
+extract_2018_2022_sf <- read_ipums_sf(nhgis_shp_file, file_select = matches("nhgis0042_shapefile_tl2022_us_tract_2022.zip"), verbose = FALSE)
+extract_2018_2022 <- ipums_shape_full_join(extract_2018_2022_df, extract_2018_2022_sf, by = "GISJOIN")
+
+```{r}
+tract_pop_2018_2022 <- extract_2018_2022 %>% 
+  filter(STATE == "Illinois" & COUNTY == "Cook County")  %>% 
+  group_by(GISJOIN, YEAR, TL_GEO_ID) %>% 
+   mutate(total_pop = sum(AQYYE001, na.rm = TRUE),
+         total_hisp_not_mexican  = sum(AQYYE005, AQYYE006, AQYYE007, AQYYE008, AQYYE009, AQYYE010, 
+                          AQYYE011, AQYYE012, AQYYE013, AQYYE014, AQYYE015, AQYYE016, 
+                          AQYYE017, AQYYE018, AQYYE019, AQYYE020, AQYYE021, AQYYE022, 
+                          AQYYE023, AQYYE024, AQYYE025, AQYYE026, AQYYE027, AQYYE028, 
+                          AQYYE029, AQYYE030, AQYYE031, na.rm = TRUE),
+         prc_hisp_not_mexican  = 100 * round(total_hisp_not_mexican  / total_pop, 4),
+         total_mexican = sum(AQYYE004, na.rm = T),
+            prc_mexican = 100* round(total_mexican /total_pop, 4)
+         ) %>%
+  st_transform(4326)
+
+
+
+# set crs
+chicago_ca <- st_transform(chicago_ca, 4326)
+
+
+# Calculate centroids for each census tract
+tract_2018_22_centroids <- st_centroid(tract_pop_2018_2022)
+
+# Perform a spatial join to assign community areas to centroids
+tract_2018_22_ca_point <- st_join(tract_2018_22_centroids, chicago_ca, join = st_within) %>% filter(!is.na(community))
+
+########## Chicago tracts 2022
+tract_pop_chi_2022 <- tract_pop_2018_2022 %>% 
+  filter(GISJOIN %in% tract_2018_22_ca_point$GISJOIN)
+
+
+chicago_ca_2018_22_not_mexican <- tract_2018_22_ca_point %>% 
+  group_by(community) %>% 
+  summarise(total_pop = sum(AQYYE001, na.rm = TRUE),
+         total_hisp_not_mexican = sum(AQYYE005, AQYYE006, AQYYE007, AQYYE008, AQYYE009, AQYYE010, 
+                          AQYYE011, AQYYE012, AQYYE013, AQYYE014, AQYYE015, AQYYE016, 
+                          AQYYE017, AQYYE018, AQYYE019, AQYYE020, AQYYE021, AQYYE022, 
+                          AQYYE023, AQYYE024, AQYYE025, AQYYE026, AQYYE027, AQYYE028, 
+                          AQYYE029, AQYYE030, AQYYE031, na.rm = TRUE),
+         prc_hisp_not_mexican = 100 * round(total_hisp_not_mexican  / total_pop, 4),
+         total_mexican = sum(AQYYE004, na.rm = T),
+            prc_mexican = 100* round(total_mexican /total_pop, 4)) %>% 
+  mutate(lable = str_to_title(community)) %>% 
+  mutate(lable = gsub(" ", "\n", lable))
+
+
+chicago_ca_2018_22_not_mexican %>% as.data.frame() %>% filter(prc_hisp_not_mexican > prc_mexican) %>% arrange(desc(prc_hisp_not_mexican)) %>% select(community, total_pop, prc_hisp_not_mexican, prc_mexican, -geometry)
+  
+```
+
+
+
+
