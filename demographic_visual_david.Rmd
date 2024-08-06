@@ -266,7 +266,7 @@ weighted_age  <- df %>%
 
 # combined
 
-df_final  <- pop_pyramid %>% left_join(weighted_age) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
+df_final  <- pop_pyramid %>% left_join(weighted_age) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data"))) %>% filter(!is.na(hispan_breakdown))
 ```
 
 ```{r}
@@ -449,7 +449,7 @@ weighted_age  <- df %>%
 
 # combined
 
-df_final  <- pop_pyramid %>% left_join(weighted_age)
+df_final  <- pop_pyramid %>% left_join(weighted_age) %>% filter(!is.na(hispan_breakdown))
 ```
 
 
