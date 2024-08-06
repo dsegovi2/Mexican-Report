@@ -1,0 +1,269 @@
+---
+title: "Mexican Report"
+author: "Demographic"
+date: "Great Cities Institute"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    highlight: pygments
+    extra_dependencies: ["float"]
+    fig_caption: true
+mainfont: "Arial"
+header-includes:
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.pos="H")
+
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+
+library(ipumsr)
+library(tidyverse)
+library(purrr)
+library(sf)
+library(tidycensus)
+library(tidyr)
+library(readxl)
+library(sf)
+library(htmltools)
+library(leaflet)
+library(janitor)
+library(data.table)
+library(tinytex)
+library(survey) # for survey analysis
+library(srvyr)  # for tidy survey analysis
+library(tmap)
+library("kableExtra") 
+library(tmaptools)
+library("RColorBrewer") 
+library(janitor)
+# library(OpenStreetMap)
+# remotes::install_github('yihui/knitr')
+# install.packages("knitr")
+# library(knitr)
+# options(tinytex.verbose = TRUE)
+# tinytex::reinstall_tinytex()
+# install.packages('tinytex')
+
+# update.packages(ask = FALSE, checkBuilt = TRUE)
+# tinytex::tlmgr_update()
+# tinytex::latexmk("demographic_visual.tex")
+
+
+##### Chicago boarder
+Chicago_boundary_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
+  st_transform(crs = 4326)
+# mapview(community_shp)
+
+# Get the current bounding box of the data
+bbox_data <- st_bbox(Chicago_boundary_shp)
+
+# Calculate the range of x and y values in degrees
+xrange <- bbox_data$xmax - bbox_data$xmin
+yrange <- bbox_data$ymax - bbox_data$ymin
+
+# Calculate the center of the bounding box
+center_x <- (bbox_data$xmin + bbox_data$xmax) / 2
+center_y <- (bbox_data$ymin + bbox_data$ymax) / 2
+# Modify the bounding box to fit the desired width while keeping the height the same
+bbox_new <- c(center_x - 0.24,
+              center_y - 0.23,
+              center_x + 0.23,
+              center_y + 0.23)
+
+# osm_chicago <- read_osm(bbox_new, 
+#                         type = "bing")
+
+# ####### 2018-2022 ##################
+# comm_2022 <- st_read("Data Tables/shp/comm_pop_chi_2022.shp") %>% 
+#   mutate(lable_prc = paste0(lable, ": ", prc_mxc),
+#          prc2 = paste0( prc_mxc, "%")) %>% 
+#   mutate(ttl_mxc2 = scales::comma(ttl_mxc)) %>% 
+#   rename(prc = prc_mxc) %>%
+#   mutate(year = "2018-2022") %>% 
+#   select(year, commnty, lable, ttl_mxc, ttl_mxc2, prc, geometry)
+# 
+# tract_2022 <- st_read("Data Tables/shp/tract_pop_chi_2022.shp") 
+# 
+# pop_dots_2022_origin_50 <- read_sf("Data Tables/shp/pop_dots_2022_origin_50.shp") 
+# 
+# ####### 2010 ######################
+# comm_2012 <- st_read("Data Tables/shp/comm_pop_chi_2012.shp") %>%
+#   mutate(lable_prc = paste0(lable, ": ", prc)) %>% 
+#   mutate(ttl_mxc2 = scales::comma(ttl_mxc)) %>% 
+#   mutate(year = "2010") %>% 
+#   select(year, commnty, lable, ttl_mxc, ttl_mxc2, prc, geometry)
+# 
+# tract_2012 <- st_read("Data Tables/shp/tract_pop_chi_2012.shp")
+# 
+# pop_dots_2010_origin_50 <- read_sf("Data Tables/shp/pop_dots_2010_origin_50.shp") 
+# 
+# ####### 2000 ######################
+# comm_2000 <- st_read("Data Tables/shp/comm_pop_chi_2000.shp") %>%
+#   mutate(lable_prc = paste0(lable, ": ", prc)) %>% 
+#   mutate(ttl_mxc2 = scales::comma(ttl_mxc)) %>% 
+#   mutate(year = "2000") %>% 
+#   select(year, commnty, lable, ttl_mxc, ttl_mxc2, prc, geometry)
+# 
+# tract_2000 <- st_read("Data Tables/shp/tract_pop_chi_2000.shp")
+# 
+# pop_dots_2000_origin_50 <- read_sf("Data Tables/shp/pop_dots_2000_origin_50.shp")
+# 
+# ####### Combine data
+# comm_2000_2022 <- rbind(comm_2022, comm_2012,  comm_2000)
+### st_write(comm_2000_2022, "Data Tables/shp/comm_pop_chi_2000_2022.shp" )
+comm_2000_2022 <- st_read ("Data Tables/shp/comm_pop_chi_2000_2022.shp" ) %>% 
+  mutate(prc2 = paste0(prc, "%"))
+``` 
+
+\renewcommand{\arraystretch}{1.4}
+
+
+# Demographic
+
+## 1A.1: Mexican population in Chicago, 2000 to 2018-2022:
+
+
+\blandscape
+### Mexican Population by Community Areas in Chicago, 2018-2022
+
+
+```{r fig.height=8, fig.width=11}
+
+comm_mexican_pop_map_2000_2022 <-
+
+  tm_shape(comm_2000_2022) +
+  tm_polygons(
+    col = "ttl_mxc",
+    breaks = c(0, 15000, 30000, 45000, 60000, 75000),
+    border.col = "#6c757d",
+              palette="Blues",
+              alpha = 1,
+              # n = 5,
+              title = "Mexican Population",
+              lwd = 0.3,
+    legend.show = FALSE
+    ) +
+  tm_facets(by = "year",
+            ncol = 3) +
+  
+  tm_text("ttl_mxc2" , size = 0.7, alpha = 0.7, fontface="bold", fontfamily = "sans") +
+
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+  
+
+   tm_layout( frame = TRUE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("right", "bottom"),
+            # legend.position = c(0.1, 0.12),
+            legend.outside.position = "bottom",
+            attr.outside = T, attr.outside.position = "bottom", attr.just = "left",
+
+            main.title = "Mexican Population by Community Areas in Chicago, 2000 to 2018-2022"
+    
+            ) +
+  tm_add_legend("fill", 
+                labels = c("0-15000", "15001-30000", "30001-45000", "45001-60000", "60001-75000"), 
+                col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
+                alpha = 1,
+                lwd = .3,
+
+                border.col = "#ced4da",
+                title = "Mexican Population",
+                size = 0.7) +
+  
+  tm_add_legend("line",
+                labels = c("Chicago Border", "Community Area Border"),
+                col = c("#343a40","#6c757d"),
+                lwd = c(2.5, 2),
+                title = "Border Types",
+                size = 0.8) 
+
+comm_mexican_pop_map_2000_2022 
+
+```
+
+## Percentage of the Mexican Population by Community Areas in Chicago, 2000 to 2018-2022
+
+```{r fig.height=8, fig.width=11}
+# fig.height=11, fig.width=24
+map_2000_2022 <-
+
+  tm_shape(comm_2000_2022) +
+  tm_polygons(
+    col = "prc",
+              # style = "jenks",
+              border.col = "#6c757d",
+              palette="Blues",
+              alpha = 1,
+              # n = 5,
+    breaks = c(0, 20, 40, 60, 80, 100),
+    legend.show = FALSE,
+              title = "Percentage",
+              lwd = 0.3) +
+   tm_text("prc" , size = 0.8, alpha = 1, fontface="bold", fontfamily = "sans")+
+
+  tm_facets(by = "year",
+            ncol = 3) +
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+  
+
+   tm_layout( frame = TRUE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("right", "bottom"),
+            # legend.position = c(0.1, 0.12),
+            legend.outside.position = "bottom",
+            attr.outside = T, attr.outside.position = "bottom", attr.just = "left",
+
+            main.title = "Percentage of the Mexican Population by Community Areas in Chicago, 2000 to 2018-2022"
+    
+            ) +
+  
+  tm_add_legend("fill", 
+                labels = c("0.00% - 19.99%", "20.00%-39.99%", "40.00%-59.99%", "60.00%- 79.99%", "80.00%-100%"), 
+                col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
+                alpha = 1,
+                lwd = .3,
+
+                border.col = "#ced4da",
+                title = "Mexican Population",
+                size = 0.7)+
+  
+  tm_add_legend("line",
+                labels = c("Chicago Border", "Community Area Border"),
+                col = c("#343a40","#6c757d"),
+                lwd = c(2.5, 2),
+                title = "Border Types",
+                size = 0.8) 
+
+
+map_2000_2022
+
+```
+
+\elandscape
+
