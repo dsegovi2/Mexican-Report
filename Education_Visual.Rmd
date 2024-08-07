@@ -760,7 +760,7 @@ table_2h
 \elandscape
 
 
-## 2.I: Performance of Schools in Mexican Community Areas compared to City-Wide Averages
+## 2.I: Performance of Schools in Mexican Community Areas compared to City-Wide Mean
 
 
 ```{r}
@@ -769,34 +769,34 @@ df_top_mex_schools <- chicago_ca_pop %>% arrange(desc(prc_mxc)) %>% top_n(4, prc
 
 
 # Calculate the mean for the specified columns, ignoring NA values
-average_values <- colMeans(df_top_mex_schools[, c("chronic_absenteeism_hispanic_or_latino",
+Mean_values <- colMeans(df_top_mex_schools[, c("chronic_absenteeism_hispanic_or_latino",
                                                   "percent_ela_proficiency_hispanic_or_latino",
                                                   "percent_math_proficiency_hispanic_or_latino",
                                                   "percent_science_proficiency_hispanic_or_latino")], na.rm = TRUE)
 
-# Round the averages to the nearest decimal digit
-average_values_rounded <- round(average_values, 1)
+# Round the Mean to the nearest decimal digit
+Mean_values_rounded <- round(Mean_values, 1)
 
-# Create a new row with these average values
+# Create a new row with these Mean values
 # Adding % sign to the appropriate columns
-new_row <- c("Average Metrics for Hispanic/Latino Students in Top 4 Mexican Community Area Schools", 
-             paste0(average_values_rounded[1], "%"), 
-             paste0(average_values_rounded[2], "%"), 
-             paste0(average_values_rounded[3], "%"), 
-             paste0(average_values_rounded[4], "%"), 
+new_row <- c("Mean Metrics for Hispanic/Latino Students in Top 4 Mexican Community Area Schools", 
+             paste0(Mean_values_rounded[1], "%"), 
+             paste0(Mean_values_rounded[2], "%"), 
+             paste0(Mean_values_rounded[3], "%"), 
+             paste0(Mean_values_rounded[4], "%"), 
              NA)
 
 # Set the column names of the new row to match the original data frame
 names(new_row) <- colnames(df_top_mex_schools)
 
 # Convert the new row to a data frame
-df_average <- as.data.frame(t(new_row), stringsAsFactors = FALSE)
+df_Mean <- as.data.frame(t(new_row), stringsAsFactors = FALSE)
 
 # Rename columns by removing "_hispanic_or_latino" suffix
-names(df_average) <- gsub("_hispanic_or_latino", "", names(df_average))
+names(df_Mean) <- gsub("_hispanic_or_latino", "", names(df_Mean))
 
-# average schools 
-df_average_mex <- df_average %>% select(school_name, 
+# Mean schools 
+df_Mean_mex <- df_Mean %>% select(school_name, 
 chronic_absenteeism,
 percent_ela_proficiency,
 percent_math_proficiency,
@@ -806,7 +806,7 @@ percent_science_proficiency)
 
 # Create a data frame
 df_latino_state <- data.frame(
-  school_name = "Hispanic/Latino Elem Students City-wide Average",
+  school_name = "Hispanic/Latino Elem Students City-wide Mean",
   chronic_absenteeism = 40.3,
   percent_ela_proficiency = 21.2,
   percent_math_proficiency = 13.6,
@@ -814,7 +814,7 @@ df_latino_state <- data.frame(
 )
 
 df_white_state <- data.frame(
-  school_name = "White Elem Students City-wide Average",
+  school_name = "White Elem Students City-wide Mean",
   chronic_absenteeism = 27.1,
   percent_ela_proficiency = 54.3,
   percent_math_proficiency = 48.4,
@@ -822,7 +822,7 @@ df_white_state <- data.frame(
 )
 
 df_black_state <- data.frame(
-  school_name = "Black Elem Students City-wide Average",
+  school_name = "Black Elem Students City-wide Mean",
   chronic_absenteeism = 45.8,
   percent_ela_proficiency = 16.5,
   percent_math_proficiency = 8.1,
@@ -830,7 +830,7 @@ df_black_state <- data.frame(
 )
 
 df_asian_state <- data.frame(
-  school_name = "Asian Elem Students City-wide Average",
+  school_name = "Asian Elem Students City-wide Mean",
   chronic_absenteeism = 21.2,
   percent_ela_proficiency = 54.7,
   percent_math_proficiency = 53.5, 
@@ -846,7 +846,7 @@ df_state_avgs <- rbind(df_latino_state, df_white_state, df_black_state, df_asian
     percent_science_proficiency = paste0(round(percent_science_proficiency, 1), "%")
   )
 
-df_final <- rbind(df_average_mex, df_state_avgs)
+df_final <- rbind(df_Mean_mex, df_state_avgs)
 ```
 
 
@@ -862,7 +862,7 @@ table_2i <-df_final  %>% select(school_name, percent_ela_proficiency, percent_ma
   , booktabs = TRUE,
   col.names = c("", "Percent", "Percent", "Percent"),
   align = c("l", rep("c", 3)),
-  caption = "Hispanic/Latino Performance in CPS Elementary Schools in Mexican Community Areas vs. City-Wide Averages (2023)",
+  caption = "Hispanic/Latino Performance in CPS Elementary Schools in Mexican Community Areas vs. City-Wide Mean (2023)",
   format.args = list(big.mark = ","),
   linesep = ""
 ) %>%
@@ -893,7 +893,7 @@ table_2i
 
 ```
 
-## 2.I: Chronic Absenteeism of Schools in Mexican Community Areas compared to City-Wide Averages
+## 2.I: Chronic Absenteeism of Schools in Mexican Community Areas compared to City-Wide Mean
 
 ```{r}
 # visuals
@@ -907,7 +907,7 @@ table_2j <-df_final  %>% select(school_name, chronic_absenteeism) %>%
   , booktabs = TRUE,
   col.names = c("", "Percent"),
   align = c("l", rep("c", 3)),
-  caption = "Hispanic/Latino Chronic Absenteeism in CPS Elementary Schools in Mexican Community Areas vs. City-Wide Averages (2023)",
+  caption = "Hispanic/Latino Chronic Absenteeism in CPS Elementary Schools in Mexican Community Areas vs. City-Wide Mean (2023)",
   format.args = list(big.mark = ","),
   linesep = ""
 ) %>%

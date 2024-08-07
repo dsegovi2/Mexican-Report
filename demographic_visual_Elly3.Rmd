@@ -157,7 +157,7 @@ comm_mexican_pop_map_2000_2022 <-
   tm_facets(by = "year",
             ncol = 3) +
   
-  tm_text("ttl_mxc2" , size = 0.7, alpha = 0.7, fontface="bold", fontfamily = "sans") +
+  tm_text("ttl_mxc2" , size = 0.7, alpha = 0.9, fontface="bold", fontfamily = "sans") +
 
 
   tm_shape(Chicago_boundary_shp) +
@@ -180,7 +180,7 @@ comm_mexican_pop_map_2000_2022 <-
     
             ) +
   tm_add_legend("fill", 
-                labels = c("0-15000", "15001-30000", "30001-45000", "45001-60000", "60001-75000"), 
+                labels = c("0 - 14999", "15000 - 29999", "30000 - 44999", "45000 - 59999", "60000 - 74999"), 
                 col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
                 alpha = 1,
                 lwd = .3,
@@ -199,6 +199,7 @@ comm_mexican_pop_map_2000_2022 <-
 comm_mexican_pop_map_2000_2022 
 
 ```
+
 
 ## Percentage of the Mexican Population by Community Areas in Chicago, 2000 to 2018-2022
 
@@ -244,7 +245,7 @@ map_2000_2022 <-
             ) +
   
   tm_add_legend("fill", 
-                labels = c("0.00% - 19.99%", "20.00%-39.99%", "40.00%-59.99%", "60.00%- 79.99%", "80.00%-100%"), 
+                labels = c("0.00% - 19.99%", "20.00% - 39.99%", "40.00% - 59.99%", "60.00% - 79.99%", "80.00% - 100%"), 
                 col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
                 alpha = 1,
                 lwd = .3,
@@ -266,4 +267,8 @@ map_2000_2022
 ```
 
 \elandscape
+
+
+
+
 

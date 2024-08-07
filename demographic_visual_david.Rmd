@@ -209,7 +209,7 @@ table_1b.1 <- df_final  %>% pivot_wider(id_cols = c("race_ethnicity"), names_fro
   column_spec(1, width = "14.2em") %>%
   column_spec(2:11, width = "2.58em") %>%  
 
- add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "Young(0-19)" = 2, "Adults(0-19)" = 2, "Middle Aged (40-59)" = 2, "Older Adults (60-79)" = 2, "Elderly(80+)" = 2),
+ add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "Young(0-19)" = 2, "Adults (20-39)" = 2, "Middle Aged (40-59)" = 2, "Older Adults (60-79)" = 2, "Elderly(80+)" = 2),
                     # background = "#cbc9e2", 
                     bold = T, font_size =8) %>% 
 
@@ -493,50 +493,52 @@ table_1b.4
 ```
 
 
-## 1C: Average Family Size of the Mexican Population, 2018-2022:
+## 1C: Mean Household Size of the Mexican Population, 2018-2022:
 
 ```{r}
-# analysis
 
-# filter for year 2022
-
+# Step 1: Filter data for the year 2022
 data_chi_2018_22 <- usa_data %>% filter(year == 2022)
 
+# Step 2: Calculate household size for each household
+household_size <- data_chi_2018_22 %>%
+   group_by(serial) %>%
+   summarize(household_size = n()) %>%
+   ungroup()
 
-# Filter for the head of household 
-data_head_of_household <- data_chi_2018_22 %>%
-  filter(pernum == 1)
+# Step 3: Merge household size back to the original dataset
+data_with_household_size <- data_chi_2018_22 %>%
+   left_join(household_size, by = "serial")
 
-# 1C Average family size of the Mexican population compared to, other Latinos, Black and White populations in Chicago
+# Step 4: Define the survey design using srvyr with household weights
+survey_design <- data_with_household_size %>%
+   as_survey_design(weights = hhwt)
 
-# Calculate average family size
+# Step 5: Calculate the weighted mean household size by race/ethnicity group
+mean_household_size <- survey_design %>%
+   group_by(race_ethnicity) %>%
+   summarize(
+     mean_household_size = survey_mean(household_size, na.rm = TRUE)
+   ) %>%
+   mutate(
+     mean_household_size = round(mean_household_size, 1)
+   )
 
-# Define the survey design using srvyr with only weights
-survey_design <- data_head_of_household %>%
-  as_survey_design(weights = hhwt)
 
-# Calculate the weighted average family size by group
-avg_family_size <- survey_design %>%
-  group_by(race_ethnicity) %>%
-  summarize(
-        avg_family_size = survey_mean(famsize, vartype = "se", na.rm = TRUE)
-  ) %>%  mutate(
-    avg_family_size = round(avg_family_size, 1)
-  )
 
 ```
 
 ```{r}
 # visuals
 
-table_1c <- avg_family_size %>% select(race_ethnicity, avg_family_size) %>% 
+table_1c <- mean_household_size %>% select(race_ethnicity, mean_household_size) %>% 
  
    # using kable 
   
   kbl(, booktabs = T,
        col.names = c("Race/Ethnicity", "Number"),
       align = c("l",rep("c",1)),
-      caption = "Average Family Size of the Mexican Population, 2018-2022",
+      caption = "Mean Household Size of the Mexican Population, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -581,7 +583,7 @@ filtered_data <- data_chi_2018_22 %>%
 survey_design <- filtered_data  %>%
   as_survey_design(weights = hhwt)
 
-# Calculate the weighted average household income by group
+# Calculate the weighted Mean household income by group
 weighted_avg_income <- survey_design %>% filter(pernum == 1) %>%
   group_by(race_ethnicity) %>%
   summarize(
@@ -620,9 +622,9 @@ table_1d.1 <- income_levels %>% select(race_ethnicity, avg_hhincome, weighted_me
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Race/Ethnicity", "Average Household Income", "Median Household Income"),
+      col.names = c("Race/Ethnicity", "Mean Household Income", "Median Household Income"),
       align = c("l",rep("c",2)),
-      caption = "Average and Median Income of Mexican Population, 2018-2022",
+      caption = "Mean and Median Income of Mexican Population, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -667,7 +669,7 @@ filtered_data <- data_chi_2018_22 %>%
 survey_design <- filtered_data  %>%
   as_survey_design(weights = perwt)
 
-# Calculate the weighted average household income by group
+# Calculate the weighted Mean household income by group
 weighted_avg_income <- survey_design %>%
   group_by(race_ethnicity) %>%
   summarize(
@@ -705,9 +707,9 @@ table_1d.2 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_me
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Race/Ethnicity", "Average Income", "Median Income"),
+      col.names = c("Race/Ethnicity", "Mean Income", "Median Income"),
       align = c("l",rep("c",2)),
-      caption = "Average and Median Income of Mexican Population, 2018-2022",
+      caption = "Mean and Median Income of Mexican Population, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -750,7 +752,7 @@ filtered_data <- data_chi_2018_22 %>%
 survey_design <- filtered_data  %>%
   as_survey_design(weights = perwt)
 
-# Calculate the weighted average household income by group
+# Calculate the weighted Mean household income by group
 weighted_avg_income <- survey_design %>% 
   group_by(hispan_breakdown) %>%
   summarize(
@@ -788,9 +790,9 @@ table_1d.3 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighted_
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Race/Ethnicity", "Average Income", "Median Income"),
+      col.names = c("Race/Ethnicity", "Mean Income", "Median Income"),
       align = c("l",rep("c",2)),
-      caption = "Average and Median Income of Hispanic/Latino breakdown, 2018-2022",
+      caption = "Mean and Median Income of Hispanic/Latino breakdown, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -831,7 +833,7 @@ filtered_data <- data_chi_2018_22 %>%
 survey_design <- filtered_data  %>%
   as_survey_design(weights = perwt)
 
-# Calculate the weighted average household income by group
+# Calculate the weighted Mean household income by group
 weighted_avg_income <- survey_design %>%
   group_by(mex_foreign_born) %>%
   summarize(
@@ -869,9 +871,9 @@ table_1d.4 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighted_
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Mexican Nativity", "Average Income", "Median Income"),
+      col.names = c("Mexican Nativity", "Mean Income", "Median Income"),
       align = c("l",rep("c",2)),
-      caption = "Average and Median Income of Mexican Population, 2018-2022",
+      caption = "Mean and Median Income of Mexican Population, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
