@@ -95,6 +95,19 @@ mex_foreign_born = case_when(
 # install.packages("knitr")
 
 
+theme_plots <-
+  theme_minimal() +
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(color="#969696", linewidth = 1),
+        plot.title = element_text(face ="bold", size = 10, hjust = 0.5),
+      plot.subtitle = element_text(face ="italic", size = 8, color = "#636363"),
+      axis.text = element_text(size = 9),
+      axis.title = element_text(face ="bold", size = 9),
+      plot.caption = element_text(hjust = 0, size = 8, color = "black"),
+      legend.text = element_text(size = 8, color = "#636363"),
+      legend.title = element_text(face = "bold", size = 8, color = "#636363")) 
 
 
 ```
@@ -160,6 +173,65 @@ table_5.a1
 ```
 
 
+<!-- ```{r} -->
+
+<!-- color_race_ethnicity2 <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51", -->
+<!--                                "White (non-Hispanic or Latino)" = "#9CA168", -->
+<!--                                "Black (non-Hispanic or Latino)" = "#8CBEC0", -->
+<!--                                "Other (non-Hispanic or Latino)" = "#0B8489") -->
+
+
+<!-- unemployment1 =  unemployment%>% -->
+<!--   pivot_longer(cols = c(Employed, Unemployed), -->
+<!--                names_to = "empl_stat", -->
+<!--                values_to = "number") %>% -->
+<!--   mutate(race_ethnicity = fct_rev(race_ethnicity)) %>% -->
+<!--   mutate(label = paste0("Total in Labor Force", ":\n", scales::comma(number))) -->
+
+
+<!-- unemployment2 <- unemployment1 %>% -->
+
+<!--   ggplot(aes(x = number, -->
+<!--              y = race_ethnicity, -->
+<!--              fill = empl_stat)) + -->
+<!--   geom_bar(position = "stack", stat = "identity", -->
+<!--            color = "white", -->
+<!--            width=0.7) + -->
+<!--   labs(y="", x = "", -->
+<!--        title="Employment Status by Race/Ethnicity\nin Chicago, 2018-2022", -->
+<!--        caption = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute", -->
+<!--        fill="") + -->
+
+<!--   geom_text(aes(label = scales::comma(number)), -->
+<!--             position = position_stack(vjust = 0.5), -->
+<!--             # vjust = -0.5, -->
+<!--             # hjust = 0.5, -->
+<!--             size = 3)+ -->
+<!--   geom_text(data =unemployment1 %>%  filter(empl_stat == "Employed") , aes(label = "Total in Labor Force"), -->
+<!--             position=position_dodge(width=0.9), hjust = -0.7, vjust = -0.7, -->
+<!--             size = 2)+ -->
+<!--   geom_text(aes(label = scales::comma(number)), -->
+<!--             position=position_dodge(width=0.9), hjust = -0.7, vjust = -0.35, -->
+<!--             size = 2) -->
+<!--   # scale_y_discrete(labels = function(x) str_wrap(x, width = 20))+ # Modify labels of ggplot2 barplot -->
+<!--   # scale_x_continuous(labels = function(x) paste0(x, "%"), limits = c(0,101), breaks = seq(0, 101, by = 100)) + -->
+
+<!--   theme_plots + -->
+<!--   theme( -->
+<!--     # axis.text.x = element_text(size = 8), -->
+<!--         panel.background = element_blank(), -->
+<!--         # axis.ticks.y = element_blank(), -->
+<!--         # axis.title.y = element_blank(), -->
+<!--         axis.text.x = element_blank(), -->
+<!--         axis.line.x = element_blank(), -->
+<!--         legend.position = "bottom", -->
+<!--         legend.text = element_text(size = 7, color = "#636363"), -->
+<!--         legend.key.size = unit(0.5, "lines"))+ -->
+<!--   guides(fill = guide_legend(nrow = 2, byrow = TRUE)) -->
+
+<!-- ``` -->
+
+
 
 ## 5A.1-2: The Labor Force Participation Rate 
 
@@ -210,6 +282,64 @@ table_5.a1_2 <- LFP_rate %>%
 table_5.a1_2
 ```
 
+
+
+```{r}
+
+color_race_ethnicity2 <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
+                               "White (non-Hispanic or Latino)" = "#9CA168",
+                               "Black (non-Hispanic or Latino)" = "#8CBEC0",
+                               "Other (non-Hispanic or Latino)" = "#0B8489")
+ 
+LFP_rate %>% 
+  mutate(year = case_when(year == 2000 ~ "2000",
+                          year == 2012 ~ "2008-2012",
+                          year == 2022 ~ "2018-2022"),
+         year = factor(year, levels = c("2000", "2008-2012", "2018-2022"))) %>% 
+
+  # group_by(occupation) %>%
+  # mutate(prc_mexican = ifelse(race_ethnicity == "Mexican", prc, NA)) %>%
+  # ungroup() %>%
+  # arrange(prc_mexican) %>%
+  # mutate(occupation = factor(occupation, levels = unique(occupation[order(prc_mexican)]))) %>% 
+  
+  ggplot(aes(x = prc,
+             y = occupation,
+             fill = race_ethnicity)) +
+  geom_bar(position = "stack", stat = "identity", 
+           color = "white", 
+           width=0.7) +
+  labs(y="", x = "",
+       title="Employment Distribution by Occupation Categories and Race/Ethnicity\nin Chicago, 2018-2022",
+       caption = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+       fill="") +
+  scale_fill_manual(values = color_race_ethnicity2) + 
+  
+  geom_text(aes(label = prc2),
+            position = position_stack(vjust = 0.5),
+            # vjust = -0.5,
+            # hjust = 0.5,
+            size = 3,
+            color = "white")+
+  scale_y_discrete(labels = function(x) str_wrap(x, width = 20))+ # Modify labels of ggplot2 barplot
+  scale_x_continuous(labels = function(x) paste0(x, "%"), limits = c(0,101), breaks = seq(0, 101, by = 100)) +
+  
+  theme_plots +
+  theme(
+    # axis.text.x = element_text(size = 8),
+        panel.background = element_blank(),
+        # axis.ticks.y = element_blank(),
+        # axis.title.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.line.x = element_blank(),
+        legend.position = "bottom",
+        legend.text = element_text(size = 7, color = "#636363"),
+        legend.key.size = unit(0.5, "lines"))+
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) 
+
+
+```
+
 ## 5A.2: Numbers and percentages of Mexicans employed, by industry
 
 \blandscape
@@ -217,7 +347,7 @@ table_5.a1_2
 ```{r}
 
 industry = usa_data %>%
-  filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+  filter(year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
 
   mutate(industry = case_when(ind %in% c(0170:0490)  ~ "Agriculture, Forestry, Fishing, and Hunting, and Mining",
                               ind == 0770  ~ "Construction",
@@ -297,6 +427,8 @@ table_5a.2
 \elandscape
 
 \clearpage
+
+
 
 ```{r}
 
@@ -477,6 +609,68 @@ table_5a.3
 
 \elandscape
 \clearpage
+
+```{r fig.width=6, fig.height=5 ,fig.align='center'}
+
+color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
+                               "White (non-Hispanic or Latino)" = "#4D2B18",
+                               "Black (non-Hispanic or Latino)" = "#9CA168",
+                               "Other (non-Hispanic or Latino)" = "#0B8489")
+  
+
+color_race_ethnicity2 <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
+                               "White (non-Hispanic or Latino)" = "#9CA168",
+                               "Black (non-Hispanic or Latino)" = "#8CBEC0",
+                               "Other (non-Hispanic or Latino)" = "#0B8489")
+ 
+occupation %>% 
+  mutate(race_ethnicity = fct_rev(race_ethnicity)) %>% 
+  group_by(occupation) %>%
+  mutate(prc_mexican = ifelse(race_ethnicity == "Mexican", prc, NA)) %>%
+  ungroup() %>%
+  arrange(prc_mexican) %>%
+  mutate(occupation = factor(occupation, levels = unique(occupation[order(prc_mexican)]))) %>% 
+  
+  ggplot(aes(x = prc,
+             y = occupation,
+             fill = race_ethnicity)) +
+  geom_bar(position = "stack", stat = "identity", 
+           color = "white", 
+           width=0.7) +
+  labs(y="", x = "",
+       title="Employment Distribution by Occupation Categories and Race/Ethnicity\nin Chicago, 2018-2022",
+       caption = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+       fill="") +
+  scale_fill_manual(values = color_race_ethnicity2) + 
+  
+  geom_text(aes(label = prc2),
+            position = position_stack(vjust = 0.5),
+            # vjust = -0.5,
+            # hjust = 0.5,
+            size = 3,
+            color = "white")+
+  scale_y_discrete(labels = function(x) str_wrap(x, width = 20)) + # Modify labels of ggplot2 barplot
+  scale_x_continuous(labels = function(x) paste0(x, "%"), limits = c(0,101), breaks = seq(0, 101, by = 100)) +
+  
+  theme_plots +
+  theme(
+    # axis.text.x = element_text(size = 8),
+        panel.background = element_blank(),
+        # axis.ticks.y = element_blank(),
+        # axis.title.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.line.x = element_blank(),
+        legend.position = "bottom",
+        legend.text = element_text(size = 7, color = "#636363"),
+        legend.key.size = unit(0.5, "lines"))+
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) # Arrange legend items in two rows
+  
+```
+
+
+
+
+
 
 ```{r}
 
