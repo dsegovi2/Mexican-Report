@@ -135,6 +135,7 @@ comm_2000_2022 <- st_read ("Data Tables/shp/comm_pop_chi_2000_2022.shp" ) %>%
 
 
 ### Dot Density
+
 ```{r fig.height=11, fig.width=8}
 
 Mexican_18_22 <- pop_dots_2022_origin_50 %>% 

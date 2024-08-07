@@ -53,11 +53,11 @@ usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexic
   mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)"))) 
 # install.packages("knitr")
 
-
-<<<<<<< HEAD
-=======
-
->>>>>>> 878e3cc8db24aa0ba803dd993abc3403948e3942
+# 
+# <<<<<<< HEAD
+# =======
+# 
+# >>>>>>> 878e3cc8db24aa0ba803dd993abc3403948e3942
 ```
 
 \renewcommand{\arraystretch}{1.4}

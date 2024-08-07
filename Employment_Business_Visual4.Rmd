@@ -10,6 +10,10 @@ output:
     extra_dependencies: ["float"]
     fig_caption: true
 mainfont: "Arial"
+header-includes:
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
 editor_options: 
   chunk_output_type: console
 ---
@@ -155,20 +159,60 @@ table_5.a1
 
 ```
 
-\clearpage
 
-## 5A.2-2: The Labor Force Participation Rate 
+
+## 5A.1-2: The Labor Force Participation Rate 
 
 ```{r}
-LFP_rate = usa_data %>% 
-  as_survey_design(weights = perwt) %>% 
-  survey_count(race_ethnicity, employment=empstat_f, laborforce= labforce_f,  name="count")
+LFP_rate = usa_data %>%
+  as_survey_design(weights = perwt) %>%
+  survey_count(year, race_ethnicity, empstatd,empstatd_f, laborforce= labforce_f,  name="count") %>% 
+  filter(empstatd != 0) %>% 
+  group_by(year, race_ethnicity) %>% 
+  mutate(denominator = sum(count, na.rm = TRUE)) %>% 
+  filter(empstatd!= 30) %>% 
+  group_by(year, race_ethnicity, denominator) %>% 
+  summarise(count = sum(count, na.rm = TRUE)) %>% 
+  mutate(prc = 100*round(count/denominator, 4),
+         prc2 = paste0(prc, "%"))
+
+
+
+table_5.a1_2 <- LFP_rate %>% 
+  select(year, race_ethnicity, prc2) %>% 
+  pivot_wider(names_from = year,
+              values_from = prc2) %>% 
+  # using kable
+  kbl(booktabs = T,
+      col.names = c("Race/Ethnicity",  "2000" , "2008-2012" ,"2018-2022" ),
+      align = c("l",rep("c",3)),
+      caption = "Labor Force Participation Rate by Race/Ethnicity in Chicago, 2000 to 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+ kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:4, width = "8.6em") %>% 
+  # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity", "More than 30%" = 2, "More than 50%" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T,
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+
+  
+  add_footnote(c( "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute"),
+ notation = "none")
+
+table_5.a1_2
 ```
-
-
 
 ## 5A.2: Numbers and percentages of Mexicans employed, by industry
 
+\blandscape
 
 ```{r}
 
@@ -208,43 +252,49 @@ industry = usa_data %>%
 
 table_5a.2 <-  industry %>%
   # filter(race_ethnicity %in% c("Other Latinos")) %>% 
-  select(industry, count,  prc2) %>%
+  select(race_ethnicity, industry, count,  prc2) %>%
+  pivot_wider(names_from = race_ethnicity,
+              values_from = c(count, prc2)) %>% 
+  select(industry, count_Mexican, prc2_Mexican, `count_Other Latinos`, `prc2_Other Latinos`, `count_White (non-Hispanic or Latino)`, `prc2_White (non-Hispanic or Latino)`, `count_Black (non-Hispanic or Latino)`, `prc2_Black (non-Hispanic or Latino)`, `count_Other (non-Hispanic or Latino)`, `prc2_Other (non-Hispanic or Latino)`) %>% 
+  
 
    # using kable
   kable(booktabs = T,
-        col.names = c("Industry", "Number", "% Share of Employed"   ),
-      align = c("l",rep("c",2)),
+        col.names = c("", "Number", "% Share of Employed", 
+                      "Number", "% Share of Employed",  
+                      "Number", "% Share of Employed", 
+                      "Number", "% Share of Employed",
+                      "Number", "% Share of Employed"),
+      align = c("l",rep("c",8)),
       caption = "Employment Distribution by Industry and Race/Ethnicity in Chicago, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "") %>%
+  
   kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                # latex_options = "HOLD_position",
+                latex_options = "HOLD_position",
                 ) %>%
-  column_spec(1, width = "40em") %>%
-  column_spec(2:3, width = "7em") %>%
-  # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
-  #                   # background = "#cbc9e2",
-  #                   bold = T, font_size =8) %>%
+  column_spec(1, width = "12em") %>%
+  column_spec(2:11, width = "4.8em") %>%
+  add_header_above( c("Industry", "Mexican" = 2, "Other Latinos" = 2,"White\n(non-Hispanic or Latino)" = 2, "Black\n(non-Hispanic or Latino)" = 2,  "Other\n(non-Hispanic or Latino)" = 2),
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
   row_spec(0, bold = T,
            # background = "#f2f0f7",
            font_size = 8) %>%
-
-  pack_rows("Mexican", 1,14, hline_after = T  ) %>% 
-  pack_rows("Other Latinos", 15, 28, hline_before = T , hline_after = T) %>% 
-  pack_rows("White (non-Hispanic or Latino)", 29, 42,  hline_before = T , hline_after = T) %>% 
-  pack_rows("Black (non-Hispanic or Latino)", 43, 56,  hline_before = T, hline_after = T ) %>% 
-  pack_rows("Other (non-Hispanic or Latino)", 57, 70, hline_before = T, hline_after = T) %>% 
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
            general_title = "") 
+  # kableExtra::landscape()
   
 
 table_5a.2
 
 
 ```
+
+\elandscape
 
 \clearpage
 
@@ -355,6 +405,7 @@ table_5a.2_2
 
 \clearpage
 
+\blandscape
 ## 5A.3: Numbers and percentages of Mexicans employed, by Occupation
 
 
@@ -385,35 +436,37 @@ occupation = usa_data %>%
 
 table_5a.3 <-  occupation %>%
   # filter(race_ethnicity %in% c("Other Latinos")) %>% 
-  select(occupation, count,  prc2) %>%
+  select(race_ethnicity, occupation, count,  prc2) %>%
+  pivot_wider(names_from = race_ethnicity,
+              values_from = c(count, prc2)) %>% 
+  select(occupation, count_Mexican, prc2_Mexican, `count_Other Latinos`, `prc2_Other Latinos`, `count_White (non-Hispanic or Latino)`, `prc2_White (non-Hispanic or Latino)`, `count_Black (non-Hispanic or Latino)`, `prc2_Black (non-Hispanic or Latino)`, `count_Other (non-Hispanic or Latino)`, `prc2_Other (non-Hispanic or Latino)`) %>% 
 
    # using kable
   kable(booktabs = T,
-        col.names = c("Occupations", "Number", "% Share of Employed"  ),
-      align = c("l",rep("c",2)),
-      caption = "Employment Distribution by Occupations Category and Race/Ethnicity in Chicago, 2018-2022",
+        col.names = c("", "Number", "% Share of Employed", 
+                      "Number", "% Share of Employed",  
+                      "Number", "% Share of Employed", 
+                      "Number", "% Share of Employed",
+                      "Number", "% Share of Employed"),
+      align = c("l",rep("c",8)),
+      caption = "Employment Distribution by Occupation Categories and Race/Ethnicity in Chicago, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "") %>%
+  
   kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                # latex_options = "HOLD_position",
+                latex_options = "HOLD_position",
                 ) %>%
-  column_spec(1, width = "40em") %>%
-  column_spec(2:3, width = "7em") %>%
-  # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
-  #                   # background = "#cbc9e2",
-  #                   bold = T, font_size =8) %>%
+  column_spec(1, width = "12em") %>%
+  column_spec(2:11, width = "4.8em") %>%
+  add_header_above( c("Occupation", "Mexican" = 2, "Other Latinos" = 2,"White\n(non-Hispanic or Latino)" = 2, "Black\n(non-Hispanic or Latino)" = 2,  "Other\n(non-Hispanic or Latino)" = 2),
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
   row_spec(0, bold = T,
            # background = "#f2f0f7",
            font_size = 8) %>%
-
-  pack_rows("Mexican", 1,5, hline_after = T  ) %>% 
-  pack_rows("Other Latinos", 6, 10, hline_before = T , hline_after = T) %>% 
-  pack_rows("White (non-Hispanic or Latino)", 11, 15,  hline_before = T , hline_after = T) %>% 
-  pack_rows("Black (non-Hispanic or Latino)", 16, 20,  hline_before = T, hline_after = T ) %>% 
-  pack_rows("Other (non-Hispanic or Latino)", 21, 25, hline_before = T, hline_after = T) %>% 
   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
            general_title = "") 
   
@@ -422,7 +475,7 @@ table_5a.3
 
 ```
 
-
+\elandscape
 \clearpage
 
 ```{r}
@@ -526,7 +579,7 @@ table_5a.3_2
 
 ```
 
-
+\clearpage
 
 ## 5C: Numbers and percentages of unionized Mexican workers
 
@@ -606,5 +659,67 @@ table5b
 
 ```
 
+
+\clearpage
+
+## 5D: Transportation
+
+```{r}
+tranwork <- usa_data %>% 
+
+  filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+  
+  as_survey_design(weights = perwt) %>% 
+  survey_count(race_ethnicity, employment=empstat_f, laborforce= labforce_f, tranwork_f, name="count") %>% 
+  filter(employment == "Employed") %>%
+  mutate(race_ethnicity = if_else(race_ethnicity%in% c("White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)", "Other (non-Hispanic or Latino)"), "Non-Hispanic or Latino",race_ethnicity )) %>% 
+  
+  
+  group_by(race_ethnicity) %>%
+  mutate(total_employed = sum(count, na.rm = T)) %>% 
+  group_by(race_ethnicity, tranwork_f, total_employed) %>% 
+  summarise(count = sum(count, na.rm =TRUE)) %>% 
+  mutate(prc = 100 * round(count/total_employed, 4),
+         prc2 = paste0(prc, "%")) 
+  # mutate(tranwork_f = if_else(tranwork_f== "Light rail, streetcar, or trolley (Carro p\u00fablico in PR)", "Light rail, streetcar, or trolley", tranwork_f ))
+  
+
+# options(knitr.kable.NA = '-')   
+  
+table_5.d <- tranwork %>%
+  pivot_wider(id_cols =tranwork_f, names_from = race_ethnicity,
+              values_from = c(count, prc2 )) %>%
+  # mutate(tranwork_f = factor(tranwork_f, levels = c("Auto, truck, or van", "Motorcycle", "Bus", "Light rail, streetcar, or trolley", "Subway or elevated", "Long-distance train or commuter train", "Taxicab", "Ferryboat",	"Bicycle", "Walked only", "Other", "Worked at home", "N/A"))) %>% 
+  select(tranwork_f, count_Mexican, prc2_Mexican, `count_Other Latinos` ,`prc2_Other Latinos`, `count_Non-Hispanic or Latino`, `prc2_Non-Hispanic or Latino` ) %>%
+  
+  # using kable
+  kbl(booktabs = T,
+      col.names = c("", "Number", "% Share of Employed",
+                    "Number", "% Share of Employed",
+                    "Number", "% Share of Employed"),
+      align = c("l",rep("c",6)), 
+      caption = "Primary Means of Transportation to Work Race/Ethnicity in Chicago, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                # latex_options = "HOLD_position",
+                ) %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:7, width = "5.16em") %>%
+  add_header_above( c("Means of Transportation", "Mexican" = 2, "Other Latinos" = 2, "Non-Hispanic or Latino" = 2),
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
+  row_spec(0, bold = T,
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+           general_title = "") 
+
+table_5.d
+```
 
 
