@@ -54,7 +54,8 @@ library("RColorBrewer")
 # update.packages(ask = FALSE, checkBuilt = TRUE)
 # tinytex::tlmgr_update()
 # tinytex::latexmk("demographic_visual.tex")
-
+options(knitr.kable.NA = '-')
+ 
 ##### Chicago boarder
 Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
   st_transform(crs = 4326)
@@ -114,6 +115,19 @@ mex_foreign_born = case_when(
  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Colombian"))
   )
 
+theme_plots <-
+  theme_minimal() +
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(color="#969696", linewidth = 1),
+        plot.title = element_text(face ="bold", size = 10, hjust = 0.5),
+      plot.subtitle = element_text(face ="italic", size = 8, color = "#636363"),
+      axis.text = element_text(size = 9),
+      axis.title = element_text(face ="bold", size = 9),
+      plot.caption = element_text(hjust = 0, size = 8, color = "black"),
+      legend.text = element_text(size = 8, color = "#636363"),
+      legend.title = element_text(face = "bold", size = 8, color = "#636363"))
 ```
 
 
@@ -221,6 +235,67 @@ table_1b.1
 ```
 
 
+```{r fig.width=6, fig.height=5 ,fig.align='center'}
+# visual
+
+# Pivot data to long format and clean age_group names
+df_long <- df_final %>%
+  pivot_wider(id_cols = c("race_ethnicity"), 
+              names_from = age_group, 
+              values_from = c("total_weighted_count", "total_weighted_percentage")) %>% 
+  select(race_ethnicity, 
+         'total_weighted_percentage_Young (0-19)',
+         'total_weighted_percentage_Adults (20-39)',
+         'total_weighted_percentage_Middle-aged (40-59)',
+         'total_weighted_percentage_Older Adults (60-79)',
+         'total_weighted_percentage_Elderly (80+)') %>%
+  pivot_longer(cols = starts_with("total_weighted_percentage_"), 
+               names_to = "age_group", 
+               values_to = "percentage") %>%
+  mutate(age_group = gsub("total_weighted_percentage_", "", age_group),
+         percentage = as.numeric(gsub("%", "", percentage))) # Convert percentage to numeric
+
+# Reverse the order of age groups
+df_long <- df_long %>%
+  mutate(age_group = factor(age_group, 
+                            levels = c("Young (0-19)", "Adults (20-39)", "Middle-aged (40-59)", "Older Adults (60-79)", "Elderly (80+)")))
+
+# Define the custom colors for race_ethnicity
+color_race_ethnicity <- c("Mexican" = "#CE1126", 
+                          "Other Latinos" = "#F9AA51",
+                          "White (non-Hispanic or Latino)" = "#4D2B18",
+                          "Black (non-Hispanic or Latino)" = "#9CA168",
+                          "Other (non-Hispanic or Latino)" = "#0B8489")
+
+# Create the bar chart with percentage labels
+# Create the bar chart with percentage labels
+ggplot(df_long, aes(x = age_group, y = percentage, fill = race_ethnicity)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = paste0(percentage, "%")), 
+            position = position_dodge(width = 0.9), 
+            vjust = -1, 
+            size = 2, 
+            fontface = "bold") +
+  labs(title = "Age Group Distribution by Race/Ethnicity", 
+       caption = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute") +
+  scale_y_continuous(breaks = seq(0, 40, by = 5)) +
+  theme_minimal() +
+  scale_fill_manual(values = color_race_ethnicity, name = "Race/Ethnicity") +
+  theme_plots +
+ theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme_plots +   theme(axis.text.x = element_text(size = 8),
+        panel.background = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title.y = element_blank(),
+         axis.title.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line.y = element_blank(),
+        legend.key.size = unit(0.5, "lines"),
+        legend.position = "bottom",
+        legend.text = element_text(size = 7, color = "#636363"))  + # Increase margins to fit legend
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) # Distribute legend items across 2 rows
+
+```
+
 ## 1B(2) Population Pyramid and Percentage of Hispanic/Latino breakdown, 2018-2022:
 
 ```{r}
@@ -311,6 +386,70 @@ table_1b.2 <- df_final  %>% pivot_wider(id_cols = c("hispan_breakdown"), names_f
 table_1b.2
 ```
 
+
+```{r fig.width=6, fig.height=5 ,fig.align='center'}
+# visual
+
+# Pivot data to long format and clean age_group names
+df_long <- df_final %>%
+  pivot_wider(id_cols = c("hispan_breakdown"), 
+              names_from = age_group, 
+              values_from = c("total_weighted_count", "total_weighted_percentage")) %>% 
+  select(hispan_breakdown, 
+         'total_weighted_percentage_Young (0-19)',
+         'total_weighted_percentage_Adults (20-39)',
+         'total_weighted_percentage_Middle-aged (40-59)',
+         'total_weighted_percentage_Older Adults (60-79)',
+         'total_weighted_percentage_Elderly (80+)') %>%
+  pivot_longer(cols = starts_with("total_weighted_percentage_"), 
+               names_to = "age_group", 
+               values_to = "percentage") %>%
+  mutate(age_group = gsub("total_weighted_percentage_", "", age_group),
+         percentage = as.numeric(gsub("%", "", percentage))) # Convert percentage to numeric
+
+# Reverse the order of age groups
+df_long <- df_long %>%
+  mutate(age_group = factor(age_group, 
+                            levels = c("Young (0-19)", "Adults (20-39)", "Middle-aged (40-59)", "Older Adults (60-79)", "Elderly (80+)")))
+
+# Define the custom colors for race_ethnicity
+color_hispan_breakdown <- c(
+  "Mexican" = "#CE1126",       # Red
+  "Puerto Rican" = "#4C9F38",  # Green
+  "Ecuadorian" = "#F7E300",    # Yellow
+  "Cuban" = "#0033A0",         # Blue
+  "Guatemalan" = "#8C6D40",    # Brown
+  "Colombian" = "#9B59B6"      # Purple
+)
+
+# Create the bar chart with percentage labels
+ggplot(df_long, aes(x = age_group, y = percentage, fill = hispan_breakdown)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = paste0(percentage, "%")), 
+            position = position_dodge(width = 0.9), 
+            vjust = -1, 
+            size = 2, 
+            fontface = "bold") +
+  labs(title = "Age Group Distribution by Hispanic/Latino", 
+     caption = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute") +
+scale_y_continuous(breaks = seq(0, 40, by = 5)) +
+  theme_minimal() +
+  scale_fill_manual(values = color_hispan_breakdown, name = "Hispanic/Latino") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme_plots +   theme(axis.text.x = element_text(size = 8),
+        panel.background = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title.y = element_blank(),
+         axis.title.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line.y = element_blank(),
+        legend.key.size = unit(0.5, "lines"),
+        legend.position = "bottom",
+        legend.text = element_text(size = 7, color = "#636363"))  + # Increase margins to fit legend
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) # Distribute legend items across 2 rows
+
+```
+
+```
 
 
 ## 1B(3): Median Age of Mexican population, 2018-2022:
@@ -648,7 +787,7 @@ table_1d.1
 
 
 
-## 1D(2): Individual Income Levels, 2018-2022:
+## 1D(2.1): Individual Income Levels for full-time workers, 2018-2022:
 
 ```{r}
 # analysis
@@ -702,7 +841,7 @@ income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
 
 
 
-table_1d.2 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_median_incwage) %>% 
+table_1d.2.1 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_median_incwage) %>% 
  
    # using kable 
   
@@ -724,16 +863,101 @@ table_1d.2 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_me
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute
+           Note: Data pertains to full-time workers who work a minimum of 35 hours per week for at least 48 weeks in a year.",
            general_title = "")   
 
-table_1d.2
+table_1d.2.1
 ```
 
 
 
+## 1D(2.2): Individual Income Levels for ALL workers, 2018-2022:
 
-## 1D(3): Individual Income Levels by Hispanic/Latino breakdown, 2018-2022:
+```{r}
+# analysis
+# filter for 2022
+
+data_chi_2018_22 <- usa_data %>% filter(year == 2022)
+
+
+# 1D Income Levels and poverty rates for Mexicans, other Latinos, Black and White Populations in Chicago.
+
+# Filter the data to remove negative and extreme values
+filtered_data <- data_chi_2018_22 %>%
+  filter(incwage  > 0 & incwage  < 999999,  empstat == 1)
+
+
+
+# Define the survey design using srvyr with only weights
+survey_design <- filtered_data  %>%
+  as_survey_design(weights = perwt)
+
+# Calculate the weighted Mean household income by group
+weighted_avg_income <- survey_design %>%
+  group_by(race_ethnicity) %>%
+  summarize(
+    avg_incwage  = survey_mean(incwage , vartype = "se", na.rm = TRUE)
+  )
+
+
+# weighted median: 
+
+weighted_median_income <- filtered_data %>% 
+  group_by(race_ethnicity) %>%
+  summarize(
+    weighted_median_incwage  = matrixStats::weightedMedian(incwage , perwt)
+  ) %>%
+  ungroup()
+
+
+# final df with income levels
+income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
+  mutate(
+    avg_incwage  = paste0("$", format(avg_incwage , big.mark = ",", scientific = FALSE)),
+    weighted_median_incwage  = paste0("$", format(weighted_median_incwage , big.mark = ",", scientific = FALSE))
+  )
+
+```
+
+
+```{r}
+# visuals
+
+
+
+table_1d.2.2 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_median_incwage) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Race/Ethnicity", "Mean Income", "Median Income"),
+      align = c("l",rep("c",2)),
+      caption = "Mean and Median Income of Mexican Population, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:3, width = "12.9em") %>%  
+
+  row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute
+           Note: Data pertains to all employed regardless of full-time or part-time work",
+           general_title = "")   
+
+table_1d.2.2
+```
+
+
+
+## 1D(3.1): Individual Income Levels for Full-time workers by Hispanic/Latino breakdown, 2018-2022:
 
 ```{r}
 # analysis
@@ -775,7 +999,7 @@ income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
   mutate(
     avg_incwage  = paste0("$", format(avg_incwage , big.mark = ",", scientific = FALSE)),
     weighted_median_incwage  = paste0("$", format(weighted_median_incwage , big.mark = ",", scientific = FALSE))
-  ) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data"))) %>% filter(!is.na( hispan_breakdown))
+  ) %>% filter(!is.na( hispan_breakdown))
 
 
 ```
@@ -785,7 +1009,7 @@ income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
 # visuals
 
 
-table_1d.3 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighted_median_incwage ) %>% 
+table_1d.3.1 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighted_median_incwage ) %>% 
  
    # using kable 
   
@@ -807,15 +1031,97 @@ table_1d.3 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighted_
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute
+           Note: Data pertains to full-time workers who work a minimum of 35 hours per week for at least 48 weeks in a year.",
+           general_title = "")    
 
-table_1d.3
+table_1d.3.1
 ```
 
 
+## 1D(3.2): Individual Income Levels for all workers by Hispanic/Latino breakdown, 2018-2022:
 
-## 1D(4):  Individual Income Levels between Mexicans born in Mexico vs United States.
+```{r}
+# analysis
+# filter for 2022
+
+data_chi_2018_22 <- usa_data %>% filter(year == 2022)
+
+# 1D Income Levels and poverty rates for Mexicans, other Latinos, Black and White Populations in Chicago.
+
+# Filter the data to remove negative and extreme values
+filtered_data <- data_chi_2018_22 %>%
+  filter(incwage  > 0 & incwage  < 999999, empstat == 1)
+
+  
+# Define the survey design using srvyr with only weights
+survey_design <- filtered_data  %>%
+  as_survey_design(weights = perwt)
+
+# Calculate the weighted Mean household income by group
+weighted_avg_income <- survey_design %>% 
+  group_by(hispan_breakdown) %>%
+  summarize(
+    avg_incwage  = survey_mean(incwage , vartype = "se", na.rm = TRUE)
+  )
+
+
+# weighted median: 
+
+weighted_median_income <- filtered_data %>% 
+  group_by(hispan_breakdown) %>%
+  summarize(
+    weighted_median_incwage  = matrixStats::weightedMedian(incwage , perwt)
+  ) %>%
+  ungroup()
+
+
+# final df with income levels
+income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
+  mutate(
+    avg_incwage  = paste0("$", format(avg_incwage , big.mark = ",", scientific = FALSE)),
+    weighted_median_incwage  = paste0("$", format(weighted_median_incwage , big.mark = ",", scientific = FALSE))
+  ) %>% filter(!is.na( hispan_breakdown))
+
+
+```
+
+
+```{r}
+# visuals
+
+
+table_1d.3.2 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighted_median_incwage) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Race/Ethnicity", "Mean Income", "Median Income"),
+      align = c("l",rep("c",2)),
+      caption = "Mean and Median Income of Hispanic/Latino breakdown, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:3, width = "12.9em") %>%  
+
+  row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+
+  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute
+            Note: Data pertains to all employed regardless of full-time or part-time work",
+           general_title = "")    
+
+table_1d.3.2
+```
+
+
+## 1D(4.1):  Individual Income Levels for Mexican full-time workers by nativity
 
 ```{r}
 # analysis
@@ -856,7 +1162,7 @@ income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
   mutate(
     avg_incwage  = paste0("$", format(avg_incwage , big.mark = ",", scientific = FALSE)),
     weighted_median_incwage  = paste0("$", format(weighted_median_incwage , big.mark = ",", scientific = FALSE))
-  ) %>% mutate(across(everything(), ~replace(., is.na(.), "Missing Data")))
+  ) 
 
 ```
 
@@ -866,7 +1172,7 @@ income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
 
 
 
-table_1d.4 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighted_median_incwage ) %>% 
+table_1d.4.1 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighted_median_incwage ) %>% 
  
    # using kable 
   
@@ -888,11 +1194,95 @@ table_1d.4 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighted_
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute
+           Note: Data pertains to full-time workers who work a minimum of 35 hours per week for at least 48 weeks in a year.",
            general_title = "")   
-
-table_1d.4
+table_1d.4.1
 ```
+
+
+## 1D(4.2):  Individual Income Levels for Mexican  workers by nativity
+
+```{r}
+# analysis
+# filter for 2022
+
+data_chi_2018_22 <- usa_data %>% filter(year == 2022) %>% filter(!is.na(mex_foreign_born))
+
+# 1D Income Levels and poverty rates for Mexicans born in Mexico vs. United States
+# Filter the data to remove negative and extreme values
+filtered_data <- data_chi_2018_22 %>%
+  filter(incwage  > 0 & incwage  < 999999, empstat == 1)
+
+  
+# Define the survey design using srvyr with only weights
+survey_design <- filtered_data  %>%
+  as_survey_design(weights = perwt)
+
+# Calculate the weighted Mean household income by group
+weighted_avg_income <- survey_design %>%
+  group_by(mex_foreign_born) %>%
+  summarize(
+    avg_incwage  = survey_mean(incwage , vartype = "se", na.rm = TRUE)
+  )
+
+
+# weighted median: 
+
+weighted_median_income <- filtered_data %>% 
+  group_by(mex_foreign_born) %>%
+  summarize(
+    weighted_median_incwage  = matrixStats::weightedMedian(incwage ,perwt)
+  ) %>%
+  ungroup()
+
+
+# final df with income levels
+income_levels <- weighted_avg_income %>% left_join(weighted_median_income)  %>%
+  mutate(
+    avg_incwage  = paste0("$", format(avg_incwage , big.mark = ",", scientific = FALSE)),
+    weighted_median_incwage  = paste0("$", format(weighted_median_incwage , big.mark = ",", scientific = FALSE))
+  ) 
+
+```
+
+```{r}
+
+# visuals
+
+
+
+table_1d.4.2 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighted_median_incwage ) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Mexican Nativity", "Mean Income", "Median Income"),
+      align = c("l",rep("c",2)),
+      caption = "Mean and Median Income of Mexican Population, 2018-2022",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:3, width = "12.9em") %>%  
+
+  row_spec(0, bold = T,
+             #background = "#f2f0f7",
+            font_size = 8) %>%
+
+   footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute
+            Note: Data pertains to all employed regardless of full-time or part-time work",
+           general_title = "")   
+table_1d.4.2
+```
+
+
+
+
 
 ## 1D(5): Poverty Rates Over Time, 2000, 2008-2012, 2018-2022:
 
@@ -954,7 +1344,7 @@ table_1d.5 <- poverty_rate_trends_wide  %>%
   kbl(, booktabs = T,
       col.names = c("", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Percent", "Percent"),
       align = c("l",rep("c",8)),
-      caption = "Mexican Population at or Below Poverty Threshold Trends over Time",
+      caption = "Changes Over Time in the Poverty Levels of Mexican Families",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -1068,8 +1458,8 @@ table_1e <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , 
   column_spec(2:6, width = "5.16em") %>%  
  
 
-  row_spec(0, bold = T,
-             #background = "#f2f0f7",
+  row_spec(11:13, bold = T,
+             background = "#f2f0f7",
             font_size = 8) %>%
 
   footnote(general = "Source: IPUMS-NHGIS database (2018-2022). Tabulations by Great Cities Institute",
