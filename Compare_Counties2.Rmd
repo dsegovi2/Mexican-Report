@@ -90,6 +90,8 @@ bbox_new_collar <- c(center_x - 0.24,
               center_y - 0.23,
               center_x + 0.23,
               center_y + 0.23)
+
+
 theme_plots <-
   theme_minimal() +
   theme(panel.background = element_blank(),
@@ -445,15 +447,15 @@ pop_county_chicago_1980_2020 <- read_csv("Data Tables/pop_county_chicago_1980_20
 ```{r}
 
 county_pop_1980_2020 <- pop_county_chicago_1980_2020 %>% 
-  
+  filter(year != "1980") %>% 
   mutate(prc_mex_his = 100*round(mexican/total_his, 4),
             prc_mex_total = 100*round(mexican/total_pop, 4)) %>% 
   mutate(prc_mex_his2 = paste0(prc_mex_his, "%"),
-         prc_mex_total2 = paste0(prc_mex_total, "%")) %>% 
-  filter(year != "1980")
+         prc_mex_total2 = paste0(prc_mex_total, "%")) 
 
 ### Table
 county_pop_1980_2020_tb <- county_pop_1980_2020 %>% 
+  
   select(county, total_pop, total_his, mexican, prc_mex_his2,prc_mex_total2) %>%
   ## using kable
   kable(booktabs = T,
@@ -500,20 +502,20 @@ county_pop_1980_2020_tb
 county_pop_1980_2020_tb2 <- county_pop_1980_2020 %>% 
   select(year, county, mexican, prc = prc_mex_total) %>%
   pivot_wider( names_from = c(year), values_from = c(mexican, prc)) %>% 
-  select(county, mexican_1980, prc_1980, mexican_1990, prc_1990, mexican_2000, prc_2000, mexican_2010, prc_2010, `mexican_2018-2022`, `prc_2018-2022`) %>% 
+  select(county, mexican_1990, prc_1990, mexican_2000, prc_2000, mexican_2010, prc_2010, `mexican_2018-2022`, `prc_2018-2022`) %>% 
   
-  mutate(change_1980_2020 = `mexican_2018-2022` - mexican_1980,
-         growth_rate = 100*(`mexican_2018-2022` - mexican_1980)/mexican_1980,
+  mutate(change_1990_2020 = `mexican_2018-2022` - mexican_1990,
+         growth_rate = 100*(`mexican_2018-2022` - mexican_1990)/mexican_1990,
          growth_rate = paste0(round(growth_rate,2), "%")) %>%
   
   mutate(across(starts_with("prc_"), ~ paste0(.x, "%"))) %>% 
   ## using kable
   kable(booktabs = T,
-        col.names = c("" , "Number", "Percent", "Number", "Percent",
+        col.names = c("" , "Number", "Percent",
                       "Number", "Percent", "Mexican", "Percent",
-                      "Number", "Percent", "Number", "Groth Rate"),
+                      "Number", "Percent", "Number", "Growth Rate"),
       align = c("l",rep("c",11)),
-      caption = "Mexican Population in Cook County and Collar Counties, Illinois, 1980 to 2018-2022",
+      caption = "Mexican Population in Cook County and Collar Counties, Illinois, 1990 to 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "") %>%
   kable_classic(full_width = F,
@@ -523,15 +525,15 @@ county_pop_1980_2020_tb2 <- county_pop_1980_2020 %>%
                 latex_options = "HOLD_position",
                 ) %>%
   column_spec(1, width = "8em") %>%
-  column_spec(2:13, width = "4.8em") %>%
-  add_header_above( c("Counties", "1980" = 2, "1990" = 2,  "2000" = 2, "2010" = 2, "2018-2022" = 2, "Change from\n1980 to 2018-2022" = 2),
+  column_spec(2:11, width = "4.8em") %>%
+  add_header_above( c("Counties", "1990" = 2,  "2000" = 2, "2010" = 2, "2018-2022" = 2, "Change from\n1990 to 2018-2022" = 2),
                     # background = "#cbc9e2",
                     bold = T, font_size =8) %>%
   row_spec(0, bold = T,
            # background = "#f2f0f7",
            font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS NHGIS (1980, 1990, 2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.",
+  footnote(general = "Source: IPUMS NHGIS (1990, 2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.",
            general_title = "") %>% 
   kableExtra::landscape()
  #  add_footnote(c( "Source: IPUMS NHGIS (1980, 1990, 2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.", "Total Hispanic or Latino for 1980: person of Spanish/Hispanic origin or descent.", "Total Hispanic or Latino for 1990: person of Spanish/Hispanic origin.", "Total Hispanic or Latino for 2000: person of Spanish/Hispanic/Latino origin.", "Total Hispanic or Latino for 2010 and 2020: person of Hispanic, Latino, or Spanish origin."), threeparttable = TRUE,
@@ -565,44 +567,44 @@ county_pop_1980_2020_tb2
 
 
 
-```{r fig.width=6, fig.height=3.5 ,fig.align='center'}
+<!-- ```{r fig.width=6, fig.height=3.5 ,fig.align='center'} -->
 
-# 
-lollipop_chart <- county_pop_1980_2020 %>% 
-  # filter(county != "Cook County") %>% 
-  ggplot() +
+<!-- #  -->
+<!-- lollipop_chart <- county_pop_1980_2020 %>%  -->
+<!--   # filter(county != "Cook County") %>%  -->
+<!--   ggplot() + -->
 
-  geom_line(aes(y = county, x = mexican, group = county, color = year),
-            color = "#636363",
-            linewidth =0.5 ) +
-  geom_point(aes(y = county, x = mexican, group = county, color = year),
-            shape = 20,
-            # color = "#636363",
-            size = 2
-            ) +
-  labs(y="", x = "Population",
-       title="Mexican Population Growth in Cook County and Collar Counties, 1980-2022",
-       caption = "Source: IPUMS NHGIS database (1980, 1990, 2000, 2010, 2018-2022) \nTabulations by Great Cities Institute") +
-  scale_x_continuous(breaks = seq(100000, 1000000, by = 200000),
-                     labels = scales::label_comma()) +
+<!--   geom_line(aes(y = county, x = mexican, group = county, color = year), -->
+<!--             color = "#636363", -->
+<!--             linewidth =0.5 ) + -->
+<!--   geom_point(aes(y = county, x = mexican, group = county, color = year), -->
+<!--             shape = 20, -->
+<!--             # color = "#636363", -->
+<!--             size = 2 -->
+<!--             ) + -->
+<!--   labs(y="", x = "Population", -->
+<!--        title="Mexican Population Growth in Cook County and Collar Counties, 1980-2022", -->
+<!--        caption = "Source: IPUMS NHGIS database (1980, 1990, 2000, 2010, 2018-2022) \nTabulations by Great Cities Institute") + -->
+<!--   scale_x_continuous(breaks = seq(100000, 1000000, by = 200000), -->
+<!--                      labels = scales::label_comma()) + -->
 
-  theme_plots +
-    
-  theme(
-        axis.text.y = element_text(size = 8),
-        panel.background = element_blank(),
-        legend.position = "bottom",
-        legend.text = element_text(size = 7, color = "#636363"),
-        axis.ticks.y = element_blank(),
-        axis.title.y = element_blank(),
-        # axis.text.x = element_blank(),
-        axis.line.y = element_blank(),
-        axis.title.x = element_text(margin = margin(t = 10)
-        ))
+<!--   theme_plots + -->
 
-lollipop_chart
+<!--   theme( -->
+<!--         axis.text.y = element_text(size = 8), -->
+<!--         panel.background = element_blank(), -->
+<!--         legend.position = "bottom", -->
+<!--         legend.text = element_text(size = 7, color = "#636363"), -->
+<!--         axis.ticks.y = element_blank(), -->
+<!--         axis.title.y = element_blank(), -->
+<!--         # axis.text.x = element_blank(), -->
+<!--         axis.line.y = element_blank(), -->
+<!--         axis.title.x = element_text(margin = margin(t = 10) -->
+<!--         )) -->
 
-```
+<!-- lollipop_chart -->
+
+<!-- ``` -->
 
 
 ### Maps
