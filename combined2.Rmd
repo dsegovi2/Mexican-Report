@@ -2147,7 +2147,7 @@ table_2g <- education_rates %>% select(race_ethnicity, education_level, weighted
     latex_options = "HOLD_position"
   ) %>%
   column_spec(1, width = "14.8em") %>%
-  column_spec(2:15, width = "1.8em") %>%
+  column_spec(2:15, width = "2.3em") %>%
   add_header_above(
     align = c("l", rep("c", 2)),
     c(
@@ -2258,7 +2258,7 @@ table_2h <- education_rates %>% select(mex_foreign_born, education_level, weight
     latex_options = "HOLD_position"
   ) %>%
   column_spec(1, width = "14.8em") %>%
-  column_spec(2:15, width = "1.8em") %>%
+  column_spec(2:15, width = "2.3em") %>%
   add_header_above(
     align = c("l", rep("c", 2)),
     c(
