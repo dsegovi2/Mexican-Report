@@ -48,7 +48,8 @@ library("kableExtra")
 library(tmaptools)
 library("RColorBrewer") 
 #library(OpenStreetMap)
- library(knitr)
+library(knitr)
+options(knitr.kable.NA = '-')
  #options(tinytex.verbose = TRUE)
 # tinytex::reinstall_tinytex()
 # install.packages('tinytex')
@@ -620,8 +621,8 @@ table_2g <- education_rates %>% select(race_ethnicity, education_level, weighted
     position = "center",
     latex_options = "HOLD_position"
   ) %>%
-  column_spec(1, width = "14.8em") %>%
-  column_spec(2:15, width = "1.8em") %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:15, width = "4.5em") %>%
   add_header_above(
     align = c("l", rep("c", 2)),
     c(
@@ -720,7 +721,7 @@ table_2h <- education_rates %>% select(mex_foreign_born, education_level, weight
   , booktabs = TRUE,
   col.names = c("", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent"),
   align = c("l", rep("c", 14)),
-  caption = "Educational Attainment of Mexicans by Nativity, 2018-2022",
+  caption = "Educational Attainment of Mexicans 25 and Older by Nativity, 2018-2022",
   format.args = list(big.mark = ","),
   linesep = ""
 ) %>%
@@ -732,7 +733,7 @@ table_2h <- education_rates %>% select(mex_foreign_born, education_level, weight
     latex_options = "HOLD_position"
   ) %>%
   column_spec(1, width = "14.8em") %>%
-  column_spec(2:15, width = "1.8em") %>%
+  column_spec(2:15, width = "4.5em") %>%
   add_header_above(
     align = c("l", rep("c", 2)),
     c(
@@ -878,22 +879,23 @@ table_2i <-df_final  %>% select(school_name, percent_ela_proficiency, percent_ma
   add_header_above(
     align = c("l", rep("c", 2)),
     c(
-      "School Name", 
-      "ELA Proficiency Rate" = 1, 
-      "Math Proficiency Rate" = 1, 
-      "Science Proficiency Rate" = 1),
+      "Aggregation", 
+      "ELA Proficiency" = 1, 
+      "Math Proficiency" = 1, 
+      "Science Proficiency" = 1),
     bold = TRUE, 
     font_size = 8
   ) %>%
   footnote(
-    general = "Source: Illinois Report Card (2023). Tabulations by Great Cities Institute",
+    general = "Source: Illinois Report Card (2023). Tabulations by Great Cities Institute
+    Sample size: 31 CPS Elementary Schools in 4 Community Areas (Gage Park, East Side, West Lawn, South Lawndale)",
     general_title = ""
   ) 
 table_2i
 
 ```
 
-## 2.I: Chronic Absenteeism of Schools in Mexican Community Areas compared to City-Wide Mean
+## 2.J: Chronic Absenteeism of Schools in Mexican Community Areas compared to City-Wide Mean
 
 ```{r}
 # visuals
@@ -923,13 +925,15 @@ table_2j <-df_final  %>% select(school_name, chronic_absenteeism) %>%
   add_header_above(
     align = c("l", rep("c", 2)),
     c(
-      "School Name", 
-      "Chronic Absenteeism Rate" = 1),
+      "Aggregation", 
+      "Chronic Absenteeism" = 1),
     bold = TRUE, 
     font_size = 8
   ) %>%
   footnote(
-    general = "Source: Illinois Report Card (2023). Tabulations by Great Cities Institute",
+    general = "Source: Illinois Report Card (2023). Tabulations by Great Cities Institute
+    Sample size: 31 CPS Elementary Schools in 4 Community Areas (Gage Park, East Side, West Lawn, South Lawndale)
+    Chronic Absenteeism defined as students who miss 10% or more of school days per year with or without a valid excuse.",
     general_title = ""
   ) 
 table_2j

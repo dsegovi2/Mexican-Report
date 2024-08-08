@@ -54,7 +54,7 @@ library("RColorBrewer")
 # update.packages(ask = FALSE, checkBuilt = TRUE)
 # tinytex::tlmgr_update()
 # tinytex::latexmk("demographic_visual.tex")
-
+options(knitr.kable.NA = '-')
 ##### Chicago boarder
 Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
   st_transform(crs = 4326)
@@ -196,21 +196,26 @@ df_city_avgs <- rbind(df_white_city, df_black_city, df_latino_city)  %>%
   )
 
 
-df_final <- rbind(mexican_top, df_city_avgs)
+df_final <- rbind(mexican_top, df_city_avgs) %>%  mutate(across(
+    ends_with("Rate"),
+    ~ ifelse(. == "NA%", "-", .)
+  ))
+
 ```
 
 
 ```{r}
+
 # visuals
 table_4a <- df_final %>% 
  
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Top 4 Mexican Community Areas", "Adult Obesity Rate", "Adult Diabetes Rate", "Adult Asthma Rate", "Low Birthweight Rate"),
+      col.names = c("Top 4 Mexican Community Areas", "Adult Obesity Rate(22-23)", "Adult Diabetes Rate(22-23)", "Adult Asthma Rate(22-23)", "Low Birthweight Rate(17-21)"),
       align = c("l",rep("c",4)),
       caption = "Health Outcomes, (2017-2021 and 2022-2023)",
-      format.args = list(big.mark = ","),
+      format.args = list(big.mark = "%"),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
                 font_size = 8,
@@ -281,7 +286,7 @@ table_4b <- df_rates  %>% select(race_ethnicity, weighted_n_without_insurance, n
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Race/Ethnicity", "Number without health insurance", "No Insurance Rate", "No Health Insurance among Uninsured Rate"),
+      col.names = c("Race/Ethnicity", "Number without health insurance", "No Insurance Rate", "Percentage of Uninsured Individuals Without Health Insurance"),
       align = c("l",rep("c",3)),
       caption = "No Health Insurance, 2018-2022",
       format.args = list(big.mark = ","),
@@ -404,7 +409,7 @@ table_4d <- df_final  %>%
   kbl(, booktabs = T,
       col.names = c("Top 4 Mexican Community Areas", "Criminal Sexual Assault Crimes", "Rank(out of 77 Community Areas)"),
       align = c("l",rep("c",2)),
-      caption = "Criminal Sexual Assault, 2022-2023",
+      caption = "Criminal Sexual Assault, 2023",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -416,7 +421,7 @@ table_4d <- df_final  %>%
   column_spec(2:3, width = "12.9em") %>%  
 row_spec(0, bold = TRUE, font_size = 8) %>%
 
-  footnote(general = "Source: Chicago Health Atlas (2022-2023). Tabulations by Great Cities Institute",
+  footnote(general = "Source: Chicago Health Atlas (2023). Tabulations by Great Cities Institute",
            general_title = "") 
 
 
@@ -465,9 +470,9 @@ df_latino_city <- data.frame(
 
 df_city_avgs <- rbind(df_white_city, df_black_city, df_latino_city)  %>%
   mutate(
-    psych_distress_rate = paste0(round(psych_distress_rate, 1), "%"),
-   unmet_mental_health_rate = paste0(round(unmet_mental_health_rate, 1), "%"),
-   loneliness_rate = paste0(round(loneliness_rate, 1), "%")
+    psych_distress_rate = paste0(sprintf("%.1f", psych_distress_rate), "%"),
+    unmet_mental_health_rate = paste0(sprintf("%.1f", unmet_mental_health_rate), "%"),
+    loneliness_rate = paste0(sprintf("%.1f", loneliness_rate), "%")
   )
 
 
@@ -482,7 +487,7 @@ table_4e <- df_final %>%
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Top 4 Mexican Community Areas", "Adult Serious Psych Distress Rate", "Adult Unmet Mental Health Need Rate", "Adult Loneliness Rate"),
+      col.names = c("Top 4 Mexican Community Areas", "Adult Serious Psych Distress Rate(22-23)", "Adult Unmet Mental Health Need Rate(22-23)", "Adult Loneliness Rate(22-23)"),
       align = c("l",rep("c",3)),
       caption = "Mental Health, 2022-2023",
       format.args = list(big.mark = ","),
@@ -505,7 +510,7 @@ table_4e
 ```
 
 
-## 4F: Chronic Health in top 4 Mexican Community Areas,(2017-2021, 2022-2023):
+## 4F: Chronic Health Indicators in top 4 Mexican Community Areas,(2017-2021, 2022-2023):
 
 ```{r}
 # Analysis
@@ -557,7 +562,7 @@ table_4f <- df_final %>%
   kbl(, booktabs = T,
       col.names = c("Top 4 Mexican Community Areas", "Adult Cancer Diagnosis Rate (per 100,000)", "Adult Hypertension Rate", "Adult Lung Cancer Diagnosis Rate (per 100,000)"),
       align = c("l",rep("c",3)),
-      caption = "Chronic Health, (2017-2021, 2022-2023)",
+      caption = "Chronic Health Indicators, (2017-2021, 2022-2023)",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
