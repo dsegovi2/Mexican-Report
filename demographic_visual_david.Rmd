@@ -10,6 +10,10 @@ output:
     extra_dependencies: ["float"]
     fig_caption: true
 mainfont: "Arial"
+header-includes:
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
 editor_options: 
   chunk_output_type: console
 ---
@@ -21,6 +25,9 @@ knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.pos="H")
 
 ```
 
+
+\renewcommand{\arraystretch}{1.4}
+\clearpage
 
 ```{r}
 
@@ -61,12 +68,15 @@ Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Re
   st_transform(crs = 4326)
 # mapview(community_shp)
 
-# Construct the full file path
-chicago_ca_pop <- read_sf("Data Tables/shp/comm_pop_chi_2022.shp") %>% as.data.frame()
 
-### usa data
+```
 
-# Read Data
+
+\renewcommand{\arraystretch}{1.4}
+\clearpage
+
+
+```{r}
 
 # Read Data
 
@@ -115,6 +125,10 @@ mex_foreign_born = case_when(
  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Colombian"))
   )
 
+# Chicago ca populationd data
+chicago_ca_pop <- read_sf("Data Tables/shp/comm_pop_chi_2022.shp") %>% as.data.frame()
+
+
 theme_plots <-
   theme_minimal() +
   theme(panel.background = element_blank(),
@@ -128,19 +142,20 @@ theme_plots <-
       plot.caption = element_text(hjust = 0, size = 8, color = "black"),
       legend.text = element_text(size = 8, color = "#636363"),
       legend.title = element_text(face = "bold", size = 8, color = "#636363"))
+
 ```
 
 
 
-\renewcommand{\arraystretch}{1.4}
 
-
-\clearpage
+\blandscape
+ 
 
 # Demographic
 
 
-## 1B(1): Population Pyramid and Percentage of Mexican population, 2018-2022:
+
+## 1B(1): Population Pyramid and Percentage by race/ethnicity, 2018-2022:
 
 ```{r}
 # analysis
@@ -174,7 +189,7 @@ pop_pyramid <- df %>%
   survey_count(race_ethnicity, age_group, name="total_weighted_count")  %>%
   group_by(race_ethnicity) %>%
   mutate(total_weighted_percentage = total_weighted_count / sum(total_weighted_count) * 100,
-         total_weighted_percentage  = paste0(round(total_weighted_percentage, 1), "%")) 
+         total_weighted_percentage  = paste0(format(round(total_weighted_percentage, 1), nsmall = 1), "%"))
 
 
 
@@ -200,19 +215,22 @@ df_final  <- pop_pyramid %>% left_join(weighted_age)
 ```{r}
 # visual
 
-table_1b.1 <- df_final  %>% pivot_wider(id_cols = c("race_ethnicity"), names_from = age_group, values_from = c("total_weighted_count", "total_weighted_percentage")) %>% select(race_ethnicity, 
-                                                                                                                                                'total_weighted_count_Young (0-19)', 'total_weighted_percentage_Young (0-19)',
-                                                                                                                                                 'total_weighted_count_Adults (20-39)', 'total_weighted_percentage_Adults (20-39)',
-                                                                                                                                                 'total_weighted_count_Middle-aged (40-59)', 'total_weighted_percentage_Middle-aged (40-59)',
-                                                                                                                                                 'total_weighted_count_Older Adults (60-79)', 'total_weighted_percentage_Older Adults (60-79)',
-                                                                                                                                                 'total_weighted_count_Elderly (80+)', 'total_weighted_percentage_Elderly (80+)')   %>% 
- 
+table_1b.1 <- df_final %>% 
+  mutate(age_group = factor(age_group, levels = c("Young (0-19)", "Adults (20-39)", "Middle-aged (40-59)", "Older Adults (60-79)", "Elderly (80+)"))) %>% 
+  arrange(age_group) %>%  # Explicitly arrange by factor levels
+pivot_wider(id_cols = c("age_group"), names_from = race_ethnicity, values_from = c("total_weighted_count", "total_weighted_percentage"))  %>% 
+select(age_group, 
+                                                                                                                                                total_weighted_count_Mexican, total_weighted_percentage_Mexican,
+                                                                                                                                                 'total_weighted_count_Other Latinos', 'total_weighted_percentage_Other Latinos',
+                                                                                                                                                 'total_weighted_count_White (non-Hispanic or Latino)', 'total_weighted_percentage_White (non-Hispanic or Latino)',
+                                                                                                                                                 'total_weighted_count_Black (non-Hispanic or Latino)', 'total_weighted_percentage_Black (non-Hispanic or Latino)',
+                                                                                                                                                 'total_weighted_count_Other (non-Hispanic or Latino)', 'total_weighted_percentage_Other (non-Hispanic or Latino)') %>%
    # using kable 
   
   kbl(, booktabs = T,
       col.names = c("", "Number", "Percent" , "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent"),
       align = c("l",rep("c",10)),
-      caption = "Population Pyramid of the Mexican Population, 2018-2022",
+      caption = "Population Pyramid by Race/Ethnicity, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -223,16 +241,20 @@ table_1b.1 <- df_final  %>% pivot_wider(id_cols = c("race_ethnicity"), names_fro
   column_spec(1, width = "14.2em") %>%
   column_spec(2:11, width = "2.58em") %>%  
 
- add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "Young(0-19)" = 2, "Adults (20-39)" = 2, "Middle Aged (40-59)" = 2, "Older Adults (60-79)" = 2, "Elderly(80+)" = 2),
+ add_header_above( align = c("l", rep("c",2)), c("Age Group", "Mexican" = 2, "Other Latinos" = 2, "White (non-Hispanic or Latino)" = 2, "Black (non-Hispanic or Latino)" = 2, "Other (non-Hispanic or Latino)" = 2),
                     # background = "#cbc9e2", 
                     bold = T, font_size =8) %>% 
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+  footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
            general_title = "")   
 
 
 table_1b.1
 ```
+
+
+\elandscape
+
 
 
 ```{r fig.width=6, fig.height=5 ,fig.align='center'}
@@ -276,7 +298,7 @@ ggplot(df_long, aes(x = age_group, y = percentage, fill = race_ethnicity)) +
             size = 2, 
             fontface = "bold") +
   labs(title = "Age Group Distribution by Race/Ethnicity", 
-       caption = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute") +
+       caption = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by \nGreat Cities Institute") +
   scale_y_continuous(breaks = seq(0, 40, by = 5)) +
   theme_minimal() +
   scale_fill_manual(values = color_race_ethnicity, name = "Race/Ethnicity") +
@@ -295,7 +317,10 @@ ggplot(df_long, aes(x = age_group, y = percentage, fill = race_ethnicity)) +
 
 ```
 
-## 1B(2) Population Pyramid and Percentage of Hispanic/Latino breakdown, 2018-2022:
+
+
+
+## 1B(2) Population Pyramid and Percentage of Hispanic or Latino, 2018-2022:
 
 ```{r}
 # analysis
@@ -329,7 +354,8 @@ pop_pyramid <- df %>%
   survey_count(hispan_breakdown, age_group, name="total_weighted_count")  %>%
   group_by(hispan_breakdown) %>%
   mutate(total_weighted_percentage = total_weighted_count / sum(total_weighted_count) * 100,
-         total_weighted_percentage  = paste0(round(total_weighted_percentage, 1), "%")) 
+         total_weighted_percentage  = paste0(format(round(total_weighted_percentage, 1), nsmall = 1), "%"))
+
 
 
 
@@ -351,36 +377,37 @@ df_final  <- pop_pyramid %>% left_join(weighted_age) %>% mutate(across(everythin
 ```{r}
 # visual
 
-table_1b.2 <- df_final  %>% pivot_wider(id_cols = c("hispan_breakdown"), names_from = age_group, values_from = c("total_weighted_count", "total_weighted_percentage")) %>% select(hispan_breakdown, 
-                                                                                                                                                'total_weighted_count_Young (0-19)', 'total_weighted_percentage_Young (0-19)',
-                                                                                                                                                 'total_weighted_count_Adults (20-39)', 'total_weighted_percentage_Adults (20-39)',
-                                                                                                                                                 'total_weighted_count_Middle-aged (40-59)', 'total_weighted_percentage_Middle-aged (40-59)',
-                                                                                                                                                 'total_weighted_count_Older Adults (60-79)', 'total_weighted_percentage_Older Adults (60-79)',
-                                                                                                                                                 'total_weighted_count_Elderly (80+)', 'total_weighted_percentage_Elderly (80+)')   %>% 
-  mutate(across(everything(), ~replace(., is.na(.), "Missing Data"))) %>% 
-   # using kable 
+table_1b.2 <-  df_final %>% 
+  mutate(age_group = factor(age_group, levels = c("Young (0-19)", "Adults (20-39)", "Middle-aged (40-59)", "Older Adults (60-79)", "Elderly (80+)"))) %>% 
+  arrange(age_group) %>%  # Explicitly arrange by factor levels
+  pivot_wider(id_cols = c("age_group"), names_from = hispan_breakdown, values_from = c("total_weighted_count", "total_weighted_percentage")) %>% 
+  select(age_group, 
+         total_weighted_count_Mexican, total_weighted_percentage_Mexican,
+         'total_weighted_count_Puerto Rican', 'total_weighted_percentage_Puerto Rican',
+         total_weighted_count_Ecuadorian, total_weighted_percentage_Ecuadorian,
+         total_weighted_count_Cuban, total_weighted_percentage_Cuban,
+         total_weighted_count_Guatemalan, total_weighted_percentage_Guatemalan,
+         total_weighted_count_Colombian, total_weighted_percentage_Colombian) %>%
   
+  # using kable
   kbl(, booktabs = T,
-      col.names = c("", "Number", "Percent" , "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent"),
-      align = c("l",rep("c",10)),
-      caption = "Population Pyramid of Hispanic/Latino Breakdown, 2018-2022",
+      col.names = c("", "Number", "Percent" , "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent"),
+      align = c("l", rep("c", 12)),
+      caption = "Population Pyramid by Hispanic or Latino, 2018-2022",
       format.args = list(big.mark = ","),
-      linesep = "")  %>% 
+      linesep = "") %>% 
   kable_classic(full_width = F,  
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:11, width = "2.58em") %>%  
-
- add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "Young(0-19)" = 2, "Adults(0-19)" = 2, "Middle Aged (40-59)" = 2, "Older Adults (60-79)" = 2, "Elderly(80+)" = 2),
-                    # background = "#cbc9e2", 
-                    bold = T, font_size =8) %>% 
-
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
-
+  column_spec(2:13, width = "2.58em") %>%  
+  add_header_above(align = c("l", rep("c", 2)), 
+                   c("Age Group", "Mexican" = 2, "Puerto Rican" = 2, "Ecuadorian" = 2, "Cuban" = 2, "Guatemalan" = 2, "Colombian" = 2),
+                   bold = T, font_size = 8) %>% 
+  footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by \n Great Cities Institute",
+           general_title = "")
 
 table_1b.2
 ```
@@ -412,10 +439,14 @@ df_long <- df_long %>%
                             levels = c("Young (0-19)", "Adults (20-39)", "Middle-aged (40-59)", "Older Adults (60-79)", "Elderly (80+)")))
 
 # Define the custom colors for race_ethnicity
-color_hispan_breakdown <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
-                               "White (non-Hispanic or Latino)" = "#9CA168",
-                               "Black (non-Hispanic or Latino)" = "#8CBEC0",
-                               "Other (non-Hispanic or Latino)" = "#0B8489")
+color_hispan_breakdown <- c(
+  "Mexican" = "#CE1126", 
+  "Puerto Rican" = "#3F88C5",
+  "Ecuadorian" = "#FFD700", 
+  "Cuban" = "#FF6F61", 
+  "Guatemalan" = "#2E8B57", 
+  "Colombian" = "#8B4513"
+)
 
 # Create the bar chart with percentage labels
 ggplot(df_long, aes(x = age_group, y = percentage, fill = hispan_breakdown)) +
@@ -425,11 +456,11 @@ ggplot(df_long, aes(x = age_group, y = percentage, fill = hispan_breakdown)) +
             vjust = -1, 
             size = 2, 
             fontface = "bold") +
-  labs(title = "Age Group Distribution by Hispanic/Latino", 
-     caption = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute") +
+  labs(title = "Age Group Distribution by Hispanic or Latino", 
+     caption = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by \n Great Cities Institute") +
 scale_y_continuous(breaks = seq(0, 40, by = 5)) +
   theme_minimal() +
-  scale_fill_manual(values = color_hispan_breakdown, name = "Hispanic/Latino") +
+  scale_fill_manual(values = color_hispan_breakdown, name = "Hispanic or Latino") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme_plots +   theme(axis.text.x = element_text(size = 8),
         panel.background = element_blank(),
         axis.ticks.y = element_blank(),
@@ -444,10 +475,10 @@ scale_y_continuous(breaks = seq(0, 40, by = 5)) +
 
 ```
 
-```
 
 
-## 1B(3): Median Age of Mexican population, 2018-2022:
+
+## 1B(3): Median Age by Race/Ethnicity, 2018-2022:
 
 ```{r}
 # analysis
@@ -481,7 +512,8 @@ pop_pyramid <- df %>%
   survey_count(race_ethnicity, age_group, name="total_weighted_count")  %>%
   group_by(race_ethnicity) %>%
   mutate(total_weighted_percentage = total_weighted_count / sum(total_weighted_count) * 100,
-         total_weighted_percentage  = paste0(round(total_weighted_percentage, 1), "%")) 
+         total_weighted_percentage  = paste0(format(round(total_weighted_percentage, 1), nsmall = 1), "%"))
+
 
 
 
@@ -512,7 +544,7 @@ table_1b.3 <- weighted_age  %>% select(race_ethnicity, weighted_age) %>%
   kbl(, booktabs = T,
        col.names = c("Race/Ethnicity", "Number"),
       align = c("l",rep("c",1)),
-      caption = "Median Age of the Mexican Population, 2018-2022",
+      caption = "Median Age by Race/Ethnicity, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -527,7 +559,7 @@ table_1b.3 <- weighted_age  %>% select(race_ethnicity, weighted_age) %>%
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+  footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
            general_title = "")   
 
 table_1b.3
@@ -537,7 +569,7 @@ table_1b.3
 
 
 
-## 1B(4): Median Age of Hispanic/Latino breakdown, 2018-2022:
+## 1B(4): Median Age of Hispanic or Latino breakdown, 2018-2022:
 
 ```{r}
 # analysis
@@ -571,7 +603,8 @@ pop_pyramid <- df %>%
   survey_count(hispan_breakdown, age_group, name="total_weighted_count")  %>%
   group_by(hispan_breakdown) %>%
   mutate(total_weighted_percentage = total_weighted_count / sum(total_weighted_count) * 100,
-         total_weighted_percentage  = paste0(round(total_weighted_percentage, 1), "%")) 
+         total_weighted_percentage  = paste0(format(round(total_weighted_percentage, 1), nsmall = 1), "%"))
+
 
 
 
@@ -582,7 +615,7 @@ weighted_age  <- df %>%
   summarize(
     weighted_age = matrixStats::weightedMedian(age, perwt)
   ) %>% mutate(
-    weighted_age = round(weighted_age, 1)
+    weighted_age = format(round(weighted_age, 1), nsmall = 1)
   )  %>% filter(!is.na(hispan_breakdown))
 
 
@@ -604,7 +637,7 @@ table_1b.4 <- weighted_age  %>% select(hispan_breakdown, weighted_age) %>%
   kbl(, booktabs = T,
        col.names = c("Race/Ethnicity", "Number"),
       align = c("l",rep("c",1)),
-      caption = "Median Age of Hispanic/Latino breakdown, 2018-2022",
+      caption = "Median Age of Hispanic or Latino breakdown, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -619,7 +652,7 @@ table_1b.4 <- weighted_age  %>% select(hispan_breakdown, weighted_age) %>%
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+  footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
            general_title = "")   
 
 table_1b.4
@@ -628,7 +661,7 @@ table_1b.4
 ```
 
 
-## 1C: Mean Household Size of the Mexican Population, 2018-2022:
+## 1C: Mean Household Size by race/ethnicity, 2018-2022:
 
 ```{r}
 
@@ -656,7 +689,7 @@ mean_household_size <- survey_design %>%
      mean_household_size = survey_mean(household_size, na.rm = TRUE)
    ) %>%
    mutate(
-     mean_household_size = round(mean_household_size, 1)
+     mean_household_size = format(round(mean_household_size, 1), nsmall = 1)
    )
 
 
@@ -673,7 +706,7 @@ table_1c <- mean_household_size %>% select(race_ethnicity, mean_household_size) 
   kbl(, booktabs = T,
        col.names = c("Race/Ethnicity", "Number"),
       align = c("l",rep("c",1)),
-      caption = "Mean Household Size of the Mexican Population, 2018-2022",
+      caption = "Mean Household Size by race/ethnicity, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -688,7 +721,7 @@ table_1c <- mean_household_size %>% select(race_ethnicity, mean_household_size) 
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+  footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
            general_title = "")   
 
 table_1c
@@ -759,7 +792,7 @@ table_1d.1 <- income_levels %>% select(race_ethnicity, avg_hhincome, weighted_me
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Mean Household Income", "Median Household Income"),
       align = c("l",rep("c",2)),
-      caption = "Mean and Median Income of Mexican Population, 2018-2022",
+      caption = "Mean and Median Household Income by Race/Ethnicity, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -774,7 +807,7 @@ table_1d.1 <- income_levels %>% select(race_ethnicity, avg_hhincome, weighted_me
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+  footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
            general_title = "")   
 
 table_1d.1
@@ -844,7 +877,7 @@ table_1d.2.1 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Mean Income", "Median Income"),
       align = c("l",rep("c",2)),
-      caption = "Mean and Median Income of Mexican Population, 2018-2022",
+      caption = "Mean and Median Income by Race/Ethnicity, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -859,7 +892,7 @@ table_1d.2.1 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-add_footnote(c("Note:Data pertains to full-time workers who work a minimum of 35 hours per week for at least 48 weeks in a year.", "Source: IPUMS-USA database (2018-2022).Tabulations by Great Cities Institute "))
+add_footnote(c("Note:Data pertains to full-time workers who work a minimum of 35 hours per week for at least 48 weeks in a year.", "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates).Tabulations by Great Cities Institute "))
 
 
 table_1d.2.1
@@ -928,7 +961,7 @@ table_1d.2.2 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Mean Income", "Median Income"),
       align = c("l",rep("c",2)),
-      caption = "Mean and Median Income of Mexican Population, 2018-2022",
+      caption = "Mean and Median Income by Race/Ethnicity, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -943,7 +976,7 @@ table_1d.2.2 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-add_footnote(c("Note: Data pertains to all employed regardless of full-time or part-time work.", "Source: IPUMS-USA database (2018-2022).Tabulations by Great Cities Institute "))
+add_footnote(c("The data includes all employed individuals, regardless of whether they work full-time or part-time.", "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates).Tabulations by Great Cities Institute "))
 
 
 table_1d.2.2
@@ -951,7 +984,7 @@ table_1d.2.2
 
 
 
-## 1D(3.1): Individual Income Levels for Full-time workers by Hispanic/Latino breakdown, 2018-2022:
+## 1D(3.1): Individual Income Levels for Full-time workers by Hispanic or Latino breakdown, 2018-2022:
 
 ```{r}
 # analysis
@@ -1010,7 +1043,7 @@ table_1d.3.1 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighte
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Mean Income", "Median Income"),
       align = c("l",rep("c",2)),
-      caption = "Mean and Median Income of Hispanic/Latino breakdown, 2018-2022",
+      caption = "Mean and Median Income by Hispanic or Latino, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -1025,13 +1058,13 @@ table_1d.3.1 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighte
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-add_footnote(c("Note: Data pertains to full-time workers who work a minimum of 35 hours per week for at least 48 weeks in a year.", "Source: IPUMS-USA database (2018-2022).Tabulations by Great Cities Institute "))
+add_footnote(c("Note: Data pertains to full-time workers who work a minimum of 35 hours per week for at least 48 weeks in a year.", "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates).Tabulations by Great Cities Institute "))
 
 table_1d.3.1
 ```
 
 
-## 1D(3.2): Individual Income Levels for all workers by Hispanic/Latino breakdown, 2018-2022:
+## 1D(3.2): Individual Income Levels for all workers by Hispanic or Latino, 2018-2022:
 
 ```{r}
 # analysis
@@ -1090,7 +1123,7 @@ table_1d.3.2 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighte
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Mean Income", "Median Income"),
       align = c("l",rep("c",2)),
-      caption = "Mean and Median Income of Hispanic/Latino breakdown, 2018-2022",
+      caption = "Mean and Median Income by Hispanic by Latino, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -1106,7 +1139,7 @@ table_1d.3.2 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighte
             font_size = 8) %>%
             
             
-add_footnote(c("Note:  Data pertains to all employed regardless of full-time or part-time work.", "Source: IPUMS-USA database (2018-2022).Tabulations by Great Cities Institute "))
+add_footnote(c("The data includes all employed individuals, regardless of whether they work full-time or part-time.", "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates).Tabulations by Great Cities Institute "))
 
 
 table_1d.3.2
@@ -1187,7 +1220,7 @@ table_1d.4.1 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighte
             font_size = 8) %>%
 
             
-add_footnote(c("Note: Data pertains to full-time workers who work a minimum of 35 hours per week for at least 48 weeks in a year.", "Source: IPUMS-USA database (2018-2022).Tabulations by Great Cities Institute."))
+add_footnote(c("Note: Data pertains to full-time workers who work a minimum of 35 hours per week for at least 48 weeks in a year.", "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates).Tabulations by Great Cities Institute."))
 
            
 table_1d.4.1
@@ -1267,7 +1300,7 @@ table_1d.4.2 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighte
              #background = "#f2f0f7",
             font_size = 8) %>%
 
- add_footnote(c("Note:  Data pertains to all employed regardless of full-time or part-time work.", "Source: IPUMS-USA database (2018-2022).Tabulations by Great Cities Institute "))
+ add_footnote(c("Note:  Data pertains to all employed regardless of full-time or part-time work.", "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates).Tabulations by Great Cities Institute "))
 
 table_1d.4.2
 ```
@@ -1319,7 +1352,7 @@ poverty_rate_trends_wide <- poverty_rate_trends %>%  pivot_wider(
       poverty_rate
     ),
     names_sep = "_"
-  ) %>% select(race_ethnicity, total_weighted_poverty_count_2000, poverty_rate_2000,  total_weighted_poverty_count_2012, poverty_rate_2012,  total_weighted_poverty_count_2022, poverty_rate_2022) %>% mutate(diff_2022_2000 = poverty_rate_2022-poverty_rate_2000) %>%  mutate(across(starts_with("poverty_rate") | starts_with("diff"), ~ paste0(round(.x, 1), "%")))
+  ) %>% select(race_ethnicity, total_weighted_poverty_count_2000, poverty_rate_2000,  total_weighted_poverty_count_2012, poverty_rate_2012,  total_weighted_poverty_count_2022, poverty_rate_2022) %>% mutate(diff_2022_2000 = poverty_rate_2022-poverty_rate_2000) %>%  mutate(across(starts_with("poverty_rate") | starts_with("diff"), ~ paste0(format(round(.x, 1), nsmall = 1), "%")))
 
 
 ```
@@ -1360,8 +1393,8 @@ table_1d.5 <- poverty_rate_trends_wide  %>%
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
+  add_footnote(c("Source: IPUMS-USA database (2000 Decennial Census, 2008-2012 and 2018-2022 American Community Survey 5-Year Estimates)", " Tabulations by Great Cities Institute."))
+
 
 table_1d.5
 ```
@@ -1420,8 +1453,10 @@ df_all <- chicago_ca_pop %>% as.data.frame() %>% select(commnty, totl_pp, ttl_hs
 
 
 df_final <- rbind(top_10, totals, totals_min, df_all) %>% mutate(
-                                    prc_mx_   = paste0(round(prc_mx_, 1), "%"),
-                                     prc_mxc   = paste0(round(prc_mxc, 1), "%")) 
+    prc_mx_ = paste0(format(round(prc_mx_, 1), nsmall = 1), "%"),
+    prc_mxc = paste0(format(round(prc_mxc, 1), nsmall = 1), "%")
+)
+
 
 ```
 
@@ -1435,7 +1470,7 @@ table_1e <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , 
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Top 10 Mexican Communities", "Total Pop", "Hispanic/Latino Pop", "Mexican Pop", "% Mexicans of Hispanic/Latino", "% Mexicans of Total Pop"),
+      col.names = c("", "", "", "", "", ""),
       align = c("l",rep("c",5)),
       caption = "Mexican Population , 2018-2022",
       format.args = list(big.mark = ","),
@@ -1448,13 +1483,25 @@ table_1e <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , 
   column_spec(1, width = "14.2em") %>%
   column_spec(2:6, width = "5.16em") %>%  
  
+  add_header_above(
+    align = c("l", rep("c", 2)),
+    c(
+      "Top 10 Community Areas\n with the Largest Mexican Population Share", 
+      "Total\n Population" = 1, 
+      "Hispanic or\n Latino Population " = 1, 
+      "Mexican\n Population" = 1,
+     "% Mexicans of \n Hispanic or Latino" = 1,
+     "% Mexicans\n of Total Pop" = 1),
+    bold = TRUE, 
+    font_size = 8) %>% 
 
-  row_spec(11:13, bold = T,
+ # Adding line after row 11
+  row_spec(11, extra_css = "border-bottom: 1px solid;") %>%  
+  row_spec(12:13, bold = T,
              background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-NHGIS database (2018-2022). Tabulations by Great Cities Institute",
-           general_title = "")   
+    add_footnote(c("Source: IPUMS-NHGIS database (2018-2022 American Community Survey 5-Year Estimates)", " Tabulations by Great Cities Institute."))
 
 table_1e
 ```

@@ -118,7 +118,6 @@ chicago_health <- read_csv("Health Data/Chicago Health Atlas Data Download - Com
   diabetes_rate = hcsdiap_2022_2023,
   asthma_rate = hcsathp_2022_2023,
   lbw_rate = vrbwp_2017_2021,
-  sexual_assault_crimes =  czs_2023, 
   unmet_mental_health_rate = hcsumhap_2022_2023,
   cancer_diagnosis_rate = ccr_2017_2021,
   hyper_tension_rate = hcshytp_2022_2023,
@@ -129,8 +128,8 @@ chicago_health <- read_csv("Health Data/Chicago Health Atlas Data Download - Com
 
 
 # merge chicago ca with health atlas
-df_health <- chicago_ca_pop %>% select(commnty, prc_mxc, prc_nh_w, prc_nh_b) %>% mutate(commnty = str_to_title(tolower(commnty))) %>% left_join(chicago_health, by = c("commnty" = "name")) %>% select(-layer) %>%
- mutate(across(matches("rate$|crimes$"), ~ round(as.numeric(.), 1)))
+df_health <- chicago_ca_pop %>% select(commnty, prc_mxc, prc_nh_w, prc_nh_b) %>% mutate(commnty = str_to_title(tolower(commnty))) %>% left_join(chicago_health, by = c("commnty" = "name")) %>% select(-layer)  %>%
+ mutate(across(matches("rate$"), ~ format(round(as.numeric(.), 1), nsmall = 1))) %>% mutate(across(ends_with("rate"), ~ as.numeric(as.character(.))))
 
 
 
@@ -147,19 +146,19 @@ df_health <- chicago_ca_pop %>% select(commnty, prc_mxc, prc_nh_w, prc_nh_b) %>%
 
 # Health 
 
-## 4A: Health Outcomes in top 4 Mexican Community Areas, (2017-2021 and 2022-2023):
+## 4A: Health Outcomes in Top 4 Community Areas with the Largest Mexican Population Share, (2017-2021 and 2022-2023):
 
 
 
 ```{r}
 # analysis
 mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% top_n(4, prc_mxc) %>% select(commnty, obesity_rate, diabetes_rate, asthma_rate, lbw_rate)   %>%
-  mutate(
-    obesity_rate = paste0(round(obesity_rate, 1), "%"),
-   diabetes_rate = paste0(round(diabetes_rate, 1), "%"),
-   asthma_rate = paste0(round(asthma_rate, 1), "%"),
-   lbw_rate = paste0(round(lbw_rate, 1), "%"),
-  )
+mutate(
+    obesity_rate = paste0(format(round(obesity_rate, 1), nsmall = 1), "%"),
+    diabetes_rate = paste0(format(round(diabetes_rate, 1), nsmall = 1), "%"),
+    asthma_rate = paste0(format(round(asthma_rate, 1), nsmall = 1), "%"),
+    lbw_rate = paste0(format(round(lbw_rate, 1), nsmall = 1), "%")
+)
 
 
 df_white_city <- data.frame(
@@ -188,13 +187,12 @@ df_latino_city <- data.frame(
 )
 
 df_city_avgs <- rbind(df_white_city, df_black_city, df_latino_city)  %>%
-  mutate(
-    obesity_rate = paste0(round(obesity_rate, 1), "%"),
-   diabetes_rate = paste0(round(diabetes_rate, 1), "%"),
-   asthma_rate = paste0(round(asthma_rate, 1), "%"),
-   lbw_rate = paste0(round(lbw_rate, 1), "%"),
-  )
-
+mutate(
+    obesity_rate = paste0(format(round(obesity_rate, 1), nsmall = 1), "%"),
+    diabetes_rate = paste0(format(round(diabetes_rate, 1), nsmall = 1), "%"),
+    asthma_rate = paste0(format(round(asthma_rate, 1), nsmall = 1), "%"),
+    lbw_rate = paste0(format(round(lbw_rate, 1), nsmall = 1), "%")
+)
 
 df_final <- rbind(mexican_top, df_city_avgs) %>%  mutate(across(
     ends_with("Rate"),
@@ -212,7 +210,7 @@ table_4a <- df_final %>%
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Top 4 Mexican Community Areas", "Adult Obesity Rate(22-23)", "Adult Diabetes Rate(22-23)", "Adult Asthma Rate(22-23)", "Low Birthweight Rate(17-21)"),
+      col.names = c("Top 4 Community Areas with the Largest Mexican Population Share", "Adult Obesity Rate(22-23)", "Adult Diabetes Rate(22-23)", "Adult Asthma Rate(22-23)", "Low Birthweight Rate(17-21)"),
       align = c("l",rep("c",4)),
       caption = "Health Outcomes, (2017-2021 and 2022-2023)",
       format.args = list(big.mark = "%"),
@@ -226,9 +224,8 @@ table_4a <- df_final %>%
   column_spec(2:5, width = "6.45em") %>%  
 row_spec(0, bold = TRUE, font_size = 8) %>%
   row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
-
-  footnote(general = "Source: Chicago Health Atlas (2017-2021 and 2022-2023). Tabulations by Great Cities Institute",
-           general_title = "")   
+  
+    add_footnote(c("Obesity is defined as percent of adults who reported a height and weight that yield a body mass index of 30 or greater.", "Diabetes is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with diabetes.", "Asthma is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with asthma.", "Low birthweight is defined as percent of births with a birthweight less than 2500 grams (5.5 pounds).",     "Source: Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).", "Tabulations by Great Cities Institute"))
 
 
 table_4a
@@ -238,7 +235,7 @@ table_4a
 
 
 
-## 4B: Number and Percentages of Mexicans without Health Insurance, 2018-2022:
+## 4B: Number and Percentages without Health Insurance by Race/Ethnicity, 2018-2022:
 
 
 ```{r}
@@ -269,10 +266,11 @@ df_rates <- numerator_without_insurance %>%
   left_join(denominator, by = "race_ethnicity") %>%
   mutate(
     no_insurance_rate = (weighted_n_without_insurance / total_pop) * 100,
-    no_insurance_rate = paste0(round(no_insurance_rate, 1), "%"),
+    no_insurance_rate = paste0(format(round(no_insurance_rate, 1), nsmall = 1), "%"), 
       unininsured_sum = sum(weighted_n_without_insurance),
     no_insurance_rate_2 = (weighted_n_without_insurance / unininsured_sum) * 100,
-    no_insurance_rate_2 = paste0(round(no_insurance_rate_2, 1), "%")
+    no_insurance_rate_2 = paste0(format(round(no_insurance_rate_2, 1), nsmall = 1), "%")
+
   )
   
 
@@ -288,7 +286,7 @@ table_4b <- df_rates  %>% select(race_ethnicity, weighted_n_without_insurance, n
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number without health insurance", "No Insurance Rate", "Percentage of Uninsured Individuals Without Health Insurance"),
       align = c("l",rep("c",3)),
-      caption = "No Health Insurance, 2018-2022",
+      caption = "No Health Insurance by Race/Ethnicity, 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -303,7 +301,7 @@ table_4b <- df_rates  %>% select(race_ethnicity, weighted_n_without_insurance, n
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+  footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
            general_title = "")   
 
 
@@ -342,7 +340,9 @@ df_rates <- numerator_without_insurance %>%
   left_join(denominator, by = "mex_foreign_born") %>%
   mutate(
     no_insurance_rate = (weighted_n_without_insurance / total_pop) * 100,
-    no_insurance_rate = paste0(round(no_insurance_rate, 1), "%")
+    no_insurance_rate = paste0(format(round(no_insurance_rate, 1), nsmall = 1), "%")
+
+
   )
   
 ```
@@ -371,7 +371,7 @@ table_4b.2 <- df_rates  %>% select(mex_foreign_born, weighted_n_without_insuranc
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute",
+  footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
            general_title = "")   
 
 
@@ -380,70 +380,18 @@ table_4b.2
 ```
 
 
-## 4D: Criminal Sexual Assault Crimes (2022-2023)
-
-```{r}
-# analysis
-
-# analysis
-mexican_top <-  df_health %>% arrange(desc(prc_mxc)) %>% top_n(4, prc_mxc)  %>% select(commnty, sexual_assault_crimes) %>%  mutate(
-    rank = case_when(
-      commnty == "Gage Park" ~ 17,
-      commnty == "East Side" ~ 9,
-      commnty == "West Lawn" ~ 10,
-      commnty == "South Lawndale" ~ 29))
-
-
-df_final <- mexican_top
-
-```
-
-
-```{r}
-# visuals
-
-table_4d <- df_final  %>%
- 
-   # using kable 
-  
-  kbl(, booktabs = T,
-      col.names = c("Top 4 Mexican Community Areas", "Criminal Sexual Assault Crimes", "Rank(out of 77 Community Areas)"),
-      align = c("l",rep("c",2)),
-      caption = "Criminal Sexual Assault, 2023",
-      format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
-                font_size = 8,
-                html_font = "Arial",
-                position = "center",
-                latex_options = "HOLD_position") %>% 
-  column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
-row_spec(0, bold = TRUE, font_size = 8) %>%
-
-  footnote(general = "Source: Chicago Health Atlas (2023). Tabulations by Great Cities Institute",
-           general_title = "") 
-
-
-table_4d
-```
-
-
-
-
-
-
-## 4E: Mental Health  in top 4 Mexican Community Areas, 2022-2023:
+## 4E: Mental Health  in Top 4 Community Areas with the Largest Mexican Population Share, 2022-2023:
 
 
 ```{r}
 # analysis
 mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% top_n(4, prc_mxc) %>% select(commnty, psych_distress_rate, unmet_mental_health_rate, loneliness_rate)   %>%
-  mutate(
+ mutate(
     psych_distress_rate = paste0(round(psych_distress_rate, 1), "%"),
-   unmet_mental_health_rate = paste0(round(unmet_mental_health_rate, 1), "%"),
-   loneliness_rate = paste0(round(loneliness_rate, 1), "%")
-  )
+    unmet_mental_health_rate = paste0(round(unmet_mental_health_rate, 1), "%"),
+    loneliness_rate = paste0(round(loneliness_rate, 1), "%")
+)
+
 
 
 df_white_city <- data.frame(
@@ -487,7 +435,7 @@ table_4e <- df_final %>%
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Top 4 Mexican Community Areas", "Adult Serious Psych Distress Rate(22-23)", "Adult Unmet Mental Health Need Rate(22-23)", "Adult Loneliness Rate(22-23)"),
+      col.names = c("Top 4 Community Areas with the Largest Mexican Population Share", "Adult Serious Psych Distress Rate(22-23)", "Adult Unmet Mental Health Need Rate(22-23)", "Adult Loneliness Rate(22-23)"),
       align = c("l",rep("c",3)),
       caption = "Mental Health, 2022-2023",
       format.args = list(big.mark = ","),
@@ -501,11 +449,14 @@ table_4e <- df_final %>%
   column_spec(2:4, width = "9.2em") %>%  
 row_spec(0, bold = TRUE, font_size = 8) %>%
   row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
-  footnote(general = "Source: Chicago Health Atlas (2022-2023). Tabulations by Great Cities Institute",
-           general_title = "")   
+
+    add_footnote(c("Serious Psychological Distress is the percent of adults who experienced feelings of nervousness, hopelessness, and depression, in the past 30 days.", "Unmet mental health need is the percent of adults with psychological distress who are not receiving treatment or medication.", "Loneliness rate is defined as the percent of adults who reported feeling left out or felt alone.", "Source:  Chicago Health Atlas, Chicago Department of Public Health (2022-2023). Tabulations by Great Cities Institute"))
+
 
 
 table_4e
+
+
 
 ```
 
@@ -518,10 +469,11 @@ mexican_top <- df_health %>%
   arrange(desc(prc_mxc)) %>% 
   top_n(4, prc_mxc) %>% 
   select(commnty, cancer_diagnosis_rate, hyper_tension_rate, lung_cancer_rate) %>% 
-  mutate(
-    hyper_tension_rate = paste0(round(hyper_tension_rate, 1), "%")
-    
-  )
+mutate(
+    cancer_diagnosis_rate = format(round(cancer_diagnosis_rate, 1), nsmall = 1),
+    hyper_tension_rate = paste0(format(round(hyper_tension_rate, 1), nsmall = 1), "%"),
+    lung_cancer_rate = format(round(lung_cancer_rate, 1), nsmall = 1)
+)
 
 df_white_city <- data.frame(
   commnty = "White City Mean",
@@ -545,13 +497,18 @@ df_latino_city <- data.frame(
 )
 
 df_city_avgs <- rbind(df_white_city, df_black_city, df_latino_city) %>% 
-  mutate(
-    hyper_tension_rate = paste0(round(hyper_tension_rate, 1), "%")
-  )
+ mutate(
+    cancer_diagnosis_rate = format(round(cancer_diagnosis_rate, 1), nsmall = 1),
+    hyper_tension_rate = paste0(format(round(hyper_tension_rate, 1), nsmall = 1), "%"),
+    lung_cancer_rate = format(round(lung_cancer_rate, 1), nsmall = 1)
+)
+
 
 df_final <- rbind(mexican_top, df_city_avgs)
 
 ```
+
+
 
 ```{r}
 # visuals
@@ -560,7 +517,7 @@ table_4f <- df_final %>%
    # using kable 
   
   kbl(, booktabs = T,
-      col.names = c("Top 4 Mexican Community Areas", "Adult Cancer Diagnosis Rate (per 100,000)", "Adult Hypertension Rate", "Adult Lung Cancer Diagnosis Rate (per 100,000)"),
+      col.names = c("Top 4 Community Areas with the Largest Mexican Population Share", "Adult Cancer Diagnosis Rate per 100,000 (17-21)", "Adult Hypertension Rate (22-23)", "Adult Lung Cancer Diagnosis Rate per 100,000 (17-21)"),
       align = c("l",rep("c",3)),
       caption = "Chronic Health Indicators, (2017-2021, 2022-2023)",
       format.args = list(big.mark = ","),
@@ -573,9 +530,13 @@ table_4f <- df_final %>%
   column_spec(1, width = "14.2em") %>%
   column_spec(2:4, width = "9.2em") %>%  
 row_spec(0, bold = TRUE, font_size = 8) %>%
-  row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
-  footnote(general = "Source: Chicago Health Atlas (2017-2021, 2022-2023). Tabulations by Great Cities Institute",
-           general_title = "")   
+  row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%     add_footnote(c(
+  "Cancer diagnosis is defined as the annual diagnosis rate for all invasive cancers, excluding pre-cancerous conditions.  All ages, risk-adjusted.",
+  "Hypertension is the percentage of adults diagnosed with high blood pressure, excluding borderline or pregnancy-related cases.",
+  "Lung cancer is defined as lung and bronchus cancer for ages 15 and over, risk-adjusted.",
+  "Source: Chicago Health Atlas, Chicago Department of Public Health (2022-2023) and Illinois Department of Public Health, (2022-2023).", "Tabulations by Great Cities Institute"
+))
+
 
 
 table_4f
