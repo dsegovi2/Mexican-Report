@@ -144,7 +144,7 @@ df_health <- chicago_ca_pop %>% select(commnty, prc_mxc, prc_nh_w, prc_nh_b) %>%
 
 
 
-# Health 
+# 4. Health 
 
 ## 4A: Health Outcomes in Top 4 Community Areas with the Largest Mexican Population Share, (2017-2021 and 2022-2023):
 

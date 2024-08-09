@@ -148,7 +148,7 @@ chicago_ca_pop <- read_sf("Data Tables/shp/comm_pop_chi_2022.shp") %>% as.data.f
 
 \blandscape
  
-# Education
+# 2. Education
 
 ## 2.A: Number and percentages in public and private schools by race/ethnicity. 
 
