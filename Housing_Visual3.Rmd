@@ -123,9 +123,7 @@ usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexic
 homeownership = usa_data %>% 
   filter( city == 1190, pernum == 1) %>%  
   
-  
   as_survey_design(weights = hhwt) %>% 
-  
   survey_count(year, race_ethnicity, ownershp_f, name="count") %>% 
   
   filter(ownershp_f != "N/A") %>% 
@@ -134,30 +132,41 @@ homeownership = usa_data %>%
   group_by(year, race_ethnicity) %>% 
   mutate(total = sum(count),
          per = 100*round(count/total, 4),
-         per2 = paste0(per,"%"))
+         per2 = paste0(format(round(per, 1), nsmall = 1), "%")) %>% 
+  mutate(scale = "Chicago")
   
- # #### Export 
-#  
+
+ownership_nation <- read.csv("Data Tables/homeownership_nation.csv") %>% 
+  mutate(per2 = paste0(format(round(per, 1), nsmall = 1), "%")) %>% 
+  select(-X) %>% 
+  mutate(scale = "USA")
+
+ownership_join <- rbind(homeownership, ownership_nation)
 
 
-table_a3 <-  homeownership %>% 
+
+
+ownership_join2 <-  ownership_join %>% 
   
   filter(ownershp_f == "Owned or being bought (loan)") %>% 
 
-  pivot_wider(id_cols =  c(race_ethnicity, ownershp_f), names_from = "year", values_from = c(count, per, per2)) %>% 
+  pivot_wider(id_cols =  c(race_ethnicity, ownershp_f, scale), names_from = "year", values_from = c(count, per, per2)) %>% 
 
   mutate(diff2000_2022 = count_2022 - count_2000,
          diff_per = round(per_2022 - per_2000, 4), 
-         diff_per2 = paste0(diff_per,"%")
+         diff_per2 = paste0(format(round(diff_per, 1), nsmall = 1), "%") 
          ) %>% 
-  select(race_ethnicity, count_2000, per2_2000, count_2012, per2_2012, count_2022, per2_2022, diff2000_2022, diff_per2) %>% 
+  select(race_ethnicity, count_2000, per2_2000, count_2012, per2_2012, count_2022, per2_2022, diff2000_2022, diff_per2)
  
-   # using kable 
+
+
+
+table_a3 <- ownership_join2 %>% 
   
-  kbl(, booktabs = T,
+  kbl(booktabs = T,
       col.names = c("", "Number", "Percent" , "Number", "Percent", "Number", "Percent", "Number", "Percent"),
       align = c("l",rep("c",8)),
-      caption = "Homeownership by Race/Ethnicity in Chicago, 2000, 2008-2012, and 2018-2022",
+      caption = "Homeownership by Race/Ethnicity in Chicago and USA, 2000, 2008-2012, and 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "") %>% 
   kable_classic(full_width = F,  
@@ -173,6 +182,8 @@ table_a3 <-  homeownership %>%
   # row_spec(0, bold = T, 
   #          # background = "#f2f0f7",
   #          font_size = 8) %>% 
+  pack_rows("City of Chicago", 1,5, hline_after = T , indent=FALSE) %>%
+  pack_rows("Nation", 6, 10, hline_before = T , hline_after = T, indent=FALSE) %>%
   
   footnote(general = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute",
            general_title = "")   
@@ -183,7 +194,62 @@ table_a3
 
 
 ```{r}
-ownership_nation <- read.csv("Data Tables/homeownership_nation.csv")
+color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
+                               "White (non-Hispanic or Latino)" = "#9CA168",
+                               "Black (non-Hispanic or Latino)" = "#8CBEC0",
+                               "Other (non-Hispanic or Latino)" = "#0B8489")
+
+ownership_join %>% 
+  filter(ownershp_f == "Owned or being bought (loan)") %>% 
+
+  mutate(year = case_when(year == 2000 ~ "2000",
+                          year == 2012 ~ "2008-2012",
+                          year == 2022 ~ "2018-2022"),
+         year = factor(year, levels = c("2000", "2008-2012", "2018-2022"))) %>%
+  
+  ggplot(aes(x =  year,
+             y = per,
+             fill = scale)) +
+  geom_bar(position=position_dodge(width=0.7), stat = "identity", 
+           color = "white", 
+           width=0.7) +
+  
+  facet_wrap (~race_ethnicity) +
+  labs(y="", x = "",
+       title="Homeownership by Race/Ethnicity in Chicago and USA, 2000 to 2018-2022",
+       caption = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute",
+       fill="") 
+  # scale_fill_manual(values = color_race_ethnicity) + 
+  # geom_text(aes(label = prc2),
+  #           position=position_dodge(width=0.7), 
+  #           vjust = -0.5,
+  #           hjust = 0.5,
+  #           size = 2.5) +
+  # 
+  # scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) + # Modify labels of ggplot2 barplot
+  # scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0,100), breaks = seq(0, 100, by = 100)) +
+  # 
+  # theme_plots +
+  # theme(
+  #   # axis.text.x = element_text(size = 8),
+  #       panel.background = element_blank(),
+  #       # axis.ticks.y = element_blank(),
+  #       # axis.title.y = element_blank(),
+  #       axis.text.y = element_blank(),
+  #       axis.line.y = element_blank(),
+  #       legend.position = "bottom",
+  #       legend.text = element_text(size = 7, color = "#636363"),
+  #       legend.key.size = unit(0.5, "lines"))+
+  # guides(fill = guide_legend(nrow = 2, byrow = TRUE)) 
+
+
+
+
+
+```
+
+```{r}
+
 
 
 table_a3_2 <-  ownership_nation %>% 
@@ -455,7 +521,7 @@ community_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/M
   select(community,geometry)
 
 
-chicago_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/shp files/selected_centroid_2020.shp") %>% 
+chicago_shp <- read_sf("Data Tables/shp/intersect_census_2020.shp") %>% 
   select(GEOID, geometry) %>% 
   st_transform( crs = 4326)
 

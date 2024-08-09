@@ -106,6 +106,13 @@ theme_plots <-
       legend.text = element_text(size = 8, color = "#636363"),
       legend.title = element_text(face = "bold", size = 8, color = "#636363")) 
 
+color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
+                               "White (non-Hispanic or Latino)" = "#9CA168",
+                               "Black (non-Hispanic or Latino)" = "#8CBEC0",
+                               "Other (non-Hispanic or Latino)" = "#0B8489")
+
+
+
 
 ```
 
@@ -164,8 +171,8 @@ theme_plots <-
 # write.csv(pop_county_chicago_1980, "Data Tables/pop_county_chicago_1980.csv")
 
 
-# 
-# 
+
+
 # ####################################################   1990
 # chicago_tracts_1990 <- st_read("Data Tables/shp/intersect_census_1990.shp")
 # 
@@ -181,29 +188,46 @@ theme_plots <-
 #   rename("Mexican" = "EU1002",
 #          "total_pop" = "ET1001",
 #          "total_his" = "EU0001")
-
-### Exporting to csv
-##write.csv(mexican_pop_1990, "Data Tables/mexican_collar_tract_1990.csv")
+# 
+# ### Exporting to csv
+# ##write.csv(mexican_pop_1990, "Data Tables/mexican_collar_tract_1990.csv")
 # #
 # #
-# # county_pop_1990 <- mexican_pop_1990 %>%
-# #   group_by(YEAR, COUNTY, state_county) %>%
-# #   summarise(Mexican = sum(Mexican, na.rm = TRUE),
-# #             total_pop = sum(total_pop, na.rm = TRUE),
-# #             total_his = sum(total_his, na.rm = TRUE))
-# #
-# # chicago_pop_1990 <- mexican_pop_1990 %>%
-# #   filter(GISJOIN%in%chicago_tracts_1990$GISJOIN) %>%
-# #   filter(!GISJOIN %in% c("G17004308400", "G17003107609")) %>% # parcels in O'hare
-# #   group_by(YEAR, COUNTY, state_county) %>%
-# #   summarise(Mexican = sum(Mexican, na.rm = TRUE),
-# #             total_pop = sum(total_pop, na.rm = TRUE),
-# #             total_his = sum(total_his, na.rm = TRUE)) %>%
-# #   mutate(COUNTY = "Chicago")
-# #
-# # pop_county_chicago_1990 <- rbind(county_pop_1990, chicago_pop_1990)
-# #
-# # write.csv(pop_county_chicago_1990, "Data Tables/pop_county_chicago_1990.csv")
+# county_pop_1990 <- mexican_pop_1990 %>%
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE))
+# 
+# chicago_pop_1990 <- mexican_pop_1990 %>%
+#   filter(GISJOIN%in%chicago_tracts_1990$GISJOIN) %>%
+#   filter(!GISJOIN %in% c("G17004308400", "G17003107609")) %>% # parcels in O'hare
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE)) %>%
+#   mutate(COUNTY = "Chicago")
+# 
+# pop_county_chicago_1990 <- rbind(county_pop_1990, chicago_pop_1990) %>% 
+#   mutate(COUNTY = case_when(COUNTY == "Cook" ~ "Cook County",
+#                             COUNTY == "Kane" ~ "Kane County",
+#                             COUNTY == "Lake" ~ "Lake County",
+#                             COUNTY == "Dupage" ~ "DuPage County",
+#                             COUNTY == "Will" ~ "Will County",
+#                             COUNTY == "McHenry" ~ "McHenry County",
+#                             TRUE ~ COUNTY))
+# 
+# pop_county_chicago_1990 <- pop_county_chicago_1990 %>%
+#   
+#   ungroup() %>%
+#   add_row(COUNTY = "Cook County outside of Chicago",
+#           YEAR = 1990,
+#           Mexican = pop_county_chicago_1990$Mexican[pop_county_chicago_1990$COUNTY == "Cook County"]- pop_county_chicago_1990$Mexican[pop_county_chicago_1990$COUNTY == "Chicago"],
+#           total_pop = pop_county_chicago_1990$total_pop[pop_county_chicago_1990$COUNTY == "Cook County"]- pop_county_chicago_1990$total_pop[pop_county_chicago_1990$COUNTY == "Chicago"],
+#           total_his = pop_county_chicago_1990$total_his[pop_county_chicago_1990$COUNTY == "Cook County"]- pop_county_chicago_1990$total_his[pop_county_chicago_1990$COUNTY == "Chicago"]
+#           )
+# 
+# ## write.csv(pop_county_chicago_1990, "Data Tables/pop_county_chicago_1990.csv")
 # 
 # 
 # 
@@ -228,10 +252,10 @@ theme_plots <-
 #          "total_pop" = "FL5001",
 #          "total_his" = "FMX001"
 # 
-#          ) 
-
-### Exporting to csv
-# write.csv(mexican_pop_2000, "Data Tables/mexican_collar_tract_2000.csv")
+#          )
+# 
+# ### Exporting to csv
+# # write.csv(mexican_pop_2000, "Data Tables/mexican_collar_tract_2000.csv")
 # 
 # 
 # county_pop_2000 <- mexican_pop_2000 %>%
@@ -243,12 +267,19 @@ theme_plots <-
 #             Colombian = sum(Colombian, na.rm = TRUE),
 #             Ecuadorian = sum(Ecuadorian, na.rm = TRUE),
 #             total_pop = sum(total_pop, na.rm = TRUE),
-#             total_his = sum(total_his, na.rm = TRUE)) %>% 
-#   mutate(COUNTY = if_else(COUNTY == "Dupage County", "DuPage County", COUNTY))
-
-# write.csv(county_pop_2000, "Data Tables/county_pop_2000.csv")
-
+#             total_his = sum(total_his, na.rm = TRUE)) %>%
+#   mutate(COUNTY = if_else(COUNTY == "Dupage County", "DuPage County", COUNTY)) %>%
+#   mutate(COUNTY = case_when(COUNTY == "Cook" ~ "Cook County",
+#                             COUNTY == "Kane" ~ "Kane County",
+#                             COUNTY == "Lake" ~ "Lake County",
+#                             COUNTY == "Dupage" ~ "DuPage County",
+#                             COUNTY == "Will" ~ "Will County",
+#                             COUNTY == "McHenry" ~ "McHenry County",
+#                             TRUE ~ COUNTY))
 # 
+# # write.csv(county_pop_2000, "Data Tables/county_pop_2000.csv")
+# 
+# #
 # chicago_pop_2000 <- mexican_pop_2000 %>%
 #   filter(GISJOIN%in%chicago_tracts_2000$GISJOIN) %>%
 #   filter(!GISJOIN %in% c("G1700430840000", "G1700310760900")) %>%  # parcels in O'hare
@@ -261,15 +292,33 @@ theme_plots <-
 #             Ecuadorian = sum(Ecuadorian, na.rm = TRUE),
 #             total_pop = sum(total_pop, na.rm = TRUE),
 #             total_his = sum(total_his, na.rm = TRUE)) %>%
-#   mutate(COUNTY = "Chicago")
+#   mutate(COUNTY = "Chicago") %>%
+#   ungroup()
 # 
 # pop_county_chicago_2000 <- rbind(county_pop_2000, chicago_pop_2000)
+# 
+# pop_county_chicago_2000 <- pop_county_chicago_2000 %>%
+#   ungroup() %>%
+#   add_row(COUNTY = "Cook County outside of Chicago",
+#           YEAR = 2000,
+#           Mexican = pop_county_chicago_2000$Mexican[pop_county_chicago_2000$COUNTY == "Cook County"]- pop_county_chicago_2000$Mexican[pop_county_chicago_2000$COUNTY == "Chicago"],
+#           `Puerto Rican` = pop_county_chicago_2000$`Puerto Rican`[pop_county_chicago_2000$COUNTY == "Cook County"]- pop_county_chicago_2000$`Puerto Rican`[pop_county_chicago_2000$COUNTY == "Chicago"],
+#           Cuban = pop_county_chicago_2000$Cuban[pop_county_chicago_2000$COUNTY == "Cook County"]- pop_county_chicago_2000$Cuban[pop_county_chicago_2000$COUNTY == "Chicago"],
+#           Guatemalan = pop_county_chicago_2000$Guatemalan[pop_county_chicago_2000$COUNTY == "Cook County"]- pop_county_chicago_2000$Guatemalan[pop_county_chicago_2000$COUNTY == "Chicago"],
+#           Colombian = pop_county_chicago_2000$Colombian[pop_county_chicago_2000$COUNTY == "Cook County"]- pop_county_chicago_2000$Colombian[pop_county_chicago_2000$COUNTY == "Chicago"],
+#           Ecuadorian = pop_county_chicago_2000$Ecuadorian[pop_county_chicago_2000$COUNTY == "Cook County"]- pop_county_chicago_2000$Ecuadorian[pop_county_chicago_2000$COUNTY == "Chicago"],
+#           total_pop = pop_county_chicago_2000$total_pop[pop_county_chicago_2000$COUNTY == "Cook County"]- pop_county_chicago_2000$total_pop[pop_county_chicago_2000$COUNTY == "Chicago"],
+#           total_his = pop_county_chicago_2000$total_his[pop_county_chicago_2000$COUNTY == "Cook County"]- pop_county_chicago_2000$total_his[pop_county_chicago_2000$COUNTY == "Chicago"],
+#           )
+# 
+# 
+# 
 # #
 # # write.csv(pop_county_chicago_2000, "Data Tables/pop_county_chicago_2000.csv")
 # 
 # 
 # # # ####################################################   2010
-# #
+# 
 # chicago_tracts_2010 <- st_read("Data Tables/shp/intersect_census_2010.shp")
 # 
 # 
@@ -307,33 +356,49 @@ theme_plots <-
 # # write.csv(county_pop_2010, "Data Tables/county_pop_2010.csv")
 # 
 # 
-# # #
-# # # chicago_pop_2010 <- mexican_pop_2010 %>%
-# # #   filter(GISJOIN%in%chicago_tracts_2010$GISJOIN) %>%
-# # #   filter(GISJOIN != "G1700430840000") %>%  # parcels in O'hare
-# # #   group_by(YEAR, COUNTY, state_county) %>%
-# # #   summarise(Mexican = sum(Mexican, na.rm = TRUE),
-# # #             total_pop = sum(total_pop, na.rm = TRUE),
-# # #             total_his = sum(total_his, na.rm = TRUE)) %>%
-# # #   mutate(COUNTY = "Chicago")
-# # #
-# # # pop_county_chicago_2010 <- rbind(county_pop_2010, chicago_pop_2010)
-# # #
-# # # # write.csv(pop_county_chicago_2010, "Data Tables/pop_county_chicago_2010.csv")
-# # #
-# # # ####################################################   2020
-# # #
-# # chicago_tracts_2020 <- st_read("Data Tables/shp/intersect_census_2020.shp") %>%
-# #   select(GISJOIN, geometry, GEOID) %>%
-# #   filter(!GISJOIN %in% c("G1700310980000", "G1700430840000")) %>% # parcels in O'hare
-# #   st_transform( crs = 4326)
-# # 
-# # 
-# # 
-# # 
+# 
+# chicago_pop_2010 <- mexican_pop_2010 %>%
+#   filter(GISJOIN%in%chicago_tracts_2010$GISJOIN) %>%
+#   filter(GISJOIN != "G1700430840000") %>%  # parcels in O'hare
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             `Puerto Rican` = sum(`Puerto Rican`,na.rm = TRUE),
+#             Cuban = sum(Cuban, na.rm = TRUE),
+#             Guatemalan = sum(Guatemalan, na.rm = TRUE),
+#             Colombian = sum(Colombian, na.rm = TRUE),
+#             Ecuadorian = sum(Ecuadorian, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE)) %>%
+#   mutate(COUNTY = "Chicago")
+# 
+# pop_county_chicago_2010 <- rbind(county_pop_2010, chicago_pop_2010)
+# 
+# pop_county_chicago_2010 <- pop_county_chicago_2010 %>%
+#   ungroup() %>%
+#   add_row(COUNTY = "Cook County outside of Chicago",
+#           YEAR = 2010,
+#           Mexican = pop_county_chicago_2010$Mexican[pop_county_chicago_2010$COUNTY == "Cook County"]- pop_county_chicago_2010$Mexican[pop_county_chicago_2010$COUNTY == "Chicago"],
+#           `Puerto Rican` = pop_county_chicago_2010$`Puerto Rican`[pop_county_chicago_2010$COUNTY == "Cook County"]- pop_county_chicago_2010$`Puerto Rican`[pop_county_chicago_2010$COUNTY == "Chicago"],
+#           Cuban = pop_county_chicago_2010$Cuban[pop_county_chicago_2010$COUNTY == "Cook County"]- pop_county_chicago_2010$Cuban[pop_county_chicago_2010$COUNTY == "Chicago"],
+#           Guatemalan = pop_county_chicago_2010$Guatemalan[pop_county_chicago_2010$COUNTY == "Cook County"]- pop_county_chicago_2010$Guatemalan[pop_county_chicago_2010$COUNTY == "Chicago"],
+#           Colombian = pop_county_chicago_2010$Colombian[pop_county_chicago_2010$COUNTY == "Cook County"]- pop_county_chicago_2010$Colombian[pop_county_chicago_2010$COUNTY == "Chicago"],
+#           Ecuadorian = pop_county_chicago_2010$Ecuadorian[pop_county_chicago_2010$COUNTY == "Cook County"]- pop_county_chicago_2010$Ecuadorian[pop_county_chicago_2010$COUNTY == "Chicago"],
+#           total_pop = pop_county_chicago_2010$total_pop[pop_county_chicago_2010$COUNTY == "Cook County"]- pop_county_chicago_2010$total_pop[pop_county_chicago_2010$COUNTY == "Chicago"],
+#           total_his = pop_county_chicago_2010$total_his[pop_county_chicago_2010$COUNTY == "Cook County"]- pop_county_chicago_2010$total_his[pop_county_chicago_2010$COUNTY == "Chicago"],
+#           )
+# 
+# 
+# # write.csv(pop_county_chicago_2010, "Data Tables/pop_county_chicago_2010.csv")
+# 
+# ####################################################   2020
+# 
+# chicago_tracts_2020 <- st_read("Data Tables/shp/intersect_census_2020.shp") %>%
+#   select(GISJOIN, geometry, GEOID) %>%
+#   filter(!GISJOIN %in% c("G1700310980000", "G1700430840000")) %>% # parcels in O'hare
+#   st_transform( crs = 4326)
 # 
 # ### Tidycensus Variable
-# search_variables <- load_variables(2022, 
+# search_variables <- load_variables(2022,
 #                          dataset = "acs5",
 #                          cache = TRUE)
 # 
@@ -365,23 +430,26 @@ theme_plots <-
 #   mutate(YEAR = "2018-2022") %>%
 #   mutate(state_county = substr(GEOID, 1, 5)) %>%
 #   filter(state_county %in% c(17043, 17089, 17031, 17097, 17111, 17197))
-# # 
-# # 
-# # ## Exporting to csv
-# # ## write.csv(mexican_pop_18_22, "Data Tables/mexican_collar_tract_18_22.csv")
-# # 
-# # chicago_pop_2020 <- mexican_pop_18_22 %>%
-# #   filter(GEOID %in% chicago_tracts_2020$GEOID) %>% #
-# #   group_by(YEAR, COUNTY, state_county) %>%
-# #   summarise(Mexican = sum(Mexican, na.rm = TRUE),
-# #             total_pop = sum(total_pop, na.rm = TRUE),
-# #             total_his = sum(total_his, na.rm = TRUE)) %>%
-# #   mutate(COUNTY = "Chicago")
 # 
-# #
-# # #
-# # #
-# # #
+# 
+# ## Exporting to csv
+# ## write.csv(mexican_pop_18_22, "Data Tables/mexican_collar_tract_18_22.csv")
+# 
+# chicago_pop_2020 <- mexican_pop_18_22 %>%
+#   filter(GEOID %in% chicago_tracts_2020$GEOID) %>% #
+#   group_by(YEAR, COUNTY, state_county) %>%
+#   summarise(Mexican = sum(Mexican, na.rm = TRUE),
+#             `Puerto Rican` = sum(`Puerto Rican`,na.rm = TRUE),
+#             Cuban = sum(Cuban, na.rm = TRUE),
+#             Guatemalan = sum(Guatemalan, na.rm = TRUE),
+#             Colombian = sum(Colombian, na.rm = TRUE),
+#             Ecuadorian = sum(Ecuadorian, na.rm = TRUE),
+#             total_pop = sum(total_pop, na.rm = TRUE),
+#             total_his = sum(total_his, na.rm = TRUE)) %>%
+#   mutate(COUNTY = "Chicago")
+# 
+# 
+# 
 # county_pop_2020 <- mexican_pop_18_22 %>%
 #   group_by(YEAR, COUNTY, state_county) %>%
 #   summarise(Mexican = sum(Mexican, na.rm = TRUE),
@@ -396,71 +464,76 @@ theme_plots <-
 # 
 # 
 # pop_county_chicago_2020 <- rbind(county_pop_2020, chicago_pop_2020)
-
-# write.csv(pop_county_chicago_2020, "Data Tables/pop_county_chicago_2020.csv")
-
 # 
+# pop_county_chicago_2020 <- pop_county_chicago_2020 %>%
+#   ungroup() %>%
+#   add_row(COUNTY = "Cook County outside of Chicago",
+#           YEAR = "2018-2022",
+#           Mexican = pop_county_chicago_2020$Mexican[pop_county_chicago_2020$COUNTY == "Cook County"]- pop_county_chicago_2020$Mexican[pop_county_chicago_2020$COUNTY == "Chicago"],
+#           `Puerto Rican` = pop_county_chicago_2020$`Puerto Rican`[pop_county_chicago_2020$COUNTY == "Cook County"]- pop_county_chicago_2020$`Puerto Rican`[pop_county_chicago_2020$COUNTY == "Chicago"],
+#           Cuban = pop_county_chicago_2020$Cuban[pop_county_chicago_2020$COUNTY == "Cook County"]- pop_county_chicago_2020$Cuban[pop_county_chicago_2020$COUNTY == "Chicago"],
+#           Guatemalan = pop_county_chicago_2020$Guatemalan[pop_county_chicago_2020$COUNTY == "Cook County"]- pop_county_chicago_2020$Guatemalan[pop_county_chicago_2020$COUNTY == "Chicago"],
+#           Colombian = pop_county_chicago_2020$Colombian[pop_county_chicago_2020$COUNTY == "Cook County"]- pop_county_chicago_2020$Colombian[pop_county_chicago_2020$COUNTY == "Chicago"],
+#           Ecuadorian = pop_county_chicago_2020$Ecuadorian[pop_county_chicago_2020$COUNTY == "Cook County"]- pop_county_chicago_2020$Ecuadorian[pop_county_chicago_2020$COUNTY == "Chicago"],
+#           total_pop = pop_county_chicago_2020$total_pop[pop_county_chicago_2020$COUNTY == "Cook County"]- pop_county_chicago_2020$total_pop[pop_county_chicago_2020$COUNTY == "Chicago"],
+#           total_his = pop_county_chicago_2020$total_his[pop_county_chicago_2020$COUNTY == "Cook County"]- pop_county_chicago_2020$total_his[pop_county_chicago_2020$COUNTY == "Chicago"],
+#           )
+# 
+# 
+# # write.csv(pop_county_chicago_2020, "Data Tables/pop_county_chicago_2020.csv")
 # 
 # 
 # # # ######### Joining Data
-# pop_county_chicago_1980 <- read.csv("Data Tables/pop_county_chicago_1980.csv") %>% mutate(YEAR = as.character(YEAR))
-# pop_county_chicago_1990 <- read.csv("Data Tables/pop_county_chicago_1990.csv") %>% mutate(YEAR = as.character(YEAR))
-# pop_county_chicago_2000 <- read.csv("Data Tables/pop_county_chicago_2000.csv")%>% mutate(YEAR = as.character(YEAR))
-# pop_county_chicago_2010 <- read.csv("Data Tables/pop_county_chicago_2010.csv") %>% mutate(state_county = as.character(state_county))
-
-# # pop_county_chicago_2020 <- read.csv("Data Tables/pop_county_chicago_2020.csv")%>% mutate(state_county = as.character(state_county),
-# #                                                                                          )
-# #
-# #
-# pop_county_chicago_1980_2020 <- rbind(pop_county_chicago_1980,
-#                                       pop_county_chicago_1990,
-#                                       pop_county_chicago_2000,
-#                                       pop_county_chicago_2010,
-#                                       pop_county_chicago_2020) %>%
-#   mutate(COUNTY = case_when(COUNTY == "Cook" ~ "Cook County",
-#                             COUNTY == "Kane" ~ "Kane County",
-#                             COUNTY == "Lake" ~ "Lake County",
-#                             COUNTY == "Dupage" ~ "DuPage County",
-#                             COUNTY == "Will" ~ "Will County",
-#                             COUNTY == "McHenry" ~ "McHenry County",
-#                             TRUE ~ COUNTY)) %>%
-#   clean_names() %>%
-#   select(-x)
 # 
-# # write.csv(pop_county_chicago_1980_2020, "Data Tables/pop_county_chicago_1980_2020.csv")
+# latino_Chi_county_2000_2020 <- rbind(pop_county_chicago_2000 %>% mutate(YEAR = as.character(YEAR)) , 
+#                                      pop_county_chicago_2010 %>% mutate(YEAR = as.character(YEAR)), 
+#                                      pop_county_chicago_2020)
+# # write.csv(latino_Chi_county_2000_2020, "Data Tables/latino_Chi_county_2000_2020.csv")
+# 
+# mxc_county_chicago_1990_2020 <- rbind(pop_county_chicago_1990 ,
+#                                       pop_county_chicago_2000 %>% select(YEAR, COUNTY, state_county, Mexican, total_pop, total_his),
+#                                       pop_county_chicago_2010  %>%  select(YEAR, COUNTY, state_county, Mexican, total_pop, total_his),
+#                                       pop_county_chicago_2020 %>% select(YEAR, COUNTY, state_county, Mexican, total_pop, total_his)) %>%
+# 
+#   clean_names()
+# 
+# write.csv(mxc_county_chicago_1990_2020, "Data Tables/mxc_county_chicago_1990_2020.csv")
 
 
-pop_county_chicago_1980_2020 <- read_csv("Data Tables/pop_county_chicago_1980_2020.csv") %>%
-  filter(county != "Chicago") %>% 
-  select(-`...1`) %>% 
-  mutate(year = factor(year, level = c("1980", "1990", "2000", "2010", "2018-2022"))) %>% 
-  mutate(county = factor(county, level = c("Cook County", "Kane County", "Lake County", "DuPage County", "Will County", "McHenry County"))) 
-
-# pop_latino_2000_2020 <- rbind(county_pop_2000 %>% mutate(YEAR = as.character(YEAR)) , county_pop_2010 %>% mutate(YEAR = as.character(YEAR)), county_pop_2020  )
-
- # write.csv(pop_latino_2000_2020, "Data Tables/pop_latino_2000_2020.csv")
-
+pop_county_chicago_1990_2020 <- read_csv("Data Tables/mxc_county_chicago_1990_2020.csv") %>%
+  ungroup() %>% 
+  select(-`...1`) %>%
+  # filter(county != "Cook County") %>% 
+  mutate(year = factor(year, level = c( "1990", "2000", "2010", "2018-2022"))) %>%
+  mutate(county = factor(county, level = c("Chicago", "Cook County outside of Chicago" ,"Cook County", "Kane County", "Lake County", "DuPage County", "Will County", "McHenry County"))) %>% 
+  arrange(year, county) %>% 
+  mutate(county = if_else(county == "Cook County outside of Chicago","Cook County Outside of Chicago" ,county
+                          ))
+  
+latino_Chi_county_2000_2020 <- read_csv("Data Tables/latino_Chi_county_2000_2020.csv")
 
 ```
 
 
+
 ```{r}
 
-county_pop_1980_2020 <- pop_county_chicago_1980_2020 %>% 
-  filter(year != "1980") %>% 
+county_pop_1990_2020 <- pop_county_chicago_1990_2020 %>% 
   mutate(prc_mex_his = 100*round(mexican/total_his, 4),
             prc_mex_total = 100*round(mexican/total_pop, 4)) %>% 
-  mutate(prc_mex_his2 = paste0(prc_mex_his, "%"),
-         prc_mex_total2 = paste0(prc_mex_total, "%")) 
+  mutate(prc_mex_his2 = paste0(format(round(prc_mex_his, 1), nsmall = 1), "%"),
+         prc_mex_total2 = paste0(format(round(prc_mex_total, 1), nsmall = 1), "%")) 
+
 
 ### Table
-county_pop_1980_2020_tb <- county_pop_1980_2020 %>% 
+county_pop_1990_2020_tb <- county_pop_1990_2020 %>% 
+  filter(county != "Cook County") %>% 
   
   select(county, total_pop, total_his, mexican, prc_mex_his2,prc_mex_total2) %>%
   ## using kable
   kable(booktabs = T,
-        col.names = c("Counties", "Total Population", "Total Hispanic/Latino",
-                      "Total Mexican", "% Mexican of Hispanic/Latino", "% Mexican of Total Population"
+        col.names = c("Counties", "Total Population", "Total Hispanic or Latino",
+                      "Total Mexican", "% Mexican of Hispanic or Latino", "% Mexican of Total Population"
                       ),
       align = c("l",rep("c",6)),
       caption = "Mexican and Hispanic/Latino Population in Cook County and Collar Counties, Illinois, 1980 to 2018-2022",
@@ -472,8 +545,8 @@ county_pop_1980_2020_tb <- county_pop_1980_2020 %>%
                 position = "center",
                 # latex_options = "HOLD_position",
                 ) %>%
-  column_spec(1, width = "10em") %>%
-  column_spec(2:6, width = "8em") %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:6, width = "7.16em") %>%
   # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
   #                   # background = "#cbc9e2",
   #                   bold = T, font_size =8) %>%
@@ -481,38 +554,38 @@ county_pop_1980_2020_tb <- county_pop_1980_2020 %>%
            # background = "#f2f0f7",
            font_size = 8) %>%
 
-  pack_rows("1990", 1,6, hline_after = T  ) %>%
-  pack_rows("2000", 7, 12, hline_before = T , hline_after = T) %>%
-  pack_rows("2010", 13, 18,  hline_before = T , hline_after = T) %>%
-  pack_rows("2020", 19, 24,  hline_before = T, hline_after = T ) %>%
+  pack_rows("1990", 1,7, hline_after = T  ) %>%
+  pack_rows("2000", 8, 14, hline_before = T , hline_after = T) %>%
+  pack_rows("2010", 15, 21,  hline_before = T , hline_after = T) %>%
+  pack_rows("2020", 22, 28,  hline_before = T, hline_after = T ) %>%
   # pack_rows("2018-2022", 25, 30, hline_before = T, hline_after = T) %>% 
   footnote(general = "Source: IPUMS NHGIS (1990, 2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.",
            general_title = "") 
  #  add_footnote(c( "Source: IPUMS NHGIS (1980, 1990, 2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.", "Total Hispanic or Latino for 1980: person of Spanish/Hispanic origin or descent.", "Total Hispanic or Latino for 1990: person of Spanish/Hispanic origin.", "Total Hispanic or Latino for 2000: person of Spanish/Hispanic/Latino origin.", "Total Hispanic or Latino for 2010 and 2020: person of Hispanic, Latino, or Spanish origin."), threeparttable = TRUE,
  # notation = "symbol")
 
-county_pop_1980_2020_tb
+county_pop_1990_2020_tb
 
 ```
 
 
-## 
 
 ```{r}
-county_pop_1980_2020_tb2 <- county_pop_1980_2020 %>% 
+county_pop_1990_2020_tb2 <- county_pop_1990_2020 %>% 
+  filter(county != "Cook County") %>% 
   select(year, county, mexican, prc = prc_mex_total) %>%
   pivot_wider( names_from = c(year), values_from = c(mexican, prc)) %>% 
   select(county, mexican_1990, prc_1990, mexican_2000, prc_2000, mexican_2010, prc_2010, `mexican_2018-2022`, `prc_2018-2022`) %>% 
   
   mutate(change_1990_2020 = `mexican_2018-2022` - mexican_1990,
          growth_rate = 100*(`mexican_2018-2022` - mexican_1990)/mexican_1990,
-         growth_rate = paste0(round(growth_rate,2), "%")) %>%
+         growth_rate = paste0(format(round(growth_rate, 1), nsmall = 1), "%")) %>%
   
-  mutate(across(starts_with("prc_"), ~ paste0(.x, "%"))) %>% 
+  mutate(across(starts_with("prc_"), ~ paste0(format(round(.x, 1), nsmall = 1), "%"))) %>% 
   ## using kable
   kable(booktabs = T,
         col.names = c("" , "Number", "Percent",
-                      "Number", "Percent", "Mexican", "Percent",
+                      "Number", "Percent", "Number", "Percent",
                       "Number", "Percent", "Number", "Growth Rate"),
       align = c("l",rep("c",11)),
       caption = "Mexican Population in Cook County and Collar Counties, Illinois, 1990 to 2018-2022",
@@ -524,7 +597,7 @@ county_pop_1980_2020_tb2 <- county_pop_1980_2020 %>%
                 position = "center",
                 latex_options = "HOLD_position",
                 ) %>%
-  column_spec(1, width = "8em") %>%
+  column_spec(1, width = "14.2em") %>%
   column_spec(2:11, width = "4.8em") %>%
   add_header_above( c("Counties", "1990" = 2,  "2000" = 2, "2010" = 2, "2018-2022" = 2, "Change from\n1990 to 2018-2022" = 2),
                     # background = "#cbc9e2",
@@ -539,40 +612,78 @@ county_pop_1980_2020_tb2 <- county_pop_1980_2020 %>%
  #  add_footnote(c( "Source: IPUMS NHGIS (1980, 1990, 2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.", "Total Hispanic or Latino for 1980: person of Spanish/Hispanic origin or descent.", "Total Hispanic or Latino for 1990: person of Spanish/Hispanic origin.", "Total Hispanic or Latino for 2000: person of Spanish/Hispanic/Latino origin.", "Total Hispanic or Latino for 2010 and 2020: person of Hispanic, Latino, or Spanish origin."), threeparttable = TRUE,
  # notation = "symbol")
 
-county_pop_1980_2020_tb2
+county_pop_1990_2020_tb2
 
 
 ```
 
 
 ```{r}
-# line_chart <- county_pop_1980_2020 %>% 
-#   ggplot() +
-#   geom_line(data = filter(county_pop_1980_2020, county!= "Cook County") ,
-#             aes(x = year, y = mexican, group = county),
-#             color = "#636363",
-#             linewidth =1 ) +
-#   # geom_line(data = filter(county_pop_1980_2020, county == "Cook County") ,
-#   #           aes(x = year, y = mexican, group = county),
-#   #           color = "#C91835",
-#   #           linewidth =1 ) +
-#   # geom_point(data = filter(county_pop_1980_2020, county!= "Cook County") ,
-#   #           aes(x = year, y = mexican, group = county),
-#   #           shape = 21,
-#   #           color = "#636363",
-#   #           size = 2 ) +
-#   theme_plots
 
+color_county <- c("Chicago" = "#997b66",
+                  "Cook County Outside of Chicago" = "#d08c60",
+                  "Kane County" = "#e8ac65",
+                  "Lake County" = "#ffcb69",
+                  "DuPage County" = "#d9ae94",
+                  "Will County" = "#baa587",
+                  "McHenry County" = "#797d62")
 
+line_chart <- county_pop_1990_2020 %>%
+  filter(county != "Cook County") %>% 
+  ggplot() +
+  geom_line(aes(x = year, y = mexican, group = county, colour = county),
+            # color = "#636363",
+            linewidth = 0.8 ) +
+    scale_color_manual(values = color_county) +
+  
+  # geom_text(data = county_pop_1990_2020 %>% filter(year == "2018-2022" & county!= "DuPage County"),
+  # aes(x = year, y = mexican,
+  #     label = county),
+  # color = "#636363",
+  # nudge_x = 0.1,
+  # hjust = "left",
+  # size = 2.5) +
+
+  geom_point(data = filter(county_pop_1990_2020, county!= "Cook County") ,
+            aes(x = year, y = mexican, group = county, 
+                colour = county
+                ),
+            shape = 20,
+            size = 2 ) +
+  theme_plots +
+  labs(y="", x = "",
+       title="Mexican Population in Cook County and Collar Counties,\nIllinois, 1990 to 2018-2022",
+       caption = "Source: IPUMS NHGIS (1990, 2000, 2010 Census, and 2018-2022 ACS). Tabulations by Great Cities Institute",
+       color="") +
+  
+
+  
+  # scale_y_discrete(labels = function(x) str_wrap(x, width = 20)) + # Modify labels of ggplot2 barplot
+  scale_y_continuous(breaks = seq(50000, 600000, by = 50000), labels = scales::comma) +
+  coord_cartesian(ylim = c(0, 600000)) +
+  
+  theme_plots +
+  theme(axis.text.y = element_text(size = 8),
+        panel.background = element_blank(),
+        # axis.ticks.y = element_blank(),
+        # axis.title.y = element_blank(),
+        # axis.text.x = element_blank(),
+        axis.line.y = element_blank(),
+        legend.position = "bottom",
+        legend.text = element_text(size = 7, color = "#636363"),
+        legend.key.size = unit(0.8, "lines"))+
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+  scale_x_discrete(expand = expand_scale(mult = c(0.05, 0.1)))
+
+line_chart
 ```
-
 
 
 <!-- ```{r fig.width=6, fig.height=3.5 ,fig.align='center'} -->
 
-<!-- #  -->
-<!-- lollipop_chart <- county_pop_1980_2020 %>%  -->
-<!--   # filter(county != "Cook County") %>%  -->
+<!-- # -->
+<!-- lollipop_chart <- county_pop_1980_2020 %>% -->
+<!--   # filter(county != "Cook County") %>% -->
 <!--   ggplot() + -->
 
 <!--   geom_line(aes(y = county, x = mexican, group = county, color = year), -->
@@ -612,58 +723,53 @@ county_pop_1980_2020_tb2
 
 ```{r fig.height=10, fig.width=8}
 
+county_pop_1990_2020_2 = county_pop_1990_2020 %>% mutate(state_county = as.character(state_county)) %>% 
+  filter(!county %in% c("Chicago", "Cook County Outside of Chicago"))
 
-county_pop_1980_2020_2 = county_pop_1980_2020 %>% mutate(state_county = as.character(state_county))
+Collar_county_pop_shp <-
+  left_join(collar_county_border , county_pop_1990_2020_2, by = join_by("GEOID" == "state_county"))
 
-Collar_county_pop_shp <- 
-  left_join(collar_county_border , county_pop_1980_2020_2, by = join_by("GEOID" == "state_county"))
 
 
 collar_mexican_map_2022 <-
 
-  tm_shape(Collar_county_pop_shp
-           # , bbox = bbox_new
-           ) +
- 
+  tm_shape(Collar_county_pop_shp) +
   tm_polygons(
     col = "mexican",
-              style = "jenks",
-              # border.col = "#ced4da",
-              palette="Blues",
-              alpha = 0.9,
-              n = 5,
-              title = "Mexican Population"
-              # lwd = 0.5
+    palette="Blues",
+    breaks =  c(4988, 40000, 80000, 120000, 160000, 1034038),
+    alpha = 0.9,
+    title = "Mexican Population",
+    legend.show = FALSE
     ) +
-  
+  tm_facets(by = "year",
+              ncol = 2) +
+
   tm_symbols(shape = 20,
              size = "prc_mex_total",
              alpha = 0.5,
              scale = 11,
              "#C91835",
-             legend.size.show = FALSE)+
-  
-  
-  
+             legend.size.show = FALSE
+             ) +
+
   tm_borders(col = "black",
              alpha = 1,
              lwd = 4) +
-  
+
   tm_facets(by = "year",
               ncol = 2) +
-  
   tm_text("prc_mex_total2" , size = 1.5, alpha = 1, fontface="bold", fontfamily = "sans", col = "black") +
-   
-  tm_shape(Collar_county_pop_shp, 
+
+  tm_shape(Collar_county_pop_shp,
            bbox = bbox_new) +
   tm_text("NAME" , size = 1, alpha = 1, fontface="bold", fontfamily = "sans", col = "black",  ymod = 1.9) +
   # tm_facets(by = "year",
   #             ncol = 2) +
-  tm_shape(Collar_county_pop_shp %>% 
+  tm_shape(Collar_county_pop_shp %>%
              mutate(mexican = scales::comma(mexican))) +
   tm_text("mexican" , size = 1, alpha = 1, fontface="plain", fontfamily = "sans", col = "black",  ymod = -1.9) +
-  
-   
+
   tm_facets(by = "year",
               ncol = 2) +
   tm_layout( frame = TRUE,
@@ -673,102 +779,181 @@ collar_mexican_map_2022 <-
             legend.title.fontface = "bold",
             legend.position = c("right", "bottom"),
             # legend.position = c(0.05, 0.12)
-    
-            ) +    
-  
+
+            ) +
+  tm_add_legend("fill", 
+                labels = c("4,988 - 40,000", "40,001 - 80,000", "80,001 - 120,000", "120,001 - 160,000", "160,001 - 1,034,038"), 
+                col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
+                alpha = 0.9,
+                lwd = .3,
+
+                border.col = "#ced4da",
+                title = "Mexican Population",
+                size = 0.7) +
+
    tm_add_legend("symbol",
                  shape = 20,
                  alpha = 0.5,
              # scale = 11,
-                labels = "% Mexican of\nTotal Population", 
-                col = "#C91835", 
+                labels = "% Mexican of\nTotal Population",
+                col = "#C91835",
                 title = "",
                 size = 5)
   
 
+
 collar_mexican_map_2022
 
- 
 ```
 
 \clearpage
 
-## Hispanic/Latino Breakdown
 
 ```{r}
+### prc_mex_his2 = paste0(format(round(prc_mex_his, 1), nsmall = 1), "%")
 
-pop_latino_2000_2020 <- read_csv("Data Tables/pop_latino_2000_2020.csv") %>% 
-  select(1:10, total_his, total_pop) %>% 
+pop_latino_2000_2020 <- read_csv("Data Tables/pop_latino_2000_2020.csv") %>%
+  select(1:10, total_his, total_pop) %>%
   pivot_longer(cols = c(5:12),
                names_to = "origin",
                values_to = "count") %>%
-  group_by(YEAR, COUNTY ) %>% 
-  
-  mutate(per = round((count / count[origin == "total_pop"]) * 100, 2)) %>% 
-  
+  group_by(YEAR, COUNTY ) %>%
+
+  mutate(per = round((count / count[origin == "total_pop"]) * 100, 2)) %>%
+
   pivot_wider(id_cols = c("COUNTY", "origin"),
               names_from = c("YEAR"),
-              values_from = c("count", "per")) %>% 
-  
-  mutate(per_2000 = paste0(per_2000 , "%"),
-         per_2010 = paste0(per_2010 , "%"),
-         `per_2018-2022` = paste0(`per_2018-2022` , "%")) %>% 
-  
+              values_from = c("count", "per")) %>%
+
+  mutate(per_2000 =  paste0(format(round(per_2000, 1), nsmall = 1), "%"),
+         per_2010 = paste0(format(round(per_2010, 1), nsmall = 1), "%"),
+         `per_2018-2022` = paste0(format(round(`per_2018-2022`, 1), nsmall = 1), "%")) %>%
+
   mutate(change_2000_2020 = `count_2018-2022` - count_2000,
          growth_rate = 100*(`count_2018-2022` - count_2000)/count_2000,
-         growth_rate = paste0(round(growth_rate,2), "%")) %>% 
-  mutate(origin = case_when(origin == "Mexican" ~ "   Mexican",
-                            origin == "Puerto Rican" ~ "   Puerto Rican",
-                            origin == "Cuban" ~ "   Cuban",
-                            origin == "Guatemalan" ~ "   Guatemalan",
-                            origin == "Colombian" ~ "   Colombian",
-                            origin == "Ecuadorian" ~ "   Ecuadorian",
-                            origin == "total_his" ~ "Total Hispanic/Latino",
+         growth_rate = paste0(format(round(growth_rate, 1), nsmall = 1), "%")) %>% 
+  mutate(origin = case_when(
+    
+                            origin == "total_his" ~ "Total Hispanic or Latino",
                             origin == "total_pop" ~ "Total Population",
-                            TRUE ~ NA_character_))
-  
+                            TRUE ~ origin))
 
-pop_latino_2000_2020_tb <- pop_latino_2000_2020 %>% 
-  ungroup() %>% 
+
+pop_latino_2000_2020_tb <- pop_latino_2000_2020 %>%
+  ungroup() %>%
   select(origin, count_2000, per_2000, count_2010, per_2010, `count_2018-2022`, `per_2018-2022`, change_2000_2020, growth_rate ) %>%
-  
-  
-  
+
+
+
   ## using kable
   kable(booktabs = T,
+        longtable = T, 
         col.names = c("", "Number", "Percent",
                       "Number", "Percent",
                       "Number", "Percent",
                       "Number", "Growth Rate"),
       align = c("l" ,rep("c",8)),
-      caption = "Hispanic/Latino Population in Cook County and Collar Counties by Origin and Year, Illinois, 2000 to 2018-2022",
+      caption = "Hispanic or Latino Population in Cook County and Collar Counties by Origin and Year, Illinois, 2000 to 2018-2022",
       format.args = list(big.mark = ","),
       linesep = "") %>%
-  kable_classic(full_width = F,
-                font_size = 8,
-                html_font = "Arial",
-                position = "center",
-                # latex_options = "HOLD_position",
-                ) %>%
-  column_spec(1, width = "8em") %>%
-  column_spec(2:8, width = "5em") %>%
   add_header_above( c("Origin", "2000" = 2, "2010" = 2, "2018-2022" = 2, "Change from 2000\nto 2018-2022" = 2),
                     # background = "#cbc9e2",
                     bold = T, font_size =8) %>%
   row_spec(0, bold = T,
            # background = "#f2f0f7",
-           font_size = 8) %>%
+           font_size = 8) %>% 
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = c("HOLD_position", "repeat_header"),
+                repeat_header_continued = "\\textit{(Continued on Next Page...)}"
+                ) %>%
+
 
   pack_rows("Cook County", 1,8, hline_after = T  ) %>%
   pack_rows("DuPage County", 9, 16, hline_before = T , hline_after = T) %>%
   pack_rows("Kane County", 17, 24,  hline_before = T , hline_after = T) %>%
   pack_rows("Lake County", 25, 32,  hline_before = T, hline_after = T ) %>%
-  pack_rows("McHenry County", 33, 40,  hline_before = T, hline_after = T ) %>%
+  pack_rows("McHenry County", 33, 40,  
+            # hline_before = T, 
+            hline_after = T ) %>%
   pack_rows("Will County", 41, 48,  hline_before = T, hline_after = T ) %>%
+  # column_spec(1, width = "8em", border_left = FALSE, extra_css = "text-align: left;", monospace = TRUE) %>%
+  row_spec(c(7,8, 15,16, 23, 24, 31, 32, 39, 40, 47, 48),  background = "#f2f0f7") %>% 
+  row_spec(c(6, 14, 22, 30, 38, 46), hline_after = T) %>% 
+  column_spec(1, width = "12em") %>%
+  column_spec(2:8, width = "4.6em") %>%
   footnote(general = "Source: IPUMS NHGIS (2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.",
-           general_title = "") 
+           general_title = "")
 
 pop_latino_2000_2020_tb
+
+
+
+```
+
+
+```{r}
+
+# 
+# pop_latino_2000_2020 %>% 
+#   ggplot(aes(x =  year,
+#              y = prc,
+#              fill = race_ethnicity)) +
+#   geom_bar(position=position_dodge(width=0.7), stat = "identity", 
+#            color = "white", 
+#            width=0.7) +
+#   labs(y="", x = "",
+#        title="Labor Force Participation Rate by Race/Ethnicity in Chicago, 2000 to 2018-2022",
+#        caption = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute",
+#        fill="") +
+#   scale_fill_manual(values = color_race_ethnicity2)
+#   
+# 
+# 
+# 
+# 
+# 
+# LFP_rate %>% 
+#   mutate(year = case_when(year == 2000 ~ "2000",
+#                           year == 2012 ~ "2008-2012",
+#                           year == 2022 ~ "2018-2022"),
+#          year = factor(year, levels = c("2000", "2008-2012", "2018-2022"))) %>% 
+# 
+#   ggplot(aes(x =  year,
+#              y = prc,
+#              fill = race_ethnicity)) +
+#   geom_bar(position=position_dodge(width=0.7), stat = "identity", 
+#            color = "white", 
+#            width=0.7) +
+#   labs(y="", x = "",
+#        title="Labor Force Participation Rate by Race/Ethnicity in Chicago, 2000 to 2018-2022",
+#        caption = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute",
+#        fill="") +
+#   scale_fill_manual(values = color_race_ethnicity2) + 
+#   geom_text(aes(label = prc2),
+#             position=position_dodge(width=0.7), 
+#             vjust = -0.5,
+#             hjust = 0.5,
+#             size = 2.5) +
+# 
+#   scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) + # Modify labels of ggplot2 barplot
+#   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0,100), breaks = seq(0, 100, by = 100)) +
+#   
+#   theme_plots +
+#   theme(
+#     # axis.text.x = element_text(size = 8),
+#         panel.background = element_blank(),
+#         # axis.ticks.y = element_blank(),
+#         # axis.title.y = element_blank(),
+#         axis.text.y = element_blank(),
+#         axis.line.y = element_blank(),
+#         legend.position = "bottom",
+#         legend.text = element_text(size = 7, color = "#636363"),
+#         legend.key.size = unit(0.5, "lines"))+
+#   guides(fill = guide_legend(nrow = 2, byrow = TRUE)) 
+
 
 ```
 

@@ -286,7 +286,7 @@ table_5.a1_2
 
 ```{r fig.width=6, fig.height=4 ,fig.align='center'}
 
-color_race_ethnicity2 <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
+color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
                                "White (non-Hispanic or Latino)" = "#9CA168",
                                "Black (non-Hispanic or Latino)" = "#8CBEC0",
                                "Other (non-Hispanic or Latino)" = "#0B8489")
@@ -313,7 +313,7 @@ LFP_rate %>%
        title="Labor Force Participation Rate by Race/Ethnicity in Chicago, 2000 to 2018-2022",
        caption = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute",
        fill="") +
-  scale_fill_manual(values = color_race_ethnicity2) + 
+  scale_fill_manual(values = color_race_ethnicity) + 
   geom_text(aes(label = prc2),
             position=position_dodge(width=0.7), 
             vjust = -0.5,
@@ -338,6 +338,7 @@ LFP_rate %>%
 
 
 ```
+
 
 ## 5A.2: Numbers and percentages of Mexicans employed, by industry
 
@@ -612,7 +613,7 @@ table_5a.3
 
 ```{r fig.width=6, fig.height=4 ,fig.align='center'}
 
-color_race_ethnicity2 <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
+color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
                                "White (non-Hispanic or Latino)" = "#9CA168",
                                "Black (non-Hispanic or Latino)" = "#8CBEC0",
                                "Other (non-Hispanic or Latino)" = "#0B8489")
