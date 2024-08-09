@@ -30,6 +30,8 @@ knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.pos="H")
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 
+
+
 library(ipumsr)
 library(tidyverse)
 library(purrr)

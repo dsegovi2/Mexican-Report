@@ -199,22 +199,38 @@ color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
                                "Black (non-Hispanic or Latino)" = "#8CBEC0",
                                "Other (non-Hispanic or Latino)" = "#0B8489")
 
-ownership_join %>% 
-  filter(ownershp_f == "Owned or being bought (loan)") %>% 
+
+ownership_join2 <- ownership_join %>% filter(ownershp_f == "Owned or being bought (loan)") %>% 
 
   mutate(year = case_when(year == 2000 ~ "2000",
                           year == 2012 ~ "2008-2012",
                           year == 2022 ~ "2018-2022"),
-         year = factor(year, levels = c("2000", "2008-2012", "2018-2022"))) %>%
+         year = factor(year, levels = c("2000", "2008-2012", "2018-2022")))
+
+
+  ownership_join2 %>% 
+  ggplot() +
   
-  ggplot(aes(x =  year,
+  
+  
+    geom_bar(aes(
+               x =  year,
              y = per,
-             fill = scale)) +
-  geom_bar(position=position_dodge(width=0.7), stat = "identity", 
+             fill = interaction(scale, race_ethnicity)), 
+             position=position_dodge(width=0.7), stat = "identity", 
            color = "white", 
            width=0.7) +
-  
-  facet_wrap (~race_ethnicity) +
+facet_wrap (~ race_ethnicity) +
+    scale_fill_manual(values = c("Chicago.Mexican" = "#CE1126",
+                               "Chicago.Other Latinos" = "#F9AA51",
+                               "Chicago.White (non-Hispanic or Latino)" = "#9CA168",
+                               "Chicago.Black (non-Hispanic or Latino)" = "#8CBEC0",
+                               "Chicago.Other (non-Hispanic or Latino)" = "#0B8489",
+                               "USA.Mexican" = "gray",
+                               "USA.Other Latinos" = "gray",
+                               "USA.White (non-Hispanic or Latino)" = "gray",
+                               "USA.Black (non-Hispanic or Latino)" = "gray",
+                               "USA.Other (non-Hispanic or Latino)" = "gray")) 
   labs(y="", x = "",
        title="Homeownership by Race/Ethnicity in Chicago and USA, 2000 to 2018-2022",
        caption = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute",
