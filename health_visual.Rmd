@@ -68,12 +68,12 @@ Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Re
 usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
   mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
                                     hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
-                                    hispan %in% c(2,3,4) ~ "Other Latinos",
+                                    hispan %in% c(2,3,4) ~ "Other Hispanics or Latinos",
                                     hispan ==1 ~ "Mexican", 
                                     hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
                                     TRUE ~ NA_character_),
          
-  race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")),
+  race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Hispanics or Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")),
   
   hispan_breakdown = case_when(
   hispand == 0 ~ "Not Hispanic",
