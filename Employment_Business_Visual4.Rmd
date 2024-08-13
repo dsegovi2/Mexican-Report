@@ -1011,7 +1011,3 @@ escape = FALSE)
 business_ownership_tb
 ```
 
-
-
-
-

@@ -123,7 +123,8 @@ bbox_new <- c(center_x - 0.24,
 # comm_2000_2022 <- rbind(comm_2022, comm_2012,  comm_2000)
 ### st_write(comm_2000_2022, "Data Tables/shp/comm_pop_chi_2000_2022.shp" )
 comm_2000_2022 <- st_read ("Data Tables/shp/comm_pop_chi_2000_2022.shp" ) %>% 
-  mutate(prc2 = paste0(prc, "%"))
+  mutate(prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) %>% 
+  mutate(prc = round(prc, 1))
 ``` 
 
 \renewcommand{\arraystretch}{1.4}
@@ -176,11 +177,11 @@ comm_mexican_pop_map_2000_2022 <-
             legend.outside.position = "bottom",
             attr.outside = T, attr.outside.position = "bottom", attr.just = "left",
 
-            main.title = "Mexican Population by Community Areas in Chicago, 2000 to 2018-2022"
+            main.title = "Mexican Population by Community Area in Chicago, 2000 (Decennial Census),\n2010  (Decennial Census), and 2018-2022 (ACS 5-year Estimates)"
     
             ) +
   tm_add_legend("fill", 
-                labels = c("0 - 14999", "15000 - 29999", "30000 - 44999", "45000 - 59999", "60000 - 74999"), 
+                labels = c("0 - 15,000", "15,001 - 30,000", "30,001 - 45,000", "45,001 - 60,000", "60,001 - 75,000"), 
                 col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
                 alpha = 1,
                 lwd = .3,
@@ -190,10 +191,10 @@ comm_mexican_pop_map_2000_2022 <-
                 size = 0.7) +
   
   tm_add_legend("line",
-                labels = c("Chicago Border", "Community Area Border"),
+                labels = c("Chicago", "Community Areas"),
                 col = c("#343a40","#6c757d"),
                 lwd = c(2.5, 2),
-                title = "Border Types",
+                title = "",
                 size = 0.8) 
 
 comm_mexican_pop_map_2000_2022 
@@ -215,7 +216,7 @@ map_2000_2022 <-
               palette="Blues",
               alpha = 1,
               # n = 5,
-    breaks = c(0, 20, 40, 60, 80, 100),
+    breaks = c(0, 20.1, 40.1, 60.1, 80.1, 100),
     legend.show = FALSE,
               title = "Percentage",
               lwd = 0.3) +
@@ -240,12 +241,12 @@ map_2000_2022 <-
             legend.outside.position = "bottom",
             attr.outside = T, attr.outside.position = "bottom", attr.just = "left",
 
-            main.title = "Percentage of the Mexican Population by Community Areas in Chicago, 2000 to 2018-2022"
+            main.title = "Percent Mexican Population by Community Area in Chicago,\n2000 (Decennial Census), 2010  (Decennial Census), and 2018-2022 (ACS 5-year Estimates)"
     
             ) +
   
   tm_add_legend("fill", 
-                labels = c("0.00% - 19.99%", "20.00% - 39.99%", "40.00% - 59.99%", "60.00% - 79.99%", "80.00% - 100%"), 
+                labels = c("0.0% - 20.0%", "20.1% - 40.0%", "40.1% - 60.0%", "60.1% - 80.0%", "80.1% - 100%"), 
                 col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
                 alpha = 1,
                 lwd = .3,
