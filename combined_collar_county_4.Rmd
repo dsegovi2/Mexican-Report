@@ -204,20 +204,23 @@ comm_2000_2022 <- st_read ("Data Tables/shp/comm_pop_chi_2000_2022.shp" ) %>%
 
 comm_2000_2022 <- st_read ("Data Tables/shp/comm_pop_chi_2000_2022.shp" ) %>% 
   mutate(prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) %>% 
-  mutate(prc = round(prc, 1))
-
-
+  mutate(prc = round(prc, 1)) %>% 
+  mutate(comm_prc_label = paste0(str_to_title(tolower(commnty)), ":\n", prc2)) %>% 
+  mutate(comm_pop_label = paste0(str_to_title(tolower(commnty)), ":\n", ttl_mxc2))
 ```
 
+## 1A.1: Mexican population in Chicago, 2000 to 2018-2022:
+
+\clearpage
 
 ### Mexican Population by Community Areas in Chicago, 2018-2022
 
 
-```{r fig.height=8, fig.width=11}
+```{r fig.height=11, fig.width=8}
 
-comm_mexican_pop_map_2000_2022 <-
+comm_mexican_pop_map_2022 <-
 
-  tm_shape(comm_2000_2022) +
+  tm_shape(comm_2000_2022 %>% filter(year == "2018-2022"), bbox = bbox_new) +
   tm_polygons(
     col = "ttl_mxc",
     breaks = c(0, 15000, 30000, 45000, 60000, 75000),
@@ -229,31 +232,44 @@ comm_mexican_pop_map_2000_2022 <-
               lwd = 0.3,
     legend.show = FALSE
     ) +
-  tm_facets(by = "year",
-            ncol = 3) +
+ 
+   tm_text("ttl_mxc2" , size = 0.7, alpha = 0.9, fontface="bold", fontfamily = "sans") +
+
   
-  tm_text("ttl_mxc2" , size = 0.7, alpha = 0.9, fontface="bold", fontfamily = "sans") +
+  tm_shape(comm_2000_2022 %>% filter(prc>=50 & year == "2018-2022")) +
+  tm_borders(col = "#9b2226",
+             alpha = 1,
+             lwd = 2) +
 
 
   tm_shape(Chicago_boundary_shp) +
   tm_borders(col = "#343a40",
              alpha = 1,
              lwd = 2.5) +
-  
 
-   tm_layout( frame = TRUE,
-            # legend.width = 1.5,
+  tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            legend.width = 1.5,
             legend.title.size = .9,
             legend.text.size = 0.8,
             legend.title.fontface = "bold",
-            # legend.position = c("right", "bottom"),
-            # legend.position = c(0.1, 0.12),
-            legend.outside.position = "bottom",
-            attr.outside = T, attr.outside.position = "bottom", attr.just = "left",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) +      # manually position legend) +
+  
+  tm_credits("Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org\n(2018-2022 American Community Survey 5-year Estimates).\nTabulations by Great Cities Institute. ",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
 
-            main.title = "Mexican Population by Community Area in Chicago, 2000 (Decennial Census), 2010  (Decennial Census), and 2018-2022 (ACS 5-year Estimates)"
-    
-            ) +
+
+  tm_credits("Mexican Population by Community Area in Chicago,\n2018-2022 (ACS 5-year Estimates)",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25) +
+  
   tm_add_legend("fill", 
                 labels = c("0 - 15,000", "15,001 - 30,000", "30,001 - 45,000", "45,001 - 60,000", "60,001 - 75,000"), 
                 col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
@@ -265,24 +281,194 @@ comm_mexican_pop_map_2000_2022 <-
                 size = 0.7) +
   
   tm_add_legend("line",
-                labels = c("Chicago", "Community Areas"),
-                col = c("#343a40","#6c757d"),
-                lwd = c(2.5, 2),
+                labels = c("Chicago", "Community Areas", "" ,"Community Areas with More Than\n50% Share of Mexican Population", ""),
+                col = c("#343a40" , "#6c757d" , "white","#9b2226", "white"),
+                lwd = c(2.5, 2, 2.5, 2.5,2.5),
                 title = "",
-                size = 0.8) 
+                size = 0.8) +
 
-comm_mexican_pop_map_2000_2022 
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+comm_mexican_pop_map_2022
 
 ```
 
 
-### Percentage of the Mexican Population by Community Areas in Chicago, 2000 to 2018-2022
+### Mexican Population by Community Areas in Chicago, 2010
 
-```{r fig.height=8, fig.width=11}
+
+```{r fig.height=11, fig.width=8}
+
+comm_mexican_pop_map_2010 <-
+
+  tm_shape(comm_2000_2022 %>% filter(year == "2010"), bbox = bbox_new) +
+  tm_polygons(
+    col = "ttl_mxc",
+    breaks = c(0, 15000, 30000, 45000, 60000, 75000),
+    border.col = "#6c757d",
+              palette="Blues",
+              alpha = 1,
+              # n = 5,
+              title = "Mexican Population",
+              lwd = 0.3,
+    legend.show = FALSE
+    ) +
+ 
+   tm_text("ttl_mxc2" , size = 0.7, alpha = 0.9, fontface="bold", fontfamily = "sans") +
+
+  
+  tm_shape(comm_2000_2022 %>% filter(prc>=50 & year == "2010")) +
+  tm_borders(col = "#9b2226",
+             alpha = 1,
+             lwd = 2) +
+
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+
+  tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) +      # manually position legend) +
+  
+  tm_credits("Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org \n(2010 Decennial Censuses).\nTabulations by Great Cities Institute. ",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+
+
+  tm_credits("Mexican Population by Community Area in Chicago,\n2010 (Decennial Census)",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25) +
+  
+  tm_add_legend("fill", 
+                labels = c("0 - 15,000", "15,001 - 30,000", "30,001 - 45,000", "45,001 - 60,000", "60,001 - 75,000"), 
+                col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
+                alpha = 1,
+                lwd = .3,
+
+                border.col = "#ced4da",
+                title = "Mexican Population",
+                size = 0.7) +
+  
+  tm_add_legend("line",
+                labels = c("Chicago", "Community Areas", "" ,"Community Areas with More Than\n50% Share of Mexican Population", ""),
+                col = c("#343a40" , "#6c757d" , "white","#9b2226", "white"),
+                lwd = c(2.5, 2, 2.5, 2.5,2.5),
+                title = "",
+                size = 0.8) +
+
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+comm_mexican_pop_map_2010
+
+```
+
+
+### Mexican Population by Community Areas in Chicago, 2000
+
+
+```{r fig.height=11, fig.width=8}
+
+comm_mexican_pop_map_2000 <-
+
+  tm_shape(comm_2000_2022 %>% filter(year == "2000"), bbox = bbox_new) +
+  tm_polygons(
+    col = "ttl_mxc",
+    breaks = c(0, 15000, 30000, 45000, 60000, 75000),
+    border.col = "#6c757d",
+              palette="Blues",
+              alpha = 1,
+              # n = 5,
+              title = "Mexican Population",
+              lwd = 0.3,
+    legend.show = FALSE
+    ) +
+ 
+   tm_text("ttl_mxc2" , size = 0.7, alpha = 0.9, fontface="bold", fontfamily = "sans") +
+
+  
+  tm_shape(comm_2000_2022 %>% filter(prc>=50 & year == "2000")) +
+  tm_borders(col = "#9b2226",
+             alpha = 1,
+             lwd = 2) +
+
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+
+  tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) +      # manually position legend) +
+  
+  tm_credits("Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org \n(2000 Decennial Censuses).\nTabulations by Great Cities Institute. ",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+
+
+  tm_credits("Mexican Population by Community Area in Chicago,\n2000 (Decennial Census)",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25) +
+  
+  tm_add_legend("fill", 
+                labels = c("0 - 15,000", "15,001 - 30,000", "30,001 - 45,000", "45,001 - 60,000", "60,001 - 75,000"), 
+                col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
+                alpha = 1,
+                lwd = .3,
+
+                border.col = "#ced4da",
+                title = "Mexican Population",
+                size = 0.7) +
+  
+  tm_add_legend("line",
+                labels = c("Chicago", "Community Areas", "" ,"Community Areas with More Than\n50% Share of Mexican Population", ""),
+                col = c("#343a40" , "#6c757d" , "white","#9b2226", "white"),
+                lwd = c(2.5, 2, 2.5, 2.5,2.5),
+                title = "",
+                size = 0.8) +
+
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+comm_mexican_pop_map_2000
+
+```
+
+
+
+## Percentage of the Mexican Population, 2000 to 2018-2022
+
+### Percentage of the Mexican Population by Community Areas in Chicago, 2018-2022
+
+```{r fig.height=11, fig.width=8}
 # fig.height=11, fig.width=24
-map_2000_2022 <-
+comm_mexican_prc_map_2022 <-
 
-  tm_shape(comm_2000_2022) +
+  tm_shape(comm_2000_2022 %>% filter(year == "2018-2022"), bbox = bbox_new) +
   tm_polygons(
     col = "prc",
               # style = "jenks",
@@ -294,10 +480,7 @@ map_2000_2022 <-
     legend.show = FALSE,
               title = "Percentage",
               lwd = 0.3) +
-   tm_text("prc" , size = 0.8, alpha = 1, fontface="bold", fontfamily = "sans")+
-
-  tm_facets(by = "year",
-            ncol = 3) +
+   tm_text("prc2" , size = 0.65, alpha = 1, fontface="bold", fontfamily = "sans")+
 
   tm_shape(Chicago_boundary_shp) +
   tm_borders(col = "#343a40",
@@ -306,18 +489,28 @@ map_2000_2022 <-
   
 
    tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
             # legend.width = 1.5,
             legend.title.size = .9,
             legend.text.size = 0.8,
             legend.title.fontface = "bold",
-            # legend.position = c("right", "bottom"),
-            # legend.position = c(0.1, 0.12),
-            legend.outside.position = "bottom",
-            attr.outside = T, attr.outside.position = "bottom", attr.just = "left",
-
-            main.title = "Percent Mexican Population by Community Area in Chicago, 2000 (Decennial Census), 2010  (Decennial Census), and 2018-2022 (ACS 5-year Estimates)"
-    
-            ) +
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) + 
+  
+  tm_credits("Percent Mexican Population by Community Area in Chicago,\n2018-2022 (ACS 5-year Estimates) ",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25) +
+  
+  
+  tm_credits("Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org\n(2018-2022 American Community Survey 5-year Estimates).\nTabulations by Great Cities Institute. ",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+  
   
   tm_add_legend("fill", 
                 labels = c("0.0% - 20.0%", "20.1% - 40.0%", "40.1% - 60.0%", "60.1% - 80.0%", "80.1% - 100%"), 
@@ -326,20 +519,249 @@ map_2000_2022 <-
                 lwd = .3,
 
                 border.col = "#ced4da",
-                title = "Mexican Population",
+                title = "Percent",
                 size = 0.7)+
   
   tm_add_legend("line",
-                labels = c("Chicago Border", "Community Area Border"),
+                labels = c("Chicago", "Community Areas"),
                 col = c("#343a40","#6c757d"),
                 lwd = c(2.5, 2),
-                title = "Border Types",
+                title = "",
                 size = 0.8) 
+  
+
+  
 
 
-map_2000_2022
+comm_mexican_prc_map_2022
 
 ```
+
+
+
+### Percentage of the Mexican Population by Community Areas in Chicago, 2010
+
+```{r fig.height=11, fig.width=8}
+# fig.height=11, fig.width=24
+comm_mexican_prc_map_2010 <-
+
+  tm_shape(comm_2000_2022 %>% filter(year == "2010"), bbox = bbox_new) +
+  tm_polygons(
+    col = "prc",
+              # style = "jenks",
+              border.col = "#6c757d",
+              palette="Blues",
+              alpha = 1,
+              # n = 5,
+    breaks = c(0, 20.1, 40.1, 60.1, 80.1, 100),
+    legend.show = FALSE,
+              title = "Percentage",
+              lwd = 0.3) +
+   tm_text("prc2" , size = 0.65, alpha = 1, fontface="bold", fontfamily = "sans")+
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+  
+
+   tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) + 
+  
+  tm_credits("Percent Mexican Population by Community Area in Chicago,\n  2010  (Decennial Census) ",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25) +
+  
+  
+  tm_credits("Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org \n(2010 Decennial Census),\nTabulations by Great Cities Institute. ",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+  
+  
+  tm_add_legend("fill", 
+                labels = c("0.0% - 20.0%", "20.1% - 40.0%", "40.1% - 60.0%", "60.1% - 80.0%", "80.1% - 100%"), 
+                col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
+                alpha = 1,
+                lwd = .3,
+
+                border.col = "#ced4da",
+                title = "Percent",
+                size = 0.7)+
+  
+  tm_add_legend("line",
+                labels = c("Chicago", "Community Areas"),
+                col = c("#343a40","#6c757d"),
+                lwd = c(2.5, 2),
+                title = "",
+                size = 0.8) 
+  
+
+  
+
+
+comm_mexican_prc_map_2010
+
+```
+
+
+
+### Percentage of the Mexican Population by Community Areas in Chicago, 2000
+
+```{r fig.height=11, fig.width=8}
+# fig.height=11, fig.width=24
+comm_mexican_prc_map_2000 <-
+
+  tm_shape(comm_2000_2022 %>% filter(year == "2000"), bbox = bbox_new) +
+  tm_polygons(
+    col = "prc",
+              # style = "jenks",
+              border.col = "#6c757d",
+              palette="Blues",
+              alpha = 1,
+              # n = 5,
+    breaks = c(0, 20.1, 40.1, 60.1, 80.1, 100),
+    legend.show = FALSE,
+              title = "Percentage",
+              lwd = 0.3) +
+   tm_text("prc2" , size = 0.65, alpha = 1, fontface="bold", fontfamily = "sans")+
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+  
+
+   tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) + 
+  
+  tm_credits("Percent Mexican Population by Community Area in Chicago,\n2000 (Decennial Census) ",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25) +
+  
+  
+  tm_credits("Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org \n(2000 Decennial Census),\nTabulations by Great Cities Institute. ",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+  
+  
+  tm_add_legend("fill", 
+                labels = c("0.0% - 20.0%", "20.1% - 40.0%", "40.1% - 60.0%", "60.1% - 80.0%", "80.1% - 100%"), 
+                col = c("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"),
+                alpha = 1,
+                lwd = .3,
+
+                border.col = "#ced4da",
+                title = "Percent",
+                size = 0.7)+
+  
+  tm_add_legend("line",
+                labels = c("Chicago", "Community Areas"),
+                col = c("#343a40","#6c757d"),
+                lwd = c(2.5, 2),
+                title = "",
+                size = 0.8) 
+  
+
+  
+
+
+comm_mexican_prc_map_2000
+
+```
+
+## Community Areas in Chicago, 2000
+
+```{r fig.height=11, fig.width=8}
+# fig.height=11, fig.width=24
+Community_areas <-
+
+  tm_shape(comm_2000_2022 %>% filter(year == "2018-2022"), bbox = bbox_new) +
+  tm_polygons(
+    col = "#ced4da",
+              # border.col = "#6c757d",
+              alpha = 0.3,
+    legend.show = FALSE) +
+  tm_borders(col = "#6c757d",
+             alpha = 0.8,
+             lwd = 0.3) +
+  tm_text("lable" , size = 0.6, alpha = 1, fontface="bold", fontfamily = "sans") +
+   
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+  
+  
+
+   tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            # legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) + 
+  
+  tm_credits("Community Areas in Chicago",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25) +
+  
+  
+  tm_credits("Data Source: City of Chicago Data Portal,\nTabulations by Great Cities Institute.",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+  
+  
+  tm_add_legend("fill", 
+                labels = c("Community Areas"), 
+                col = c("#ced4da"),
+                alpha = 0.5,
+                lwd = .3,
+
+                border.col = "#6c757d",
+                title = "",
+                size = 0.7)+
+  
+  tm_add_legend("line",
+                labels = c("Chicago"),
+                col = c("#343a40"),
+                lwd = c(2.5),
+                title = "",
+                size = 0.8) 
+ 
+
+Community_areas
+
+```
+
 
 
 
