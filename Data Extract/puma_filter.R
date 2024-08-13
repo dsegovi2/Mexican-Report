@@ -18,10 +18,22 @@ getwd()
 
 # Read Data
 
-ddi_file <- read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00056.xml") 
+ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa_00056.xml") 
   
+data_everything <- read_ipums_micro(ddi_file)
+
+
+
+data_everything <-data_everything  %>% filter(STATEICP %in% c("71", "49", "61") & YEAR == 2022)
+
   
-  
+# export to csv(change)
+
+
+write.csv(data_everything, "C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_dataset_all.csv")
+
+
+
   
 data_chi  <- read_ipums_micro(ddi_file) %>% filter(CITY == 1190 & STATEICP == 21)  %>% clean_names()
 

@@ -1,4 +1,6 @@
-install.packages(c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", "tidyr", "readxl", "leaflet"))
+# Install all packages
+install.packages(c("ipumsr", "tidyverse", "purrr", "sf", "tidycensus", "tidyr", "readxl", "htmltools", "leaflet", "janitor", "data.table"))
+
 
 library(ipumsr)
 library(tidyverse)
@@ -28,6 +30,14 @@ chicago_ca <- st_read("Boundaries - Community Areas (current)/geo_export_2081dd0
 
 nnnnnn = get_sample_info("usa")
 
+```{r}
+?get_sample_info
+```
+
+
+```{r}
+get_sample_info("usa")
+```
 
 
 
@@ -37,10 +47,10 @@ usa_extract <- define_extract_usa(
   description = "2000 Census, 2012 ACS, 2022 ACS",
   samples = c("us2000g", "us2012e", "us2022c"),
   variables = list(
-                   "CITY", "PUMA", "COUNTYICP", "HISPAN", "AGE", "FAMSIZE", "RACE", "HHINCOME", "POVERTY",   
+                   "CITY", "PUMA", "COUNTYICP", "COUNTYFIP",   "HISPAN", "AGE", "FAMSIZE", "RACE", "HHINCOME", "POVERTY",   
                 "SCHLTYPE", "SPEAKENG", "SCHOOL", "CITIZEN", "GRADEATT", "EDUC", "OWNERSHP", "ROOMS", 
                 "RENTGRS", "VALUEH",  "MORTGAGE", "UNITSSTR", "SERIAL", "EMPSTAT", "IND", "OCC", "GQTYPE", 
-                "ANCESTR1", "TRIBE", "OWNCOST", "NUMPREC", "LABFORCE", "HCOVANY", "STATEICP", "BPL", "HINSEMP", "TRANWORK", "INCWAGE", "UHRSWORK", "WKSWORK1", "RELATE")) %>% 
+                "ANCESTR1", "TRIBE", "OWNCOST", "NUMPREC", "LABFORCE", "HCOVANY", "STATEICP", "BPL", "HINSEMP", "TRANWORK", "INCWAGE", "UHRSWORK", "WKSWORK1", "RELATE", "MET2013")) %>% 
   submit_extract() %>%
   wait_for_extract() %>%
   download_extract() 
@@ -49,11 +59,11 @@ usa_extract <- define_extract_usa(
 usa_extract <- define_extract_usa(
   description = "1850 Census",
   samples = c("us1850c"),
-  variables = list("YEAR", "SAMPLE", "SERIAL", "HHWT", "GQ", "PERNUM", "PERWT","HISPAN", "HISPAND", "SCHOOL", "LIT", "LABFORCE", "OCC", "IND1950", "REALPROP", "VERSIONHIST", "HISTID")) %>%
+  variables = list("CITY", "YEAR", "SAMPLE", "SERIAL", "HHWT", "GQ", "PERNUM", "PERWT","HISPAN", "HISPAND", "SCHOOL", "LIT", "LABFORCE", "OCC", "IND1950", "REALPROP", "VERSIONHIST", "HISTID"),
+  ) %>%
   submit_extract() %>%
   wait_for_extract() %>%
   download_extract()
-
 
 # recent_extracts <- get_recent_extracts_info_list("usa", how_many = 5)
 
