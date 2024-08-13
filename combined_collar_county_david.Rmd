@@ -156,33 +156,9 @@ color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
                                "Black (non-Hispanic or Latino)" = "#8CBEC0",
                                "Other (non-Hispanic or Latino)" = "#0B8489")
 
-school_indicator <- read_csv("School/df_school.csv")
-
-
-chicago_health <- read_csv("Health Data/Chicago Health Atlas Data Download - Community areas.csv") %>% clean_names() %>% rename(
-  obesity_rate = hcsobp_2022_2023,
-  diabetes_rate = hcsdiap_2022_2023,
-  asthma_rate = hcsathp_2022_2023,
-  lbw_rate = vrbwp_2017_2021,
-  sexual_assault_crimes =  czs_2023, 
-  unmet_mental_health_rate = hcsumhap_2022_2023,
-  cancer_diagnosis_rate = ccr_2017_2021,
-  hyper_tension_rate = hcshytp_2022_2023,
-  psych_distress_rate =   hcsspdp_2022_2023,
-  lung_cancer_rate =ccg_2017_2021,
-  loneliness_rate = chavqos_2022_2023
-)
-
-
-# merge chicago ca with health atlas
-df_health <- chicago_ca_pop %>% select(commnty, prc_mxc, prc_nh_w, prc_nh_b) %>% mutate(commnty = str_to_title(tolower(commnty))) %>% left_join(chicago_health, by = c("commnty" = "name")) %>% select(-layer) %>%
- mutate(across(matches("rate$|crimes$"), ~ round(as.numeric(.), 1)))
-
-
 ```
 
 \renewcommand{\arraystretch}{1.4}
-
 \clearpage
 
 # 1.Demographic
@@ -333,6 +309,7 @@ map_2000_2022
 
 ```
 
+\elandscape
 
 
 
@@ -1691,8 +1668,6 @@ table_1e
 # 2. Education
 
 ## 2.A: Number and percentages in public and private schools by race/ethnicity. 
-
-\blandscape
 
 ```{r}
 # analysis

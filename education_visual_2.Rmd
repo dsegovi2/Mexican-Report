@@ -18,9 +18,9 @@ header-includes:
   - \newcommand{\blandscape}{\begin{landscape}}
   - \newcommand{\elandscape}{\end{landscape}}
 editor_options: 
-editor_options: 
   chunk_output_type: console
 ---
+
 
 
 ```{r setup, include=FALSE}
@@ -250,6 +250,7 @@ table_2a
 \elandscape
 
 
+
 ## 2.B: Performance in Chicago Public Schools (CPS) Elementary Schools in Four Community Areas with Largest Share of Mexican Population and Performance Citywide by Race/Ethnicity, 2023
 
 ```{r}
@@ -395,7 +396,9 @@ table_2b
 ```
 
 
-## 2.C: Chronic Absenteeism in Chicago Public Schools (CPS) Elementary Schools in Four Community Areas with Largest Share of Mexican Population and Performance Citywide by Race/Ethnicity, 2023
+
+
+## 2.C: Chronic Absenteeism in Chicago Public Schools (CPS) Elementary Schools in Four Community Areas with Largest Share of Mexican Population, 2023
 ```{r}
 # visuals
 # visuals
@@ -408,8 +411,8 @@ table_2c <-df_final  %>% select(school_name, chronic_absenteeism) %>%
   kbl(
   , booktabs = TRUE,
   col.names = c("", "Percent"),
-  align = c("l", rep("c", 3)),
-  caption = "Hispanic or Latino Chronic Absenteeism in CPS Elementary Schools: Top 4 Mexican Communities vs. City Mean (2023)",
+  align = c("l", rep("c", 1)),
+  caption = "Chronic Absenteeism in Chicago Public Schools (CPS) Elementary Schools in Four Community Areas with Largest Share of Mexican Population, 2023",
   format.args = list(big.mark = ","),
   linesep = ""
 ) %>%
@@ -420,29 +423,38 @@ table_2c <-df_final  %>% select(school_name, chronic_absenteeism) %>%
     position = "center",
     latex_options = "HOLD_position"
   ) %>%
-  column_spec(1, width = "14.8em") %>%
-  column_spec(2, width = "25.2em") %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2, width = "30.8em") %>%
   add_header_above(
-    align = c("l", rep("c", 2)),
+    align = c("l", rep("c", 1)),
     c(
       "Aggregation", 
       "Mean Chronic Absenteeism" = 1),
     bold = TRUE, 
     font_size = 8
   ) %>%
-  
-   add_footnote(c("Sample size: 31 CPS Elementary Schools in Gage Park, East Side, West Lawn, and South Lawndale.", "Chronic Absenteeism is defined as students who miss 10% or more of school days per year.",   "Source: Illinois Report Card (2023). Tabulations by Great Cities Institute"))
+ add_footnote(
+  c(
+    "\\footnotesize{Data Source: Illinois Report Card (2023). Tabulations by Great Cities Institute.}",
+    "\\footnotesize{Sample size: 31 Chicago Public Schools Elementary Schools in Gage Park, East Side, West Lawn, and South Lawndale.}",
+      "\\footnotesize{Note: Chronic Absenteeism is defined as students who miss 10 percent or more of school days per year.}"
+  ),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+
+
+
 
 table_2c
+
 ```
 
 
 
 
-
-
-
-## 2.D: Percentage of Limited English Proficient
+## 2.D: Number and Percent of Population with Limited English Proficiency for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
 
 
 ```{r}
@@ -483,8 +495,8 @@ table_2d <- lep_rate_by_ethnicity %>% select(race_ethnicity, lep_count, lep_perc
   
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number", "Percent"),
-      align = c("l",rep("c",2)),
-      caption = "Number and percentages of Mexican population with limited English proficiency, 2018-2022",
+      align = c("l",rep("r",2)),
+      caption = "Number and Percent of Population with Limited English Proficiency for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -493,21 +505,31 @@ table_2d <- lep_rate_by_ethnicity %>% select(race_ethnicity, lep_count, lep_perc
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
-
+  column_spec(2:3, width = "15.4em") %>%  
   row_spec(0, bold = T,
              #background = "#f2f0f7",
             font_size = 8) %>%
   
-   add_footnote(c("English Proficiency is defined as respondents who does not speak English or speaks English poorly.
-                  ",   "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute"))
+  add_footnote(
+  c(
+    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
+      "\\footnotesize{Note: English Proficiency is defined as respondents who does not speak English or speaks English poorly.}"
+  ),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+
+  
 
 
 table_2d
 
 ```
 
-## 2.E: Number and Percentages of Mexican non-citizens enrolled in public schools
+
+
+## 2.E: Number and Percent of Non-citizens enrolled in Public Schools for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
 
 ```{r}
 # analysis
@@ -567,8 +589,8 @@ table_2e <- percentages %>% select(race_ethnicity, num_enrolled_public, percenta
   
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number", "Percent"),
-      align = c("l",rep("c",2)),
-      caption = "Number and percentages of Mexican non-citizens enrolled in public schools, 2018-2022",
+      align = c("l",rep("r",2)),
+      caption = "Number and Percent of Non-citizens enrolled in Public Schools for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -577,20 +599,22 @@ table_2e <- percentages %>% select(race_ethnicity, num_enrolled_public, percenta
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "15.4em") %>%  
 row_spec(0, bold = T,
              #background = "#f2f0f7",
             font_size = 8) %>%
-  footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
-           general_title = "")   
-
+ add_footnote(
+    c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+    notation = "none",
+    threeparttable = TRUE,
+    escape = FALSE
+  )
 table_2e
 
 ```
 
 
-## 2.F: Number and Percentages of Mexican 21-24 years old without a high school diploma
-
+## 2.F: Number and Percent of Population Aged 21-24 Without A High School Diploma for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
 
 ```{r}
 
@@ -639,8 +663,8 @@ table_2f <- dropout_data %>% select(race_ethnicity, not_in_school, dropout_rate)
   
   kbl(, booktabs = T,
       col.names = c("Race/Ethnicity", "Number", "Percent"),
-      align = c("l",rep("c",2)),
-      caption = "Number and percentages of Mexican people aged 21-24 years old without a high school diploma, 2018-2022",
+      align = c("l",rep("r",2)),
+      caption = "Number and Percent of Population Aged 21-24 Without A High School Diploma for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -649,20 +673,29 @@ table_2f <- dropout_data %>% select(race_ethnicity, not_in_school, dropout_rate)
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "15.4em") %>%  
   row_spec(0, bold = T,
              #background = "#f2f0f7",
             font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
-           general_title = "")   
+ add_footnote(
+    c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+    notation = "none",
+    threeparttable = TRUE,
+    escape = FALSE
+  )
 
 table_2f
 
 ```
 
 
-## 2.G: Number and Percentage of Mexican students attending undergraduate/graduate colleges or professional schools
+
+
+
+
+
+## 2.G: Number and Percent of Population Attending Undergraduate or Graduate Colleges or Professional Schools for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
 
 ```{r}
 
@@ -732,8 +765,8 @@ table_2g <- df_college %>% pivot_wider(id_cols =  c(race_ethnicity), names_from 
   
   kbl(, booktabs = T,
       col.names = c("", "Number", "Percent" , "Number", "Percent"),
-      align = c("l",rep("c",4)),
-      caption = "Number and Percentage of Mexican students attending undergraduate/graduate colleges or professional schools, 2018-2022",
+      align = c("l",rep("r",4)),
+      caption = "Number and Percent of Population Attending Undergraduate or Graduate Colleges or Professional Schools for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -742,14 +775,19 @@ table_2g <- df_college %>% pivot_wider(id_cols =  c(race_ethnicity), names_from 
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em")  %>%
-  column_spec(2:5, width = "6.45em")  %>%
-  add_header_above( align = c("l", "c", "c", "c", "c"), c("Race/Ethnicity", "Ages 18-24" = 2, "Ages 25-34" = 2),
+  column_spec(2:5, width = "7.7em")  %>%
+  add_header_above( align = c("l", "c", "c"), c("Race/Ethnicity", "Ages 18-24" = 2, "Ages 25-34" = 2),
                     # background = "#cbc9e2", 
                     bold = T, font_size =8) %>% 
+  
+   row_spec(0, align = "C") %>%  # Center column headers
 
-  footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
-           general_title = "")   
-
+   add_footnote(
+    c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+    notation = "none",
+    threeparttable = TRUE,
+    escape = FALSE
+  )
 
 table_2g
 
@@ -757,10 +795,9 @@ table_2g
 
 
 
-
 \blandscape
 
-## 2.H: Educational Attainment of Mexicans 25 and Older
+## 2.H: Educational Attainment of Population Aged 25 and over for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
 
 ```{r}
 df <- usa_data  %>%  filter(year == 2022) %>% select(race_ethnicity, educd, age, perwt)
@@ -826,8 +863,8 @@ table_2h <- education_rates %>% select(race_ethnicity, education_level, weighted
   kbl(
   , booktabs = TRUE,
   col.names = c("", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Number", "Percent"),
-  align = c("l", rep("c", 10)),
-  caption = "Educational Attainment of Mexicans 25 and Older, 2018-2022",
+  align = c("l", rep("r", 10)),
+  caption = "Educational Attainment of Population Aged 25 and over for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)",
   format.args = list(big.mark = ","),
   linesep = ""
 ) %>%
@@ -839,9 +876,9 @@ table_2h <- education_rates %>% select(race_ethnicity, education_level, weighted
     latex_options = "HOLD_position"
   ) %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:11, width = "2.58em") %>%
+  column_spec(2:11, width = "3.08em") %>%
   add_header_above(
-    align = c("l", rep("c", 2)),
+    align = c("l", rep("c", 5)),
     c(
       "Educational Level", 
       "Mexican" = 2, 
@@ -852,11 +889,14 @@ table_2h <- education_rates %>% select(race_ethnicity, education_level, weighted
     ),
     bold = TRUE, 
     font_size = 8
-  ) %>%
-  footnote(
-    general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
-    general_title = ""
-  ) 
+  ) %>%  row_spec(0, align = "C") %>%  # Center column headers
+    add_footnote(
+    c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+    notation = "none",
+    threeparttable = TRUE,
+    escape = FALSE
+  )
+
 table_2h
 
 ```
@@ -865,9 +905,11 @@ table_2h
 \elandscape
 
 
+
+
 \blandscape
 
-## 2.I: Educational Attainment of Mexicans by nativity
+## 2.I: Educational Attainment of Population Aged 25 and over for Mexico Born and U.S. Born Mexicans in Chicago, 2018-2022 (ACS 5-year Estimates)
 
 ```{r}
 df <- usa_data  %>%  filter(year == 2022) %>% select(mex_foreign_born, educd, age, perwt) %>% filter(!is.na(mex_foreign_born))
@@ -930,8 +972,8 @@ table_2i <- education_rates %>% select(mex_foreign_born, education_level, weight
   kbl(
   , booktabs = TRUE,
   col.names = c("", "Number", "Percent", "Number", "Percent"),
-  align = c("l", rep("c", 4)),
-  caption = "Educational Attainment of Mexicans 25 and Older by Nativity, 2018-2022",
+  align = c("l", rep("r", 4)),
+  caption = "Educational Attainment of Population Aged 25 and over for Mexico Born and U.S. Born Mexicans in Chicago, 2018-2022 (ACS 5-year Estimates)",
   format.args = list(big.mark = ","),
   linesep = ""
 ) %>%
@@ -942,31 +984,29 @@ table_2i <- education_rates %>% select(mex_foreign_born, education_level, weight
     position = "center",
     latex_options = "HOLD_position"
   ) %>%
-  column_spec(1, width = "14.8em") %>%
-  column_spec(2:5, width = "6.3em") %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:5, width = "7.7em") %>%
    add_header_above(
     align = c("l", rep("c", 2)),
     c(
       "Educational Level", 
-      "Mexicans Born in Mexico" = 2, 
-      "Mexicans born in the U.S." = 2
+      "Mexicans Born\nin Mexico" = 2, 
+      "Mexicans Born\nin the U.S." = 2
     ),
     bold = TRUE, 
     font_size = 8
-  ) %>%
-  footnote(
-    general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
-    general_title = ""
-  ) 
+  ) %>% row_spec(0, align = "C") %>%  # Center column headers
+    add_footnote(
+    c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+    notation = "none",
+    threeparttable = TRUE,
+    escape = FALSE
+  )
+
 table_2i
 
 ```
 
 
 \elandscape
-
-
-
-
-
 

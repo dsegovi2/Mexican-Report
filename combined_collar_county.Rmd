@@ -62,7 +62,7 @@ library("RColorBrewer")
 # tinytex::latexmk("Housing_Visual.tex")
 options(knitr.kable.NA = '-') 
 
-usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
+usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
   mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
                                     hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
                                     hispan %in% c(2,3,4) ~ "Other Latinos",
@@ -112,7 +112,7 @@ mex_foreign_born = case_when(
 chicago_ca_pop <- read_sf("Data Tables/shp/comm_pop_chi_2022.shp") %>% as.data.frame() 
 
 ##### Chicago boarder
-Chicago_boundary_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
+Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
   st_transform(crs = 4326)
 # mapview(community_shp)
 
@@ -558,6 +558,67 @@ table_1b.2 <- df_final  %>% pivot_wider(id_cols = c("hispan_breakdown"), names_f
 
 
 table_1b.2
+```
+
+
+```{r fig.width=6, fig.height=5 ,fig.align='center'}
+# visual
+
+# Pivot data to long format and clean age_group names
+df_long <- df_final %>%
+  pivot_wider(id_cols = c("hispan_breakdown"), 
+              names_from = age_group, 
+              values_from = c("total_weighted_count", "total_weighted_percentage")) %>% 
+  select(hispan_breakdown, 
+         'total_weighted_percentage_Young (0-19)',
+         'total_weighted_percentage_Adults (20-39)',
+         'total_weighted_percentage_Middle-aged (40-59)',
+         'total_weighted_percentage_Older Adults (60-79)',
+         'total_weighted_percentage_Elderly (80+)') %>%
+  pivot_longer(cols = starts_with("total_weighted_percentage_"), 
+               names_to = "age_group", 
+               values_to = "percentage") %>%
+  mutate(age_group = gsub("total_weighted_percentage_", "", age_group),
+         percentage = as.numeric(gsub("%", "", percentage))) # Convert percentage to numeric
+
+# Reverse the order of age groups
+df_long <- df_long %>%
+  mutate(age_group = factor(age_group, 
+                            levels = c("Young (0-19)", "Adults (20-39)", "Middle-aged (40-59)", "Older Adults (60-79)", "Elderly (80+)")))
+
+# Define the custom colors for race_ethnicity
+color_hispan_breakdown <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
+                               "White (non-Hispanic or Latino)" = "#9CA168",
+                               "Black (non-Hispanic or Latino)" = "#8CBEC0",
+                               "Other (non-Hispanic or Latino)" = "#0B8489")
+
+# Create the bar chart with percentage labels
+ggplot(df_long, aes(x = age_group, y = percentage, fill = hispan_breakdown)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = paste0(percentage, "%")), 
+            position = position_dodge(width = 0.9), 
+            vjust = -1, 
+            size = 2, 
+            fontface = "bold") +
+  labs(title = "Age Group Distribution by Hispanic/Latino", 
+     caption = "Source: IPUMS-USA database (2018-2022). Tabulations by Great Cities Institute") +
+scale_y_continuous(breaks = seq(0, 40, by = 5)) +
+  theme_minimal() +
+  scale_fill_manual(values = color_hispan_breakdown, name = "Hispanic/Latino") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme_plots +   theme(axis.text.x = element_text(size = 8),
+        panel.background = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title.y = element_blank(),
+         axis.title.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line.y = element_blank(),
+        legend.key.size = unit(0.5, "lines"),
+        legend.position = "bottom",
+        legend.text = element_text(size = 7, color = "#636363"))  + # Increase margins to fit legend
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) # Distribute legend items across 2 rows
+
+```
+
 ```
 
 
@@ -2703,7 +2764,7 @@ table_3.b3_2
 
 ```{r}
 
-community_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries - Community Areas (current)/geo_export_2081dd0e-84f5-45c8-b501-f07b67ad9491.shp") %>% 
+community_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries - Community Areas (current)/geo_export_2081dd0e-84f5-45c8-b501-f07b67ad9491.shp") %>% 
   st_transform( crs = 4326) %>% 
   select(community,geometry)
 
@@ -3928,7 +3989,7 @@ table_5a.3_2
   
 
 
-cps_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/cps_00171.xml")) %>% 
+cps_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/cps_00171.xml")) %>% 
   clean_names() 
 
 
@@ -4185,7 +4246,7 @@ table_6.a1
 
 ```{r}
 # mapview(community_shp)
-collar_county_border <- st_read("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/cb_2018_us_county_500k/cb_2018_us_county_500k.shp") %>% 
+collar_county_border <- st_read("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/cb_2018_us_county_500k/cb_2018_us_county_500k.shp") %>% 
   filter(GEOID %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>% 
   st_transform(crs = 4326) %>% 
   select(GEOID,NAME, geometry) %>% 
