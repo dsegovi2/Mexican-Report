@@ -160,6 +160,15 @@ color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
                                "Black (non-Hispanic or Latino)" = "#8CBEC0",
                                "Other (non-Hispanic or Latino)" = "#0B8489")
 
+color_hispan_breakdown <- c(
+  "Mexican" = "#CE1126", 
+  "Puerto Rican" = "#32C2DC", 
+  "Ecuadorian" =  "#A9AD72",
+  "Cuban" = "#AB6E29", 
+  "Guatemalan" =  "#D3A668",
+  "Colombian" = "#F9C93C"
+)
+
 
 school_indicator <- read_csv("School/df_school.csv")
 
