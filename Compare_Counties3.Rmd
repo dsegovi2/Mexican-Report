@@ -10,6 +10,14 @@ output:
     extra_dependencies: ["float"]
     fig_caption: true
 mainfont: "Arial"
+header-includes:
+  - \usepackage{pdflscape}
+  - \newcommand{\blandscape}{\begin{landscape}}
+  - \newcommand{\elandscape}{\end{landscape}}
+  - \usepackage{caption} 
+  - \usepackage{booktabs} 
+  - \usepackage{longtable}
+  - \usepackage{threeparttablex}
 editor_options: 
   chunk_output_type: console
 ---
@@ -106,7 +114,8 @@ theme_plots <-
       legend.text = element_text(size = 8, color = "#636363"),
       legend.title = element_text(face = "bold", size = 8, color = "#636363")) 
 
-color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
+color_race_ethnicity <- c("Mexican" = "#CE1126", 
+                          "Other Hispanics or Latinos" = "#F9AA51",
                                "White (non-Hispanic or Latino)" = "#9CA168",
                                "Black (non-Hispanic or Latino)" = "#8CBEC0",
                                "Other (non-Hispanic or Latino)" = "#0B8489")
@@ -535,8 +544,8 @@ county_pop_1990_2020_tb <- county_pop_1990_2020 %>%
         col.names = c("Counties", "Total Population", "Total Hispanic or Latino",
                       "Total Mexican", "% Mexican of Hispanic or Latino", "% Mexican of Total Population"
                       ),
-      align = c("l",rep("c",6)),
-      caption = "Mexican and Hispanic/Latino Population in Cook County and Collar Counties, Illinois, 1980 to 2018-2022",
+      align = c("l",rep("r",6)),
+      caption = "Mexican and Hispanic or Latino Population in Chicago, Cook County, and Collar Counties, 1990, 2000, 2010 (Decennial Censuses), and 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
       linesep = "") %>%
   kable_classic(full_width = F,
@@ -550,26 +559,26 @@ county_pop_1990_2020_tb <- county_pop_1990_2020 %>%
   # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
   #                   # background = "#cbc9e2",
   #                   bold = T, font_size =8) %>%
-  row_spec(0, bold = T,
+  row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
            font_size = 8) %>%
 
-  pack_rows("1990", 1,7, hline_after = T  ) %>%
-  pack_rows("2000", 8, 14, hline_before = T , hline_after = T) %>%
-  pack_rows("2010", 15, 21,  hline_before = T , hline_after = T) %>%
-  pack_rows("2020", 22, 28,  hline_before = T, hline_after = T ) %>%
-  # pack_rows("2018-2022", 25, 30, hline_before = T, hline_after = T) %>% 
-  footnote(general = "Source: IPUMS NHGIS (1990, 2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.",
-           general_title = "") 
- #  add_footnote(c( "Source: IPUMS NHGIS (1980, 1990, 2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.", "Total Hispanic or Latino for 1980: person of Spanish/Hispanic origin or descent.", "Total Hispanic or Latino for 1990: person of Spanish/Hispanic origin.", "Total Hispanic or Latino for 2000: person of Spanish/Hispanic/Latino origin.", "Total Hispanic or Latino for 2010 and 2020: person of Hispanic, Latino, or Spanish origin."), threeparttable = TRUE,
- # notation = "symbol")
+  pack_rows("1990", 1,7, hline_after = T, indent=FALSE  ) %>%
+  pack_rows("2000", 8, 14, hline_before = T , hline_after = T, indent=FALSE) %>%
+  pack_rows("2010", 15, 21,  hline_before = T , hline_after = T, indent=FALSE) %>%
+  pack_rows("2018-2022", 22, 28,  hline_before = T, hline_after = T , indent=FALSE) %>%
+  footnote(general = "\\\\footnotesize{Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org (1990, 2000, 2010 Decennial Censuses, and 2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute. }",
+           general_title = "",
+           threeparttable = T,
+           escape = FALSE)
+  
 
 county_pop_1990_2020_tb
 
 ```
 
 
-
+\blandscape
 ```{r}
 county_pop_1990_2020_tb2 <- county_pop_1990_2020 %>% 
   filter(county != "Cook County") %>% 
@@ -586,9 +595,9 @@ county_pop_1990_2020_tb2 <- county_pop_1990_2020 %>%
   kable(booktabs = T,
         col.names = c("" , "Number", "Percent",
                       "Number", "Percent", "Number", "Percent",
-                      "Number", "Percent", "Number", "Growth Rate"),
-      align = c("l",rep("c",11)),
-      caption = "Mexican Population in Cook County and Collar Counties, Illinois, 1990 to 2018-2022",
+                      "Number", "Percent", "Number", "Percent Change"),
+      align = c("l",rep("r",11)),
+      caption = "Mexican Population in Chicago, Cook County, and Collar Counties, 1990, 2000, 2010 (Decennial Censuses), and 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
       linesep = "") %>%
   kable_classic(full_width = F,
@@ -602,21 +611,21 @@ county_pop_1990_2020_tb2 <- county_pop_1990_2020 %>%
   add_header_above( c("Counties", "1990" = 2,  "2000" = 2, "2010" = 2, "2018-2022" = 2, "Change from\n1990 to 2018-2022" = 2),
                     # background = "#cbc9e2",
                     bold = T, font_size =8) %>%
-  row_spec(0, bold = T,
+  row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
            font_size = 8) %>%
 
-  footnote(general = "Source: IPUMS NHGIS (1990, 2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.",
-           general_title = "") %>% 
-  kableExtra::landscape()
- #  add_footnote(c( "Source: IPUMS NHGIS (1980, 1990, 2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.", "Total Hispanic or Latino for 1980: person of Spanish/Hispanic origin or descent.", "Total Hispanic or Latino for 1990: person of Spanish/Hispanic origin.", "Total Hispanic or Latino for 2000: person of Spanish/Hispanic/Latino origin.", "Total Hispanic or Latino for 2010 and 2020: person of Hispanic, Latino, or Spanish origin."), threeparttable = TRUE,
- # notation = "symbol")
+  footnote(general = "\\\\footnotesize{Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org (1990, 2000, 2010 Decennial Censuses, and 2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute. }",
+           general_title = "",
+           threeparttable = T,
+           escape = FALSE)
 
 county_pop_1990_2020_tb2
 
 
 ```
 
+\elandscape
 
 ```{r}
 
@@ -652,8 +661,8 @@ line_chart <- county_pop_1990_2020 %>%
             size = 2 ) +
   theme_plots +
   labs(y="", x = "",
-       title="Mexican Population in Cook County and Collar Counties,\nIllinois, 1990 to 2018-2022",
-       caption = "Source: IPUMS NHGIS (1990, 2000, 2010 Census, and 2018-2022 ACS). Tabulations by Great Cities Institute",
+       title="Mexican Population in Chicago, Cook County, and Collar Counties,\n1990, 2000 (Decennial Censuses), 2008-2012, and 2018-2022 (ACS 5-year Estimates)",
+       caption = "Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org (1990, 2000, 2010 Decennial Censuses,\nand 2018-2022 American Community Survey 5-year Estimates).\nTabulations by Great Cities Institute.",
        color="") +
   
 
@@ -679,47 +688,65 @@ line_chart
 ```
 
 
-<!-- ```{r fig.width=6, fig.height=3.5 ,fig.align='center'} -->
+```{r}
+mxc_pop_2020_collar <- county_pop_1990_2020 %>%
+  filter(year == "2018-2022" & !county%in% c("Chicago", "Cook County Outside of Chicago", "Cook County")) %>%
+  mutate(county = "Collar County") %>% 
+  group_by(year, county) %>% 
+  summarise(mexican = sum(mexican),
+            total_pop = sum(total_pop),
+            total_his = sum(total_his)) %>% 
+  mutate(prc_mex_his = 100*round(mexican/total_his, 4),
+            prc_mex_total = 100*round(mexican/total_pop, 4)) %>% 
+  mutate(prc_mex_his2 = paste0(format(round(prc_mex_his, 1), nsmall = 1), "%"),
+         prc_mex_total2 = paste0(format(round(prc_mex_total, 1), nsmall = 1), "%")) 
+  
 
-<!-- # -->
-<!-- lollipop_chart <- county_pop_1980_2020 %>% -->
-<!--   # filter(county != "Cook County") %>% -->
-<!--   ggplot() + -->
-
-<!--   geom_line(aes(y = county, x = mexican, group = county, color = year), -->
-<!--             color = "#636363", -->
-<!--             linewidth =0.5 ) + -->
-<!--   geom_point(aes(y = county, x = mexican, group = county, color = year), -->
-<!--             shape = 20, -->
-<!--             # color = "#636363", -->
-<!--             size = 2 -->
-<!--             ) + -->
-<!--   labs(y="", x = "Population", -->
-<!--        title="Mexican Population Growth in Cook County and Collar Counties, 1980-2022", -->
-<!--        caption = "Source: IPUMS NHGIS database (1980, 1990, 2000, 2010, 2018-2022) \nTabulations by Great Cities Institute") + -->
-<!--   scale_x_continuous(breaks = seq(100000, 1000000, by = 200000), -->
-<!--                      labels = scales::label_comma()) + -->
-
-<!--   theme_plots + -->
-
-<!--   theme( -->
-<!--         axis.text.y = element_text(size = 8), -->
-<!--         panel.background = element_blank(), -->
-<!--         legend.position = "bottom", -->
-<!--         legend.text = element_text(size = 7, color = "#636363"), -->
-<!--         axis.ticks.y = element_blank(), -->
-<!--         axis.title.y = element_blank(), -->
-<!--         # axis.text.x = element_blank(), -->
-<!--         axis.line.y = element_blank(), -->
-<!--         axis.title.x = element_text(margin = margin(t = 10) -->
-<!--         )) -->
-
-<!-- lollipop_chart -->
-
-<!-- ``` -->
+mxc_pop_2020_cook <- county_pop_1990_2020 %>%
+  filter(year == "2018-2022" & county%in% c("Chicago", "Cook County Outside of Chicago")) %>% 
+  select(-state_county)
+  
+mxc_pop_2020_collar_cook <- rbind(mxc_pop_2020_cook, mxc_pop_2020_collar )
 
 
-### Maps
+mxc_pop_2020_collar_cook_tb <- mxc_pop_2020_collar_cook %>% 
+  ungroup() %>% 
+  select(county,  mexican, total_his, total_pop,  prc_mex_his2,prc_mex_total2) %>%
+  ## using kable
+  kable(booktabs = T,
+        col.names = c("Counties", "Mexican Population", "Hispanic or Latino Population", "Total Population", 
+                      "% Mexican of Hispanic or Latino", "% Mexican of Total Population"
+                      ),
+      align = c("l",rep("r",6)),
+      caption = "Mexican and Hispanic or Latino Population in Chicago, Cook County, and Collar Counties, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                # latex_options = "HOLD_position",
+                ) %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:6, width = "7.16em") %>%
+  # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T, align = "c",
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+  footnote(general = "\\\\footnotesize{Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
+           general_title = "",
+           threeparttable = T,
+           escape = FALSE)
+
+
+mxc_pop_2020_collar_cook_tb
+  
+```
+
+
+### Mexican Population in Cook County, and Collar Counties, 1990, 2000 (Decennial Censuses), 2008-2012, and 2018-2022 (ACS 5-year Estimates)
 
 ```{r fig.height=10, fig.width=8}
 
@@ -773,7 +800,7 @@ collar_mexican_map_2022 <-
   tm_facets(by = "year",
               ncol = 2) +
   tm_layout( frame = TRUE,
-            legend.width = 1,
+            # legend.width = 1,
             legend.title.size = .9,
             legend.text.size = 0.8,
             legend.title.fontface = "bold",
@@ -798,16 +825,23 @@ collar_mexican_map_2022 <-
                 labels = "% Mexican of\nTotal Population",
                 col = "#C91835",
                 title = "",
-                size = 5)
+                size = 5) 
+    # tm_credits("Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org (1990, 2000, 2010 Decennial Censuses, and 2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.",
+    #          position = c(0.05, -0.08),
+    #          size = 0.8, fontface = "bold")
   
 
 
 collar_mexican_map_2022
 
+  
+
+
+
+
 ```
 
 \clearpage
-
 
 ```{r}
 ### prc_mex_his2 = paste0(format(round(prc_mex_his, 1), nsmall = 1), "%")
@@ -851,17 +885,20 @@ pop_latino_2000_2020_tb <- pop_latino_2000_2020 %>%
         col.names = c("", "Number", "Percent",
                       "Number", "Percent",
                       "Number", "Percent",
-                      "Number", "Growth Rate"),
-      align = c("l" ,rep("c",8)),
-      caption = "Hispanic or Latino Population in Cook County and Collar Counties by Origin and Year, Illinois, 2000 to 2018-2022",
+                      "Number", "Percent Change"),
+      align = c("l" ,rep("r",8)),
+      caption = "Total Population for Hispanic or Latino Groups in Cook County and Collar Counties, 2000, 2010 (Decennial Census), and 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
       linesep = "") %>%
-  add_header_above( c("Origin", "2000" = 2, "2010" = 2, "2018-2022" = 2, "Change from 2000\nto 2018-2022" = 2),
+  add_header_above( c("", "2000" = 2, "2010" = 2, "2018-2022" = 2, "Change from 2000\nto 2018-2022" = 2),
                     # background = "#cbc9e2",
                     bold = T, font_size =8) %>%
-  row_spec(0, bold = T,
+  row_spec(0, 
+           # bold = T,
+           align = "c",
            # background = "#f2f0f7",
-           font_size = 8) %>% 
+           # font_size = 8
+           ) %>% 
   kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
@@ -871,21 +908,24 @@ pop_latino_2000_2020_tb <- pop_latino_2000_2020 %>%
                 ) %>%
 
 
-  pack_rows("Cook County", 1,8, hline_after = T  ) %>%
-  pack_rows("DuPage County", 9, 16, hline_before = T , hline_after = T) %>%
-  pack_rows("Kane County", 17, 24,  hline_before = T , hline_after = T) %>%
-  pack_rows("Lake County", 25, 32,  hline_before = T, hline_after = T ) %>%
+  pack_rows("Cook County", 1,8, hline_after = T, indent=FALSE  ) %>%
+  pack_rows("DuPage County", 9, 16, hline_before = T , hline_after = T, indent=FALSE) %>%
+  pack_rows("Kane County", 17, 24,  hline_before = T , hline_after = T, indent=FALSE) %>%
+  pack_rows("Lake County", 25, 32,  hline_before = T, hline_after = T , indent=FALSE) %>%
   pack_rows("McHenry County", 33, 40,  
             # hline_before = T, 
-            hline_after = T ) %>%
-  pack_rows("Will County", 41, 48,  hline_before = T, hline_after = T ) %>%
+            hline_after = T, indent=FALSE ) %>%
+  pack_rows("Will County", 41, 48,  hline_before = T, hline_after = T, indent=FALSE ) %>%
   # column_spec(1, width = "8em", border_left = FALSE, extra_css = "text-align: left;", monospace = TRUE) %>%
   row_spec(c(7,8, 15,16, 23, 24, 31, 32, 39, 40, 47, 48),  background = "#f2f0f7") %>% 
   row_spec(c(6, 14, 22, 30, 38, 46), hline_after = T) %>% 
-  column_spec(1, width = "12em") %>%
-  column_spec(2:8, width = "4.6em") %>%
-  footnote(general = "Source: IPUMS NHGIS (2000, 2010 Census, and 2018-2022). Tabulations by Great Cities Institute.",
-           general_title = "")
+  column_spec(1, width = "10.5em") %>%
+  column_spec(2:8, width = "4.2em") %>%
+  column_spec(8, width = "5em") %>% 
+  footnote(general = "\\\\footnotesize{Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org (2000, 2010 Decennial Censuses, and 2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute. }",
+           general_title = "",
+           threeparttable = T,
+           escape = FALSE)
 
 pop_latino_2000_2020_tb
 
