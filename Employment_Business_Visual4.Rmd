@@ -119,6 +119,7 @@ color_race_ethnicity <- c("Mexican" = "#CE1126",
                                "Black (non-Hispanic or Latino)" = "#8CBEC0",
                                "Other (non-Hispanic or Latino)" = "#0B8489")
 
+options(knitr.kable.NA = '-')
 ```
 
 
@@ -731,7 +732,7 @@ table_5a.3_2
 
 \clearpage
 
-## 5D: Transportation
+## 5C: Transportation
 
 ```{r}
 tranwork <- usa_data %>%
@@ -802,11 +803,10 @@ table_5.d
 
 \clearpage
 
-## 5C: Numbers and percentages of unionized Mexican workers
+## 5D: Numbers and percentages of unionized Mexican workers
 
 ```{r}
 
-options(knitr.kable.NA = '-')
 
 cps_ddi <- read_ipums_micro(read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/cps_00172.xml")) %>%
   clean_names()
@@ -885,6 +885,133 @@ escape = FALSE)
  table5b
 
 ``` 
+
+
+## 5E: Latino GDP, 2018
+
+```{r}
+latino_gdp <- data.frame(
+  Region = c("Illinois Latino GDP (5th highest state)",
+             "Chicago Metro Area (IL, IN, WI) Latino GDP (5th highest metro area)"),
+  GDP_Billions_Dollars = c(100.1, 97.5)
+)
+
+
+
+latino_gdp_tb <-  latino_gdp %>%
+  kbl(booktabs = T,
+      col.names = c("",  "Latino GDP (billions of dollars)"),
+      align = c("l",rep("r",1)),
+      caption = "Illinois and Chicago Metro Area Latino GDP, 2018",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+ kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  column_spec(1, width = "30em") %>%
+  column_spec(2, width = "10em") %>%
+  # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity",  "Total\nEmployed","Member of\nLabor Union" =2 ,"Covered by\nUnion but Not\na Member" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T, align = "c",
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+  footnote(general = "\\\\footnotesize{Data Source: 2023 U.S. Latino GDP Report, www.LatinoGDP.us (CLU-CERF, Bank of America State and Metro Latino GDP Reports).}",
+           general_title = "",
+           threeparttable = T,
+           escape = FALSE)
+  
+
+latino_gdp_tb
+```
+
+
+
+```{r}
+country_gdp <- data.frame(
+  Country = c("United States", "China", "Japan", "Germany", "US Latinos",
+              "India", "United Kingdom", "France", "Italy", "Canada", "Russia"),
+  GDP_Billions_Dollars = c(23315.1, 17759.3, 5005.5, 4262.8, 3159.7,
+                           3150.3, 3123.2, 2957.4, 2115.8, 2001.5, 1836.6)
+)
+
+country_gdp_tb <- country_gdp %>% 
+  kbl(booktabs = T,
+      col.names = c("Country",  "GDP (billions of dollars)"),
+      align = c("l",rep("r",1)),
+      caption = "2021 Latino GDP with 10 Largest Countries",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+ kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  column_spec(1, width = "20em") %>%
+  column_spec(2, width = "20em") %>%
+  # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity",  "Total\nEmployed","Member of\nLabor Union" =2 ,"Covered by\nUnion but Not\na Member" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T, align = "c",
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+  footnote(general = "\\\\footnotesize{Data Source: 2023 U.S. Latino GDP Report, www.LatinoGDP.us (International Monetary Fund and Organization for Economic Cooperation and Development).}",
+           general_title = "",
+           threeparttable = T,
+           escape = FALSE)
+  
+country_gdp_tb
+```
+
+## 5F: Business Ownership
+
+```{r}
+business_ownership <- data.frame(
+  Ownership = c("Hispanic", 
+                "Not Hispanic", 
+                "Owned equally by both groups", 
+                "American Indian and Alaska Native (non-Hispanic)",
+                "Asian (non-Hispanic)", 
+                "Black or African American (non-Hispanic)", 
+                "Native Hawaiian and Other Pacific Islander (non-Hispanic)", 
+                "White (non-Hispanic)"),
+  Without_Employees = c(124000, 708000, 1200, 3000, 80000, 146000, 700, 488000),
+  With_Employees = c(15499, 173587, 1216, 441, 20290, 5541, 71, 147353),
+  Total_Businesses = c(139499, 881587, 2416, 3441, 100290, 151541, 771, 635353)
+)
+
+business_ownership_tb <- business_ownership %>% 
+  kbl(booktabs = T,
+      col.names = c("Ownership",  "Without Employees", "With Employees", "Total Businesses"),
+      align = c("l",rep("r",3)),
+      caption = "Business count by owner demographic group in Chicago-Naperville-Elgin, IL-IN-WI Metro Area",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+ kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  column_spec(1, width = "19em") %>%
+  column_spec(2, width = "7em") %>%
+  # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity",  "Total\nEmployed","Member of\nLabor Union" =2 ,"Covered by\nUnion but Not\na Member" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T, align = "c",
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+  add_footnote(c("\\footnotesize{Note: Counts include only businesses classifiable by owner demographic group}", "\\footnotesize{Data Sources: Annual Business Survey, 2021 (Census); Nonemployer Statistics by Demographics, 2021 (Census)
+}"),
+notation = "none",
+threeparttable = T,
+escape = FALSE)
+  
+business_ownership_tb
+```
+
+
 
 
 
