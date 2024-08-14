@@ -1,0 +1,160 @@
+---
+title: "Comparison To Other Cities"
+author: ""
+date: "Great Cities Institute"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    highlight: pygments
+    extra_dependencies: ["float"]
+    fig_caption: true
+mainfont: "Arial"
+header-includes:
+  - \usepackage{caption} 
+  - \usepackage{booktabs} 
+  - \usepackage{longtable}
+  - \usepackage{threeparttablex} 
+  - \newcommand{\blandscape}{\begin{landscape}}
+  - \newcommand{\elandscape}{\end{landscape}}
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.pos="H")
+
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+
+library(ipumsr)
+library(tidyverse)
+library(purrr)
+library(sf)
+library(tidycensus)
+library(tidyr)
+library(readxl)
+library(sf)
+library(htmltools)
+library(leaflet)
+library(janitor)
+library(data.table)
+library(tinytex)
+library(survey) # for survey analysis
+library(srvyr)  # for tidy survey analysis
+library(tmap)
+library("kableExtra") 
+library(tmaptools)
+library("RColorBrewer") 
+
+options(knitr.kable.NA = '-') 
+library(readr)
+msa_table_ownership_income <- read_csv("msa_table_ownership_income.csv")
+
+county_table_ownership_income <- read_csv("county_table_ownership_income.csv")
+
+
+```
+
+
+
+\renewcommand{\arraystretch}{1.4}
+\clearpage
+
+ 
+
+# Comparison of Chicago Mexican Community to Major Counties and Metropolitan Statistical Areas
+
+
+# 1: Income and Home Ownership for Mexicans by 10 Metropolitan Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)
+
+```{r}
+table_1 <- msa_table_ownership_income %>% select(metro_name, total_pop, total_mexican,  prc_mexican, avg_incwage, weighted_median_incwage, per2) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+       col.names = c("Metro Name", "Total Population", "Total Mexican Population",  "% Mexicans of Total Pop", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
+      align = c("l",rep("r",6)),
+      caption = "Income and Home Ownership for Mexicans by 10 Metropolitan Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:7, width = "5.1em") %>%  
+
+  row_spec(0, bold = T, align = "c",
+             #background = "#f2f0f7",
+            font_size = 7.5) %>%
+  add_footnote(
+  c(
+    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
+    "\\footnotesize{Note: The data includes all employed individuals, regardless of whether they work full-time or part-time.}"
+  ),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+
+table_1 
+
+
+```
+
+
+
+
+# 2: Income and Home Ownership for Mexicans by 10 Counties with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)
+
+
+
+```{r}
+table_2 <- county_table_ownership_income %>% select(county_name, total_pop, total_mexican,  prc_mexican, avg_incwage, weighted_median_incwage, per2) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+       col.names = c("County Name", "Total Population", "Total Mexican Population", "% Mexicans of Total Pop", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
+      align = c("l",rep("r",6)),
+      caption = "Income and Home Ownership for Mexicans by 10 Counties with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:7, width = "5.1em") %>%  
+  
+row_spec(0, bold = T, align = "c",
+             #background = "#f2f0f7",
+            font_size = 7.5) %>%
+  add_footnote(
+  c(
+    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
+    "\\footnotesize{Note: The data includes all employed individuals, regardless of whether they work full-time or part-time.}"
+  ),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+
+table_2
+
+
+```
+
+
+
+
+ 

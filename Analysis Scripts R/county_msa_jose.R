@@ -43,18 +43,18 @@ get_metadata_nhgis(dataset = "2018_2022_ACS5b")
 
 ## Data Extract: MSA
 
-extract <- define_extract_nhgis(
-  "Multiple ACS Data via IPUMS API",
-  datasets = list(
-    ds_spec("2018_2022_ACS5b", data_tables = c("B03001"), geog_levels = c("cbsa"))
-   
-  )
-   
-    
-) %>%
-  submit_extract() %>%
-  wait_for_extract() %>%
-  download_extract()
+# extract <- define_extract_nhgis(
+#   "Multiple ACS Data via IPUMS API",
+#   datasets = list(
+#     ds_spec("2018_2022_ACS5b", data_tables = c("B03001"), geog_levels = c("cbsa"))
+#    
+#   )
+#    
+#     
+# ) %>%
+#   submit_extract() %>%
+#   wait_for_extract() %>%
+#   download_extract()
 
 
 # 1A: Mexican population, concentration by MSA and County. 
@@ -64,7 +64,7 @@ extract <- define_extract_nhgis(
 
 # MSA
 
-nhgis_csv_file <- "C:/Users/dsegovi2//Documents/Mexican-Report/nhgis0057_csv.zip"
+nhgis_csv_file <- "C:/Users/dsegovi2//Box/Great Cities Institute/Research/Mexican Report/nhgis0057_csv.zip"
 
 
 # merge sf with df
@@ -76,7 +76,7 @@ top_10_msa <- extract_2018_2022_df %>% group_by(NAME_E,CBSAA) %>%
             prc_mexican = 100* round(total_mexican /total_pop, 4),
              total_hisp_pop = sum(AQYYE003, na.rm = T),
               prc_mexican_hisp = 100* round(total_mexican /total_hisp_pop, 4)) %>% select(NAME_E, total_pop, total_mexican, prc_mexican) %>% arrange(desc(total_mexican)) %>% ungroup() %>%
-  slice_head(n = 10)
+  slice_head(n = 10)  %>% rename(metro_name = NAME_E)
 
 # variable: AQYYE004:    Hispanic or Latino: Mexican
 
@@ -85,24 +85,23 @@ top_10_msa <- extract_2018_2022_df %>% group_by(NAME_E,CBSAA) %>%
 
 ## Data Extract: County
 
-extract <- define_extract_nhgis(
-  "Multiple ACS Data via IPUMS API",
-  datasets = list(
-    ds_spec("2018_2022_ACS5b", data_tables = c("B03001"), geog_levels = c("county"))
-   
-  )
-   
-    
-) %>%
-  submit_extract() %>%
-  wait_for_extract() %>%
-  download_extract()
+# extract <- define_extract_nhgis(
+#   "Multiple ACS Data via IPUMS API",
+#   datasets = list(
+#     ds_spec("2018_2022_ACS5b", data_tables = c("B03001"), geog_levels = c("county"))
+#    
+#   )
+#    
+#     
+# ) %>%
+#   submit_extract() %>%
+#   wait_for_extract() %>%
+#   download_extract()
 
 
 
 # MSA
-
-nhgis_csv_file <- "C:/Users/dsegovi2//Documents/Mexican-Report/nhgis0059_csv.zip"
+nhgis_csv_file <- "C:/Users/dsegovi2//Box/Great Cities Institute/Research/Mexican Report/nhgis0059_csv.zip"
 
 
 # merge sf with df
@@ -114,26 +113,19 @@ extract_2018_2022_df <- read_nhgis(nhgis_csv_file, file_select = matches("nhgis0
             prc_mexican = 100* round(total_mexican /total_pop, 4),
              total_hisp_pop = sum(AQYYE003, na.rm = T),
               prc_mexican_hisp = 100* round(total_mexican /total_hisp_pop, 4)) %>% select(NAME_E, total_pop, total_mexican, prc_mexican) %>% arrange(desc(total_mexican))  %>% ungroup() %>%
-  slice_head(n = 10)
+  slice_head(n = 10) %>% rename(county_name = NAME_E)
 
 
-county_pop <- extract_2018_2022_df %>% group_by(NAME_E,TL_GEO_ID) %>% 
-  mutate(total_pop = sum(AQYYE001, na.rm = T),
-            total_mexican = sum(AQYYE004, na.rm = T),
-            prc_mexican = 100* round(total_mexican /total_pop, 4),
-             total_hisp_pop = sum(AQYYE003, na.rm = T),
-              prc_mexican_hisp = 100* round(total_mexican /total_hisp_pop, 4)) %>% select(NAME_E, total_pop, total_mexican, prc_mexican) %>% arrange(desc(total_mexican))
 
 
+# Read in USA Data
+
+
+ddi_file <- read_ipums_ddi("C:/Users/dsegovi2//Box/Great Cities Institute/Research/Mexican Report/usa_00059.xml") 
+
+data_everything <- read_ipums_micro(ddi_file) %>% mutate(across(16:62, as_factor, .names = "{col}_f")) %>% clean_names()
 
 ## Income
-
-```{r}
-ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Documents/Mexican-Report/usa_00059.xml") 
-  
-data_everything <- read_ipums_micro(ddi_file)
-
-data_everything <- data_everything %>% mutate(across(16:62, as_factor, .names = "{col}_f")) %>% clean_names()
 
 usa_data <- data_everything  %>%
   mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
@@ -175,14 +167,17 @@ usa_data <- data_everything  %>%
  mutate(hispan_breakdown = factor(hispan_breakdown, level = c("Mexican", "Puerto Rican","Ecuadorian", "Cuban", "Guatemalan", "Colombian"))
   )
 
-```
+# convert to character
 
+usa_data$met2013 <- as.character(usa_data$met2013)
+usa_data$met2013 <- as.character(usa_data$met2013)
+usa_data$stateicp <- as.character(usa_data$stateicp)
+usa_data$countyfip <- as.character(usa_data$countyfip)
 
 
 ## 1D(2.2): Mean and Median Income for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
 
 # MSA 
-```{r}
 data_chi_2018_22 <- usa_data  %>%
   filter(year== 2022) %>%
   filter(met2013 %in% c("31080", "40140", "26420", "19100", "16980", "38060", "41700", "41740", "32580", "21340")) %>%
@@ -235,14 +230,8 @@ income_levels_msa <- weighted_avg_income %>% left_join(weighted_median_income)  
   mutate(
     avg_incwage  = paste0("$", format(avg_incwage , big.mark = ",", scientific = FALSE)),
     weighted_median_incwage  = paste0("$", format(weighted_median_incwage , big.mark = ",", scientific = FALSE))
-  )
+  )  %>% filter(race_ethnicity == "Mexican")
 
-
-```
-# County
-
-
-```{r}
 
 
 # # california: 71
@@ -262,9 +251,6 @@ income_levels_msa <- weighted_avg_income %>% left_join(weighted_median_income)  
 # 
 # # IL: 21
 # Cook County, Illinois: 31
-
-usa_data$stateicp <- as.character(usa_data$stateicp)
-usa_data$countyfip <- as.character(usa_data$countyfip)
 
 
 usa_data_filtered <- usa_data %>%
@@ -305,8 +291,6 @@ usa_data_filtered <- usa_data %>%
 filtered_data <- usa_data_filtered %>%
   filter(incwage  > 0 & incwage  < 999999,  empstat == 1)
 
-
-
 # Define the survey design using srvyr with only weights
 survey_design <- filtered_data  %>%
   as_survey_design(weights = perwt)
@@ -334,10 +318,7 @@ income_levels_county <- weighted_avg_income %>% left_join(weighted_median_income
   mutate(
     avg_incwage  = paste0("$", format(avg_incwage , big.mark = ",", scientific = FALSE)),
     weighted_median_incwage  = paste0("$", format(weighted_median_incwage , big.mark = ",", scientific = FALSE))
-  )
-
-
-```
+  ) %>% filter(race_ethnicity == "Mexican")
 
 
 
@@ -346,9 +327,6 @@ income_levels_county <- weighted_avg_income %>% left_join(weighted_median_income
 ## home ownership 
 
 # county
-
-```{r}
-
 
 # # california: 71
 # Los Angeles County, California: 37
@@ -367,10 +345,6 @@ income_levels_county <- weighted_avg_income %>% left_join(weighted_median_income
 # 
 # # IL: 21
 # Cook County, Illinois: 31
-
-usa_data$stateicp <- as.character(usa_data$stateicp)
-usa_data$countyfip <- as.character(usa_data$countyfip)
-
 
 usa_data_filtered <- usa_data %>%
   filter(
@@ -418,20 +392,12 @@ usa_data_filtered <- usa_data %>%
   group_by(county_name, race_ethnicity) %>% 
   mutate(total = sum(count),
          per = 100*round(count/total, 4),
-         per2 = paste0(format(round(per, 1), nsmall = 1), "%")) 
+         per2 = paste0(format(round(per, 1), nsmall = 1), "%")) %>% filter(race_ethnicity == "Mexican" & ownershp_f == "Owned or being bought (loan)") 
  
  
-
-
-```
-
-
+ 
 
 # msa
-
-```{r}
-usa_data$met2013 <- as.character(usa_data$met2013)
-
 
 data_chi_2018_22 <- usa_data  %>%
   filter(year== 2022) %>%
@@ -461,28 +427,22 @@ mutate(metro_name = case_when(
   group_by(metro_name, race_ethnicity) %>% 
   mutate(total = sum(count),
          per = 100*round(count/total, 4),
-         per2 = paste0(format(round(per, 1), nsmall = 1), "%")) 
+         per2 = paste0(format(round(per, 1), nsmall = 1), "%")) %>% filter(race_ethnicity == "Mexican" & ownershp_f == "Owned or being bought (loan)") 
  
  
  
-  
-```
+msa_table <- top_10_msa %>%  left_join(income_levels_msa %>% select(metro_name, avg_incwage, weighted_median_incwage)) %>% left_join(ownership_msa %>% select(metro_name, ownershp_f, per,
+per2)) %>%   mutate(prc_mexican = paste0(format(round(prc_mexican, 1), nsmall = 1), "%"))
 
 
-# export
+write.csv(msa_table, file = "msa_table_ownership_income.csv")
 
-# Export the data frame to CSV
+county_table <- top_10_county %>% left_join(income_levels_county %>% select(county_name, avg_incwage, weighted_median_incwage)) %>% left_join(ownership_county %>% select(county_name, ownershp_f, per,
+per2))  %>% mutate(prc_mexican = paste0(format(round(prc_mexican, 1), nsmall = 1), "%"))
 
-write.csv(income_levels_county, "income_levels_county.csv")
-
-write.csv(income_levels_msa, "income_levels_msa.csv")
-
-
-write.csv(ownership_msa, "ownership_msa.csv")
+write.csv(county_table, file = "county_table_ownership_income.csv")
 
 
-
-write.csv(ownership_county, "ownership_county.csv")
 
 
 
