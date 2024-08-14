@@ -69,7 +69,7 @@ library("RColorBrewer")
 options(knitr.kable.NA = '-')
  
 ##### Chicago boarder
-Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
+Chicago_boundary_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
   st_transform(crs = 4326)
 # mapview(community_shp)
 
@@ -144,7 +144,7 @@ table_6b <- election_df %>%  kbl(, booktabs = T,
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "12.5em") %>%
   column_spec(2:5, width = "8.1em") %>%
-   row_spec(16, background = "#ADD8E6") %>%  # Highlight 16th row in light blue
+   row_spec(16, background = "#f2f0f7") %>%  # Highlight 16th row in light blue
   add_footnote(
   c("\\footnotesize{Data source: U.S. Census Bureau, 'Voting and Registration in Election of November 2020,' Table 4a 'Voting and Registration By States,' GCI tabulation of states with more than 300,000 Latino citizens over age 18}"),
   notation = "none",

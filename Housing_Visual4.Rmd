@@ -1,0 +1,684 @@
+---
+title: "Mexican Report"
+author: "Housing"
+date: "Great Cities Institute"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    highlight: pygments
+    extra_dependencies: ["float"]
+    fig_caption: true
+mainfont: "Arial"
+header-includes: 
+  - \usepackage{caption} 
+  - \usepackage{booktabs} 
+  - \usepackage{longtable}
+  - \usepackage{threeparttablex} 
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.pos="H")
+
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+library(ipumsr)
+library(tidyverse)
+library(purrr)
+library(sf)
+library(tidycensus)
+library(tidyr)
+library(readxl)
+library(sf)
+library(htmltools)
+library(leaflet)
+library(janitor)
+library(data.table)
+library(tinytex)
+library(survey) # for survey analysis
+library(srvyr)  # for tidy survey analysis
+library(tmap)
+library("kableExtra") 
+library(tmaptools)
+library("RColorBrewer") 
+# library(OpenStreetMap)
+# remotes::install_github('yihui/knitr')
+# install.packages("knitr")
+# library(knitr)
+# options(tinytex.verbose = TRUE)
+# tinytex::reinstall_tinytex()
+# install.packages('tinytex')
+
+# update.packages(ask = FALSE, checkBuilt = TRUE)
+# tinytex::tlmgr_update()
+# tinytex::latexmk("Housing_Visual.tex")
+
+
+##### Chicago boarder
+Chicago_boundary_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
+  st_transform(crs = 4326)
+# mapview(community_shp)
+
+# Get the current bounding box of the data
+bbox_data <- st_bbox(Chicago_boundary_shp)
+
+# Calculate the range of x and y values in degrees
+xrange <- bbox_data$xmax - bbox_data$xmin
+yrange <- bbox_data$ymax - bbox_data$ymin
+
+# Calculate the center of the bounding box
+center_x <- (bbox_data$xmin + bbox_data$xmax) / 2
+center_y <- (bbox_data$ymin + bbox_data$ymax) / 2
+# Modify the bounding box to fit the desired width while keeping the height the same
+bbox_new <- c(center_x - 0.24,
+              center_y - 0.23,
+              center_x + 0.23,
+              center_y + 0.23)
+
+# osm_chicago <- read_osm(bbox_new, 
+#                         type = "bing")
+
+
+theme_plots <-
+  theme_minimal() +
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(color="#969696", linewidth = 1),
+        plot.title = element_text(face ="bold", size = 10, hjust = 0.5),
+      plot.subtitle = element_text(face ="italic", size = 8, color = "#636363"),
+      axis.text = element_text(size = 9),
+      axis.title = element_text(face ="bold", size = 9),
+      plot.caption = element_text(hjust = 0, size = 8, color = "black"),
+      legend.text = element_text(size = 8, color = "#636363"),
+      legend.title = element_text(face = "bold", size = 8, color = "#636363")) 
+```
+
+\renewcommand{\arraystretch}{1.4}
+\setlength\belowcaptionskip{7pt}
+\clearpage
+
+```{r}
+
+usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
+  mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
+                                    hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
+                                    hispan %in% c(2,3,4) ~ "Other Hispanics or Latinos",
+                                    hispan ==1 ~ "Mexican", 
+                                    hispan ==0 & race %in%c(3:9) ~ "Other (non-Hispanic or Latino)",
+                                    TRUE ~ NA_character_)) %>% 
+  mutate(race_ethnicity = factor(race_ethnicity, level = c("Mexican", "Other Hispanics or Latinos","White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)",  "Other (non-Hispanic or Latino)")))
+
+
+
+```
+
+
+# Housing
+
+## 3.A: Rates of home ownership and rental housing among Mexicans with historical trends and comparisons to other groups.
+
+```{r}
+
+homeownership = usa_data %>% 
+  filter( city == 1190, pernum == 1) %>%  
+  
+  as_survey_design(weights = hhwt) %>% 
+  survey_count(year, race_ethnicity, ownershp_f, name="count") %>% 
+  
+  filter(ownershp_f != "N/A") %>% 
+  filter(!is.na(race_ethnicity)) %>% 
+  
+  group_by(year, race_ethnicity) %>% 
+  mutate(total = sum(count),
+         per = 100*round(count/total, 4),
+         per2 = paste0(format(round(per, 1), nsmall = 1), "%")) %>% 
+  mutate(scale = "Chicago")
+  
+
+ownership_nation <- read.csv("Data Tables/homeownership_nation.csv") %>% 
+  mutate(per2 = paste0(format(round(per, 1), nsmall = 1), "%")) %>% 
+  select(-X) %>% 
+  mutate(scale = "USA") %>% 
+  mutate(race_ethnicity = if_else(race_ethnicity == "Other Latinos","Other Hispanics or Latinos", race_ethnicity ))
+
+ownership_join <- rbind(homeownership, ownership_nation)
+
+
+
+
+ownership_join2 <-  ownership_join %>% 
+  
+  filter(ownershp_f == "Owned or being bought (loan)") %>% 
+
+  pivot_wider(id_cols =  c(race_ethnicity, ownershp_f, scale), names_from = "year", values_from = c(count, per, per2)) %>% 
+
+  mutate(diff2000_2022 = count_2022 - count_2000,
+         diff_per = round(per_2022 - per_2000, 4), 
+         diff_per2 = paste0(format(round(diff_per, 1), nsmall = 1), "%") 
+         ) %>% 
+  select(race_ethnicity, count_2000, per2_2000, count_2012, per2_2012, count_2022, per2_2022, diff2000_2022, diff_per2)
+ 
+
+table_a3 <- ownership_join2 %>% 
+  
+  kbl(booktabs = T,
+      col.names = c("", "Number", "Percent" , "Number", "Percent", "Number", "Percent", "Number", "Percent"),
+      align = c("l",rep("r",8)),
+      caption = "Homeownership for Mexicans and Other Racial/Ethnic Groups in Chicago and the U.S., 2000 (Decennial Census), 2008-2012, and 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "") %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  # row_spec(0, align = "C") %>%
+  pack_rows("Chicago", 1,5, hline_after = T , indent=FALSE) %>%
+  pack_rows("U.S.", 6, 10, hline_before = T , hline_after = T, indent=FALSE) %>%
+
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:9, width = "3.85em") %>%
+  
+  
+  add_header_above( align = c("l", rep("c",4)), c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
+                    # background = "#cbc9e2", 
+                    bold = T, font_size =8) %>% 
+  # row_spec(0, bold = T, 
+  #          # background = "#f2f0f7",
+  #          font_size = 8) %>% 
+  
+  row_spec(0, align = "C") %>%
+  add_footnote(c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2000 Decennial Census, 2018-2012, and 2018-2022 American Community Survey 5-year Estimates).Tabulations by Great Cities Institute.}"),
+notation = "none",
+threeparttable = T,
+escape = FALSE)
+  # 
+  # footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2000 Decennial Census, 2018-2012, and 2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
+  #          general_title = "",
+  #          threeparttable = T,
+  #          escape = FALSE)
+
+table_a3
+
+```
+
+
+<!-- ```{r} -->
+
+<!-- color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51", -->
+<!--                                "White (non-Hispanic or Latino)" = "#9CA168", -->
+<!--                                "Black (non-Hispanic or Latino)" = "#8CBEC0", -->
+<!--                                "Other (non-Hispanic or Latino)" = "#0B8489") -->
+
+
+<!-- ownership_join2 <- ownership_join %>% filter(ownershp_f == "Owned or being bought (loan)") %>%  -->
+
+<!--   mutate(year = case_when(year == 2000 ~ "2000", -->
+<!--                           year == 2012 ~ "2008-2012", -->
+<!--                           year == 2022 ~ "2018-2022"), -->
+<!--          year = factor(year, levels = c("2000", "2008-2012", "2018-2022"))) -->
+
+
+<!--   ownership_join2 %>%  -->
+<!--   ggplot() + -->
+
+
+
+<!--     geom_bar(aes( -->
+<!--                x =  year, -->
+<!--              y = per, -->
+<!--              fill = interaction(scale, race_ethnicity)),  -->
+<!--              position=position_dodge(width=0.7), stat = "identity",  -->
+<!--            color = "white",  -->
+<!--            width=0.7) + -->
+<!-- facet_wrap (~ race_ethnicity) + -->
+<!--     scale_fill_manual(values = c("Chicago.Mexican" = "#CE1126", -->
+<!--                                "Chicago.Other Latinos" = "#F9AA51", -->
+<!--                                "Chicago.White (non-Hispanic or Latino)" = "#9CA168", -->
+<!--                                "Chicago.Black (non-Hispanic or Latino)" = "#8CBEC0", -->
+<!--                                "Chicago.Other (non-Hispanic or Latino)" = "#0B8489", -->
+<!--                                "USA.Mexican" = "gray", -->
+<!--                                "USA.Other Latinos" = "gray", -->
+<!--                                "USA.White (non-Hispanic or Latino)" = "gray", -->
+<!--                                "USA.Black (non-Hispanic or Latino)" = "gray", -->
+<!--                                "USA.Other (non-Hispanic or Latino)" = "gray"))  -->
+<!--   labs(y="", x = "", -->
+<!--        title="Homeownership by Race/Ethnicity in Chicago and USA, 2000 to 2018-2022", -->
+<!--        caption = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute", -->
+<!--        fill="")  -->
+<!--   # scale_fill_manual(values = color_race_ethnicity) +  -->
+<!--   # geom_text(aes(label = prc2), -->
+<!--   #           position=position_dodge(width=0.7),  -->
+<!--   #           vjust = -0.5, -->
+<!--   #           hjust = 0.5, -->
+<!--   #           size = 2.5) + -->
+<!--   #  -->
+<!--   # scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) + # Modify labels of ggplot2 barplot -->
+<!--   # scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0,100), breaks = seq(0, 100, by = 100)) + -->
+<!--   #  -->
+<!--   # theme_plots + -->
+<!--   # theme( -->
+<!--   #   # axis.text.x = element_text(size = 8), -->
+<!--   #       panel.background = element_blank(), -->
+<!--   #       # axis.ticks.y = element_blank(), -->
+<!--   #       # axis.title.y = element_blank(), -->
+<!--   #       axis.text.y = element_blank(), -->
+<!--   #       axis.line.y = element_blank(), -->
+<!--   #       legend.position = "bottom", -->
+<!--   #       legend.text = element_text(size = 7, color = "#636363"), -->
+<!--   #       legend.key.size = unit(0.5, "lines"))+ -->
+<!--   # guides(fill = guide_legend(nrow = 2, byrow = TRUE))  -->
+
+
+
+
+
+<!-- ``` -->
+
+
+## 3.B: Number and percentage of Mexicans who, live in crowded housing, or are rent-burdened.
+
+```{r}
+
+
+## Be careful rooms == 0 is NA but it is overcrowded
+overcrowded = usa_data %>%
+  filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+
+
+  as_survey_design(weights = hhwt) %>%
+  survey_count(year, race_ethnicity, rooms, numprec, name="count") %>%
+  mutate(p_per_room = numprec/rooms,
+         overcrowded = if_else(p_per_room >1, "Overcrowded", "Not Overcowded")) %>%
+
+  group_by(year, race_ethnicity) %>%
+  mutate(total = sum(count, na.rm = T)) %>%
+  filter(rooms != 0 ) %>%  ## rooms == 0 is NA but it is overcrowded
+  ungroup() %>%
+  group_by(year, race_ethnicity, overcrowded, total) %>%
+
+  summarise(count_sum = sum(count)) %>%
+  mutate(per = 100*round(count_sum/total, 4),
+         per2 = paste0(format(round(per, 1), nsmall = 1), "%")) %>%
+  ungroup()
+
+```
+
+
+### 1. Crowded Housing
+
+```{r}
+
+table_3.b1 <- overcrowded %>%
+
+  filter(overcrowded == "Overcrowded" ) %>%
+
+  select(race_ethnicity, count_sum , per2) %>%
+
+   # using kable
+
+  kbl(, booktabs = T,
+      col.names = c("Race/Ethnicity", "Number", "Percent"  ),
+      align = c("l",rep("r",2)),
+      caption = "Number and Percent of Households Living in Crowded Housing for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  # row_spec(0, align = "c") %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:3, width = "12.9em") %>%
+  # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T,
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+  add_footnote(c("\\footnotesize{Note: Housing is defined as overcrowded if more than one person in the room.}" ,"\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+notation = "none",
+threeparttable = T,
+escape = FALSE)
+
+
+table_3.b1
+
+```
+
+
+### 2. Rent burdened
+
+```{r}
+rent_burdened = usa_data %>%
+  select(pernum, city, year, rentgrs, hhincome, ownershp_f, hhwt, race_ethnicity ) %>%
+  filter( city == 1190, pernum == 1, year == 2022) %>%
+
+  group_by(race_ethnicity, ownershp_f) %>%
+  mutate(total = sum(hhwt, na.rm = T)) %>%
+  ungroup() %>%
+  filter(hhincome != 9999999 ) %>%
+  filter(rentgrs!= 0) %>%
+
+  mutate(monthly_income = hhincome/12,
+        rent_income = rentgrs/monthly_income,
+         burdened_30 = if_else(rent_income >0.3 , "More than 30%","Less than 30%"),
+         burdened_50 = if_else(rent_income >0.5, "More than 50%", "Less than 50%")) %>%
+  as_survey_design(weights = hhwt) %>%
+  survey_count(year, race_ethnicity, total,ownershp_f, burdened_30, burdened_50 , name="count") %>%
+  mutate(per = 100*round(count/total, 4),
+         per2 = paste0(format(round(per, 1), nsmall = 1), "%"))
+
+
+  ####### prepare data for the table
+
+table_3.b2 = rent_burdened %>%
+  filter( burdened_30 != "Less than 30%") %>%
+  group_by(race_ethnicity ) %>%
+
+  summarise(more_30_count = sum(count[burdened_30== "More than 30%"]),
+            more_50_count = sum(count[burdened_50== "More than 50%"]),
+            more_30_per = 100 *round(more_30_count/total, 4),
+            more_30_per2 = paste0(format(round(more_30_per, 1), nsmall = 1), "%"),
+            more_50_per = 100 *round(more_50_count/total, 4),
+            more_50_per2 = paste0(format(round(more_50_per, 1), nsmall = 1), "%")) %>%
+  distinct()
+
+
+
+table_3.b2_2 <- table_3.b2 %>%
+  select(race_ethnicity, more_30_count, more_30_per2, more_50_count, more_50_per2) %>%
+
+  # using kable
+
+  kbl(booktabs = T,
+      col.names = c("", "Number", "Percent" , "Number", "Percent" ),
+      align = c("l",rep("r",4)),
+      caption = "Number and Percent of Rent Burdened Households for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:5, width = "6.45em") %>%
+  row_spec(0, align = "c") %>%
+  add_header_above( align = c("l", rep("c",2)), c("Race/Ethnicity", "More than 30% of\nHousehold Income Spent\non Rental Costs" = 2, "More than 50% of\nHousehold Income Spent\non Rental Costs" = 2),
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>% 
+  add_footnote(c("\\footnotesize{Note: Rent cost burdened households defined as households paying 30 percent or more of household income on rental housing costs.}" ,"\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+notation = "none",
+threeparttable = T,
+escape = FALSE)
+
+
+table_3.b2_2
+
+
+```
+
+
+### 3. Own Cost Burdened
+
+```{r}
+
+owncost_burdened = usa_data %>%
+  select(pernum, city, year, owncost, hhincome, ownershp_f, hhwt, race_ethnicity ) %>% 
+  filter( city == 1190, pernum == 1, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+
+  group_by(race_ethnicity, ownershp_f) %>%
+  mutate(total = sum(hhwt, na.rm = T)) %>%
+  ungroup() %>%
+  filter(hhincome != 9999999 ) %>%
+  filter(owncost!= 99999) %>%
+
+  mutate(monthly_income = hhincome/12,
+         owncost_income = owncost/monthly_income,
+         burdened_30 = if_else(owncost_income >0.3 , "More than 30%","Less than 30%"),
+         burdened_50 = if_else(owncost_income >0.5, "More than 50%", "Less than 50%")) %>%
+
+  as_survey_design(weights = hhwt) %>%
+  survey_count(year, race_ethnicity, total,ownershp_f, burdened_30, burdened_50 , name="count") %>%
+  mutate(per = 100*round(count/total, 4),
+         per2 = paste0(format(round(per, 1), nsmall = 1), "%"))
+
+
+
+####### prepare data for the table
+
+table_3.b3 = owncost_burdened %>%
+  filter( burdened_30 != "Less than 30%") %>%
+  group_by(race_ethnicity ) %>%
+
+  summarise(more_30_count = sum(count[burdened_30== "More than 30%"]),
+            more_50_count = sum(count[burdened_50== "More than 50%"]),
+            more_30_per = 100 *round(more_30_count/total, 4),
+            more_30_per2 = paste0(format(round(more_30_per, 1), nsmall = 1), "%"),
+            more_50_per = 100 *round(more_50_count/total, 4),
+            more_50_per2 = paste0(format(round(more_50_per, 1), nsmall = 1), "%")) %>%
+  distinct()
+
+
+
+table_3.b3_2 <- table_3.b3 %>%
+  select(race_ethnicity, more_30_count, more_30_per2, more_50_count, more_50_per2) %>%
+
+  # using kable
+
+  kbl(booktabs = T,
+      col.names = c("", "Number", "Percent" , "Number", "Percent" ),
+      align = c("l",rep("r",4)),
+      caption = "Number and Percent of Owner Cost Burdened Households for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "", table.attr = "style='width:30%;'") %>%
+ kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:5, width = "6.45em") %>% 
+  add_header_above(align = c("l", rep("c",2)), c("Race/Ethnicity", "More than 30% of\nHousehold Income Spent\non Owner Housing Costs" = 2, "More than 50% of\nHousehold Income Spent\non Owner Housing Costs" = 2),
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
+  row_spec(0, align = "c") %>%
+
+  
+  add_footnote(c("\\footnotesize{Note: Owner cost burdened households defined as households paying 30 percent or more of household income on owner housing costs.}" ,"\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+notation = "none",
+threeparttable = T,
+escape = FALSE)
+
+table_3.b3_2
+```
+
+
+## 3.D: House Value
+
+```{r}
+
+community_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries - Community Areas (current)/geo_export_2081dd0e-84f5-45c8-b501-f07b67ad9491.shp") %>% 
+  st_transform( crs = 4326) %>% 
+  select(community,geometry)
+
+
+chicago_shp <- read_sf("Data Tables/shp/intersect_census_2020.shp") %>% 
+  select(GEOID, geometry) %>% 
+  st_transform( crs = 4326)
+
+
+census_centroids_2022 <- st_centroid(chicago_shp)
+
+# Spatial join: attach community area names to census tracts based on centroid location
+census_community_2022 <- st_join(census_centroids_2022, 
+                                 community_shp, 
+                                 join = st_within) %>% 
+  mutate(lable = str_to_title(community)) %>% 
+  mutate(lable = gsub(" ", "\n", lable))
+
+# write_sf(census_community_2022, "C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/shp files/census_community_2022.shp")
+
+# search_variables <- load_variables(2022,
+#                          dataset = "acs5",
+#                          cache = TRUE)
+# 
+# view(search_variables)
+
+# options(tigris_use_cache = TRUE)
+
+house_value_data <-  get_acs(
+  cache_table = TRUE,
+  geography = "tract",
+  variables = c("Not Hispanic or Latino"="B03001_002",
+                "Hispanic or Latino"="B03001_003",
+                "Mexican" = "B03001_004", 
+                "total_pop"= "B03001_001"),
+                
+  summary_var =  "B25077_001",              
+  state = 17,
+  year = 2022) %>% 
+  rename("Mvalue" = "summary_est") %>% 
+
+  filter(GEOID %in% c(chicago_shp$GEOID)) %>% 
+  left_join(census_community_2022 %>% st_drop_geometry(), by = "GEOID") %>% 
+  pivot_wider(id_cols = c(GEOID , NAME, Mvalue, community ), names_from = variable, values_from = estimate) %>% 
+
+  group_by(community) %>% 
+  summarise(total_his = sum(`Hispanic or Latino`, na.rm = T),
+         total_mexican = sum(Mexican, na.rm = T),
+         total_pop = sum(total_pop, na.rm = T),
+         prc_mexican = total_mexican/total_pop, 
+         Mvalue = median(Mvalue, na.rm = T)) 
+
+comunity_house_value_shp <- left_join(community_shp, house_value_data,  by = join_by(community == community)) %>% 
+  mutate(lable = str_to_title(community)) %>% 
+  mutate(lable = gsub(" ", "\n", lable))
+
+
+```
+
+
+
+```{r fig.height=11, fig.width=8}
+
+breaks <- quantile(comunity_house_value_shp$Mvalue, probs = seq(0, 1, length.out = 6), na.rm = TRUE)
+
+# Step 2: Create custom labels with $ symbols
+labels <- paste0("$", formatC(breaks[-length(breaks)], format = "f", big.mark = ",", digits = 0), 
+                 " - $", formatC(breaks[-1], format = "f", big.mark = ",", digits = 0))
+
+
+value_map_2020 <-
+
+  tm_shape(comunity_house_value_shp, bbox = bbox_new) +
+  tm_polygons(col = "Mvalue",
+              style = "fixed", # Switch from quantile to fixed to use custom breaks
+              breaks = breaks, # Use the manually calculated breaks
+              border.col = "white",
+              palette="Blues",
+              alpha = 0.7,
+              labels = labels, # Apply the custom labels
+              title = "Median House Values",
+              lwd = 1) +
+
+  tm_shape(comunity_house_value_shp %>% filter(prc_mexican>=0.5)) +
+  tm_borders(col = "#9b2226",
+             alpha = 1,
+             lwd = 2)+
+  tm_text("lable" , size = 0.7, alpha = 0.7, fontface="bold", fontfamily = "sans") +
+
+  tm_shape(Chicago_boundary_shp) +
+  tm_borders(col = "#343a40",
+             alpha = 1,
+             lwd = 2.5) +
+
+  tm_layout( frame = TRUE,
+             # main.title.position = c("left", "top"),
+             # main.title = "Density of Hispanic or Latino Population by their Origins in Chicago, 2010",
+             # main.title.size = 1.2,
+            legend.outside = FALSE,
+            legend.width = 1.5,
+            legend.title.size = .9,
+            legend.text.size = 0.8,
+            legend.title.fontface = "bold",
+            # legend.position = c("left", "bottom"),
+            legend.position = c(0.03, 0.12),
+            legend.bg.color = "white",
+            legend.bg.alpha = .3) +       # manually position legend) +
+  
+  tm_credits("Data source:Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org \n(2018-2022 American Community Survey 5-year Estimates).\nMap Generated by Great Cities Institute",
+             fontface = "bold",
+             position = c("left","bottom"), size = 0.8)+
+  
+  
+  tm_credits("Median House Value by Community Area in Chicago,\n2018-2022 (ACS 5-year Estimates)",
+             fontface = "bold",
+             position = c("left","top"), size = 1.25)+
+
+  
+  tm_add_legend("line",
+                labels = c("Chicago","" ,"Community Areas with More Than\n50% Share of Mexican Population", ""),
+                col = c("#343a40","white" ,"#9b2226", "white"),
+                lwd = c(2.5, 2),
+                title = "",
+                size = 0.8) +
+
+  # tm_credits("1 dot = 20 People",
+  #            position = c(0.03, 0.32), size = 0.8, fontface = "bold") +
+  tm_compass(position = c("right", "bottom"), size = 1) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.15)
+
+value_map_2020
+
+```
+
+### Graph
+
+```{r fig.width=5, fig.height=5 ,fig.align='center'}
+####### Barchart: "op Ten Counties in Illinois with the Highest Population in Labor Force
+Mhouse_value_plot <- comunity_house_value_shp %>% 
+  filter(prc_mexican>=0.5) %>% 
+  arrange(desc(Mvalue)) %>% 
+  mutate(community2 = str_to_title(community)) %>% 
+  mutate(community2 = factor(community2),
+         community2 = fct_reorder(community2, Mvalue)) %>% 
+  ggplot(aes(y = community2, x = Mvalue) ) +
+  geom_bar( stat = "identity", 
+            fill = "#6baed6",
+            color = "#9b2226",
+           width=0.7,
+           linewidth = 0.5) +
+  labs(y="", x = "",
+       title="Median House Value for Chicago Community Areas with\nMore Than 50% Share of Mexican Population,\n2018-2022 (ACS 5-year Estimates) ",
+       caption = "Data source: IPUMS NHGIS, University of Minnesota, www.nhgis.org \n(2018-2022 American Community Survey 5-year Estimates).\nTabulations by Great Cities Institute",
+       fill="") +
+  geom_text(aes(label = paste0("$", scales::comma(Mvalue))),
+            position=position_dodge(width=0.5), hjust = -0.3, vjust = 0.8,
+            size = 3) +
+  scale_y_discrete(labels = function(x) str_wrap(x, width = 24))+ # Modify labels of ggplot2 barplot
+  scale_x_continuous(labels = function(x) paste0(x, "%"), limits = c(0,550000), breaks = seq(0, 550000, by = 550000))+
+  theme_plots +
+  theme(
+        axis.text.y = element_text(size = 8),
+        panel.background = element_blank(),
+        legend.position = "bottom",
+        legend.text = element_text(size = 7, color = "#636363"),
+        axis.ticks.y = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.line.x = element_blank())
+  
+  
+  Mhouse_value_plot
+```
+

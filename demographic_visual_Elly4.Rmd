@@ -689,4 +689,8 @@ Community_areas
 
 ```
 
+## Industry Area
+
+
+![image1](Data Tables\MexicansChicago_IndustrialCorridors.png)
 

@@ -910,7 +910,7 @@ latino_gdp_tb <-  latino_gdp %>%
                 html_font = "Arial",
                 position = "center",
                 latex_options = "HOLD_position") %>%
-  column_spec(1, width = "30em") %>%
+  column_spec(1, width = "20em") %>%
   column_spec(2, width = "10em") %>%
   # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity",  "Total\nEmployed","Member of\nLabor Union" =2 ,"Covered by\nUnion but Not\na Member" = 2),
   #                   # background = "#cbc9e2",
@@ -950,7 +950,7 @@ country_gdp_tb <- country_gdp %>%
                 position = "center",
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "20em") %>%
-  column_spec(2, width = "20em") %>%
+  column_spec(2, width = "10em") %>%
   # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity",  "Total\nEmployed","Member of\nLabor Union" =2 ,"Covered by\nUnion but Not\na Member" = 2),
   #                   # background = "#cbc9e2",
   #                   bold = T, font_size =8) %>%
