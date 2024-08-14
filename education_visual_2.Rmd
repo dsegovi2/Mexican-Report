@@ -813,7 +813,7 @@ df <- df %>%
     educd %in% c("65", "71") ~ "Some College, No Degree", 
     educd %in% c("81") ~ "Associate's Degree",
     educd %in% c("101") ~ "Bachelor's Degree",
-    educd %in% c("114", "115") ~ "Master's Degree or Professional Degree Beyond Bachelor's",
+    educd %in% c("114", "115", "116") ~ "Master's Degree or Higher",
     TRUE ~ "Other"  # Default case if educd is not in the specified categories
   ))
 
@@ -835,7 +835,7 @@ denominator <- survey_design %>%
   summarise(total_pop = survey_total(vartype = "se"))
 
 # Merge numerator and denominator by race_ethnicity
-education_levels <- c("No Schooling Completed", "Less than High School", "Regular High School Diploma, GED or Alternative Credential","Some College, No Degree", "Associate's Degree", "Bachelor's Degree", "Master's Degree or Professional Degree Beyond Bachelor's")
+education_levels <- c("No Schooling Completed", "Less than High School", "Regular High School Diploma, GED or Alternative Credential","Some College, No Degree", "Associate's Degree", "Bachelor's Degree", "Master's Degree or Higher")
 
 education_rates <- numerator %>%
   left_join(denominator, by = "race_ethnicity") %>%
@@ -925,7 +925,7 @@ df <- df %>%
     educd %in% c("65", "71") ~ "Some College, No Degree", 
     educd %in% c("81") ~ "Associate's Degree",
     educd %in% c("101") ~ "Bachelor's Degree",
-    educd %in% c("114", "115") ~ "Master's Degree or Professional Degree Beyond Bachelor's",
+    educd %in% c("114", "115", "116") ~ "Master's Degree or Higher",
     TRUE ~ "Other"  # Default case if educd is not in the specified categories
   ))
 
@@ -947,7 +947,7 @@ denominator <- survey_design %>%
   summarise(total_pop = survey_total(vartype = "se"))
 
 # Merge numerator and denominator by mex_foreign_born
-education_levels <- c("No Schooling Completed", "Less than High School", "Regular High School Diploma, GED or Alternative Credential","Some College, No Degree", "Associate's Degree", "Bachelor's Degree", "Master's Degree or Professional Degree Beyond Bachelor's")
+education_levels <- c("No Schooling Completed", "Less than High School", "Regular High School Diploma, GED or Alternative Credential","Some College, No Degree", "Associate's Degree", "Bachelor's Degree", "Master's Degree or Higher")
 
 education_rates <- numerator %>%
   left_join(denominator, by = "mex_foreign_born") %>%
@@ -1009,4 +1009,79 @@ table_2i
 
 
 \elandscape
+
+
+
+## 2.J: Share of U.S. Population Ages 25-34 with a Bachelor's Degree or Higher by Detailed Hispanic Origin in Chicago, 2008-2012 and 2018-2022 (ACS 5-year Estimates)
+
+
+```{r}
+df <- usa_data  %>%  filter(year %in% c(2022, 2012)) %>% select(hispan_breakdown, educd, age, perwt, year) %>% filter(!is.na(hispan_breakdown))
+
+
+# collapse educdational categories
+df <- df %>%
+  mutate(educd = as.character(educd)) %>%
+  mutate(education_level = case_when(
+    educd %in% c("1") ~ "NA",
+    educd %in% c("2") ~ "No Schooling Completed",
+    educd %in% c("11", "12", "14", "15", "16", "17", "22", "23", "25", "26", "30", "40", "50", "61") ~ "Less than High School",
+    educd %in% c("63", "64") ~ "Regular High School Diploma, GED or Alternative Credential",
+    educd %in% c("65", "71") ~ "Some College, No Degree", 
+    educd %in% c("81") ~ "Associate's Degree",
+    educd %in% c("101", "114", "115", "116") ~ "Bachelor's Degree or Higher",
+    TRUE ~ "Other"  # Default case if educd is not in the specified categories
+  ))
+
+
+# Create survey design object
+survey_design <- df %>%
+  as_survey_design(weights = perwt)
+
+# Calculate numerator: weighted count of individuals by education level and race_ethnicity
+numerator <- survey_design %>%
+  filter(age >= 25) %>%
+  group_by(hispan_breakdown, education_level, year) %>%
+  summarise(weighted_n = survey_total(vartype = "se"))
+
+# Calculate denominator: total population by race_ethnicity
+denominator <- survey_design %>%
+  filter(age >= 25) %>%
+  group_by(hispan_breakdown, year) %>%
+  summarise(total_pop = survey_total(vartype = "se"))
+
+# Merge numerator and denominator by race_ethnicity
+
+education_rates <- numerator %>%
+  left_join(denominator, by = c("hispan_breakdown", "year")) %>%
+  mutate(
+    educational_rate = round((weighted_n / total_pop) * 100, 1),  
+    educational_rate = sprintf("%.1f", educational_rate),  
+    educational_rate = as.double(educational_rate),
+     educational_rate_percent = paste0(sprintf("%.1f", educational_rate), "%") 
+  ) %>% filter(!is.na(education_level))
+
+
+
+df_bachelors <- education_rates %>% filter(education_level == "Bachelor's Degree or Higher")
+
+```
+
+
+```{r}
+color_hispan_breakdown <- c(
+  "Mexican" = "#CE1126", 
+  "Puerto Rican" = "#3F88C5",
+  "Ecuadorian" = "#FFD700", 
+  "Cuban" = "#FF6F61", 
+  "Guatemalan" = "#2E8B57", 
+  "Colombian" = "#8B4513"
+)
+```
+
+
+
+
+
+
 
