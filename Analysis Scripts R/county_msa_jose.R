@@ -478,11 +478,11 @@ write.csv(income_levels_county, "income_levels_county.csv")
 write.csv(income_levels_msa, "income_levels_msa.csv")
 
 
-write.csv(ownership_msa, "C:/Users/degovi2/Box/Great Cities Institute/Research/Mexican Report/ownership_msa.csv")
+write.csv(ownership_msa, "ownership_msa.csv")
 
 
 
-write.csv(ownership_county, "C:/Users/degovi2/Box/Great Cities Institute/Research/Mexican Report/ownership_county.csv")
+write.csv(ownership_county, "ownership_county.csv")
 
 
 

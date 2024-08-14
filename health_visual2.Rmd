@@ -239,9 +239,9 @@ row_spec(0, bold = TRUE, font_size = 8) %>%
     "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).}",
     "\\footnotesize{Tabulations by Great Cities Institute}",
       "\\footnotesize{Note: Obesity is defined as percent of adults who reported a height and weight that yield a body mass index of 30 or greater.}",
-    "\\footnotesize{Note: Diabetes is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with diabetes.}",
-    "\\footnotesize{Note: Asthma is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with asthma.}",
-    "\\footnotesize{Note:Low birthweight is defined as percent of births with a birthweight less than 2500 grams (5.5 pounds).}"
+    "\\footnotesize{Diabetes is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with diabetes.}",
+    "\\footnotesize{Asthma is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with asthma.}",
+    "\\footnotesize{Low birthweight is defined as percent of births with a birthweight less than 2500 grams (5.5 pounds).}"
     
   ),
   notation = "none",
@@ -477,8 +477,8 @@ row_spec(0, bold = TRUE, font_size = 8) %>%
     "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).}",
     "\\footnotesize{Tabulations by Great Cities Institute}",
       "\\footnotesize{Note: Serious Psychological Distress is the percent of adults who experienced feelings of nervousness, hopelessness, and depression, in the past 30 days.}",
-    "\\footnotesize{Note: Unmet mental health need is the percent of adults with psychological distress who are not receiving treatment or medication.}",
-    "\\footnotesize{Note: Loneliness rate is defined as the percent of adults who reported feeling left out or felt alone}"
+    "\\footnotesize{Unmet mental health need is the percent of adults with psychological distress who are not receiving treatment or medication.}",
+    "\\footnotesize{Loneliness rate is defined as the percent of adults who reported feeling left out or felt alone}"
     
   ),
   notation = "none",
@@ -571,8 +571,8 @@ row_spec(0, bold = TRUE, font_size = 8) %>%
     "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).}",
     "\\footnotesize{Tabulations by Great Cities Institute}",
       "\\footnotesize{Note: Cancer diagnosis is defined as the annual diagnosis rate for all invasive cancers, excluding pre-cancerous conditions.  All ages, risk-adjusted.}",
-    "\\footnotesize{Note: Hypertension is the percentage of adults diagnosed with high blood pressure, excluding borderline or pregnancy-related cases.}",
-    "\\footnotesize{Note: Lung cancer is defined as lung and bronchus cancer for ages 15 and over, risk-adjusted.}"
+    "\\footnotesize{Hypertension is the percentage of adults diagnosed with high blood pressure, excluding borderline or pregnancy-related cases.}",
+    "\\footnotesize{Lung cancer is defined as lung and bronchus cancer for ages 15 and over, risk-adjusted.}"
     
   ),
   notation = "none",
@@ -581,12 +581,6 @@ row_spec(0, bold = TRUE, font_size = 8) %>%
 )
   
   
-  add_footnote(c(
-  "Cancer diagnosis is defined as the annual diagnosis rate for all invasive cancers, excluding pre-cancerous conditions.  All ages, risk-adjusted.",
-  "Hypertension is the percentage of adults diagnosed with high blood pressure, excluding borderline or pregnancy-related cases.",
-  "Lung cancer is defined as lung and bronchus cancer for ages 15 and over, risk-adjusted.",
-  "Source: Chicago Health Atlas, Chicago Department of Public Health (2022-2023) and Illinois Department of Public Health, (2022-2023).", "Tabulations by Great Cities Institute"
-))
 
 
 
