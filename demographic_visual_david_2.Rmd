@@ -69,10 +69,21 @@ library("RColorBrewer")
 options(knitr.kable.NA = '-')
  
 ##### Chicago boarder
-Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
+Chicago_boundary_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
   st_transform(crs = 4326)
 # mapview(community_shp)
-
+color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Hispanics or Latinos" = "#F9AA51",
+                               "White (non-Hispanic or Latino)" = "#9CA168",
+                               "Black (non-Hispanic or Latino)" = "#8CBEC0",
+                               "Other (non-Hispanic or Latino)" = "#0B8489")
+color_hispan_breakdown <- c(
+  "Mexican" = "#CE1126", 
+  "Puerto Rican" = "#32C2DC", 
+  "Ecuadorian" =  "#A9AD72",
+  "Cuban" = "#AB6E29", 
+  "Guatemalan" =  "#D3A668",
+  "Colombian" = "#F9C93C"
+)
 
 ```
 
@@ -85,7 +96,7 @@ Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Re
 
 # Read Data
 
-usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
+usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
   mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
                                     hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
                                     hispan %in% c(2,3,4) ~ "Other Hispanics or Latinos",
@@ -148,12 +159,11 @@ theme_plots <-
       legend.text = element_text(size = 8, color = "#636363"),
       legend.title = element_text(face = "bold", size = 8, color = "#636363"))
 
+
+
 ```
 
 
-
-
-\blandscape
  
 
 # Demographic
@@ -243,8 +253,8 @@ table_1b.1 <- df_final %>%
                 html_font = "Arial",
                 position = "center",
                 latex_options = "HOLD_position") %>% 
-  column_spec(1, width = "14.2em") %>%
-  column_spec(2:11, width = "3.08em") %>%  # Align all columns with numbers and percentages to the right
+  column_spec(1, width = "10em") %>%
+  column_spec(2:11, width = "3em") %>%  # Align all columns with numbers and percentages to the right
   row_spec(0, align = "C") %>%  # Center column headers
  add_header_above(
   align = c("l", rep("c", 5)),  # Assuming 1 for Age Group and 10 divided into 5 groups
@@ -261,11 +271,9 @@ table_1b.1
 ```
 
 
-\elandscape
 
 
-
-```{r fig.width=6, fig.height=5 ,fig.align='center'}
+```{r fig.width=5, fig.height=4.5 ,fig.align='center'}
 # visual
 
 # Pivot data to long format and clean age_group names
@@ -303,12 +311,13 @@ ggplot(df_long, aes(x = age_group, y = percentage, fill = race_ethnicity)) +
     geom_text(aes(label = sprintf("%.1f%%", percentage)), 
             position = position_dodge(width = 0.9), 
             vjust = -1, 
-            size = 1.8, 
+            size = 2.2, 
             fontface = "bold") +
   labs(title = "Population by Age for Mexicans and Other \nRacial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates) ", 
        caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year\n Estimates). Tabulations by Great Cities Institute.", fill = ''
 ) + 
-  scale_y_continuous(breaks = seq(0, 40, by = 5)) +
+  scale_y_continuous(limits = c(0, 50),breaks = seq(0, 50, by = 50)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 12))+
   theme_minimal() +
   scale_fill_manual(values = color_race_ethnicity, name = "") +
   theme_plots +
@@ -414,12 +423,12 @@ table_1b.2 <-  df_final %>%
                 html_font = "Arial",
                 position = "center",
                 latex_options = "HOLD_position") %>%
-  column_spec(1, width = "12em") %>%
-  column_spec(2:13, width = "2.75em") %>%
-   row_spec(0, align = "C") %>%  # Center column headers
+  column_spec(1, width = "10em") %>%
+  column_spec(2:13, width = "2.5em") %>%
+   row_spec(0, align = "C", font_size = 7.5) %>%  # Center column headers
   add_header_above(align = c("l", rep("c", 6)),
                    c("Age Group", "Mexican" = 2, "Puerto Rican" = 2, "Ecuadorian" = 2, "Cuban" = 2, "Guatemalan" = 2, "Colombian" = 2),
-                   bold = T, font_size = 8) %>%
+                   bold = T, font_size = 7.5) %>%
   add_footnote(
   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
   notation = "none",
@@ -431,7 +440,7 @@ table_1b.2
 ```
 
 
-```{r fig.width=6, fig.height=5 ,fig.align='center'}
+```{r fig.width=5, fig.height=4.5 ,fig.align='center'}
 # visual
 
 # Pivot data to long format and clean age_group names
@@ -459,11 +468,11 @@ df_long <- df_long %>%
 # Define the custom colors for race_ethnicity
 color_hispan_breakdown <- c(
   "Mexican" = "#CE1126", 
-  "Puerto Rican" = "#3F88C5",
-  "Ecuadorian" = "#FFD700", 
-  "Cuban" = "#FF6F61", 
-  "Guatemalan" = "#2E8B57", 
-  "Colombian" = "#8B4513"
+  "Puerto Rican" = "#32C2DC", 
+  "Ecuadorian" =  "#A9AD72",
+  "Cuban" = "#AB6E29", 
+  "Guatemalan" =  "#D3A668",
+  "Colombian" = "#F9C93C"
 )
 
 # Create the bar chart with percentage labels
@@ -472,12 +481,13 @@ ggplot(df_long, aes(x = age_group, y = percentage, fill = hispan_breakdown)) +
    geom_text(aes(label = sprintf("%.1f%%", percentage)), 
             position = position_dodge(width = 0.9), 
             vjust = -1, 
-            size = 1.8, 
+            size = 2.2, 
             fontface = "bold") +
-  labs(title = "Population by Age for Hispanic or Latino Groups \n  in Chicago, 2018-2022 (ACS 5-year Estimates)", 
+  labs(title = "Population by Age for Hispanic or Latino Groups in Chicago,\n2018-2022 (ACS 5-year Estimates)", 
       caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year\n Estimates). Tabulations by Great Cities Institute.", fill = ''
 )  +
-scale_y_continuous(breaks = seq(0, 40, by = 5)) +
+  scale_y_continuous(limits = c(0, 50),breaks = seq(0, 50, by = 50)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 12))+
   theme_minimal() +
   scale_fill_manual(values = color_hispan_breakdown) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme_plots +   theme(axis.text.x = element_text(size = 8),
@@ -497,6 +507,7 @@ scale_y_continuous(breaks = seq(0, 40, by = 5)) +
 
 
 ## 1B(3): Median Age for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
+
 ```{r}
 # analysis
 
@@ -570,7 +581,7 @@ table_1b.3 <- weighted_age  %>% select(race_ethnicity, weighted_age) %>%
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2, width = "25.8em") %>%  
+  column_spec(2, width = "15.8em") %>%  
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
@@ -666,12 +677,13 @@ table_1b.4 <- weighted_age  %>% select(hispan_breakdown, weighted_age) %>%
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2, width = "25.8em") %>%  
+  column_spec(2, width = "15.8em") %>%  
 
   row_spec(0, bold = T,
+           # align = 'c',
              #background = "#f2f0f7",
             font_size = 8) %>%
-# row_spec(0, align = 'c') %>%
+
  add_footnote(
   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
   notation = "none",
@@ -740,12 +752,12 @@ table_1c <- mean_household_size %>% select(race_ethnicity, mean_household_size) 
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2, width = "25.8em") %>%  
+  column_spec(2, width = "15.8em") %>%  
 
-  row_spec(0, bold = T,
+  row_spec(0, bold = T, 
+           # align = "C",
              #background = "#f2f0f7",
             font_size = 8) %>%
- row_spec(0, align = "C") %>%  # Center column headers
  add_footnote(
   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
   notation = "none",
@@ -832,7 +844,7 @@ table_1d.1 <- income_levels %>% select(race_ethnicity, avg_hhincome, weighted_me
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "7.9em") %>%  
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
@@ -921,7 +933,7 @@ table_1d.2.1 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "7.9em") %>%  
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
@@ -1013,7 +1025,7 @@ table_1d.2.2 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "7.9em") %>%  
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
@@ -1102,7 +1114,7 @@ table_1d.3.1 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighte
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "7.9em") %>%  
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
@@ -1191,7 +1203,7 @@ table_1d.3.2 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighte
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "7.9em") %>%  
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
@@ -1280,7 +1292,7 @@ table_1d.4.1 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighte
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "7.9em") %>%  
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
@@ -1368,7 +1380,7 @@ table_1d.4.2 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighte
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "12.9em") %>%  
+  column_spec(2:3, width = "7.9em") %>%  
 
   row_spec(0, bold = T,
              #background = "#f2f0f7",
@@ -1461,18 +1473,19 @@ table_1d.5 <- poverty_rate_trends_wide  %>%
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:8, width = "4.4em") %>%  
+  column_spec(2:8, width = "3.68em") %>%  
  add_header_above(
-    align = c("l",  rep("c", 3)),
+    align = c("l",  rep("c", 4)),
     c(
       "Race/Ethnicity", 
       "Poverty in 2000 " = 2, 
       "Poverty in 2008-2012 " = 2, 
       "Poverty in 2018-2022" = 2,
-     "Percentage Point Difference\n from 2000 to 2018-2022" = 1),
+     "Percentage Point\nDifference from\n2000 to 2018-2022" = 1),
     bold = TRUE, 
     font_size = 8) %>%
-  row_spec(0, bold = T,
+  row_spec(0, 
+           # bold = T,
              #background = "#f2f0f7",
             font_size = 8, align = "C") %>%
   
@@ -1569,17 +1582,17 @@ table_1e <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , 
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:6, width = "6.16em") %>%  
+  column_spec(2:6, width = "5.16em") %>%  
   row_spec(0, align = "C") %>%  # Center column headers
   add_header_above(
     align = c("l", rep("c", 5)),
     c(
-      "10 Community Areas\nwith the Largest Share\n of Mexican Population", 
-      "Total\n Population" = 1, 
-      "Hispanic or\n Latino Population " = 1, 
-      "Mexican\n Population" = 1,
-     "% Mexicans of \n Hispanic or Latino" = 1,
-     "% Mexicans\n of Total Pop" = 1),
+      "10 Community Areas\nwith the Largest Share\nof Mexican Population", 
+      "Total\nPopulation" = 1, 
+      "Hispanic or\nLatino Population " = 1, 
+      "Mexican\nPopulation" = 1,
+     "% Mexicans of\nHispanic or Latino" = 1,
+     "% Mexicans\nof Total Pop" = 1),
     bold = TRUE, 
     font_size = 8) %>% 
  row_spec(c(11), hline_after = T) %>%  

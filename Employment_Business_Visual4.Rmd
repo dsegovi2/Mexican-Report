@@ -979,10 +979,39 @@ business_ownership <- data.frame(
                 "White (non-Hispanic)"),
   Without_Employees = c(124000, 708000, 1200, 3000, 80000, 146000, 700, 488000),
   With_Employees = c(15499, 173587, 1216, 441, 20290, 5541, 71, 147353),
-  Total_Businesses = c(139499, 881587, 2416, 3441, 100290, 151541, 771, 635353)
-)
+  Total_Businesses = c(139499, 881587, 2416, 3441, 100290, 151541, 771, 635353),
+  pop = c(
+  2187650,  # Hispanic or Latino
+  7379395,  # Not Hispanic or Latino
+  NA,       # Owned equally by both groups: Not applicable
+  7183,     # American Indian and Alaska Native (non-Hispanic)
+  663560,   # Asian (non-Hispanic)
+  1522030,  # Black or African American (non-Hispanic)
+  2120,     # Native Hawaiian and Other Pacific Islander (non-Hispanic)
+  4898082   # White (non-Hispanic)
+),
+Prc_Ownership_With_Employees = c(
+    8.2,   # Hispanic
+    NA,    # Not Hispanic: Percentage is not provided in the dataset
+    NA,    # Owned equally by both groups: Not applicable
+    0.2,   # American Indian and Alaska Native (non-Hispanic)
+    10.7,  # Asian (non-Hispanic)
+    2.9,   # Black or African American (non-Hispanic)
+    0.0,   # Native Hawaiian and Other Pacific Islander (non-Hispanic)
+    77.9   # White (non-Hispanic)
+  )) %>% 
+  mutate(total_pop = (pop[Ownership=="Hispanic"] +pop[Ownership=="Not Hispanic"])) %>% 
+  group_by(Ownership) %>% 
+  mutate(prc_pop = 100 *(pop/total_pop), 
+         prc_pop2 = paste0(format(round(prc_pop, 1), nsmall = 1), "%")) %>% 
+  mutate(Prc_Ownership_With_Employees2 = paste0(Prc_Ownership_With_Employees, "%"))
+  
+
+  
+
 
 business_ownership_tb <- business_ownership %>% 
+  select(Ownership, Without_Employees,With_Employees, Total_Businesses ) %>% 
   kbl(booktabs = T,
       col.names = c("Ownership",  "Without Employees", "With Employees", "Total Businesses"),
       align = c("l",rep("r",3)),
@@ -1009,5 +1038,53 @@ threeparttable = T,
 escape = FALSE)
   
 business_ownership_tb
+
 ```
 
+
+```{r fig.width=6, fig.height=4 ,fig.align='center'}
+
+race_group = c(Prc_Ownership_With_Employees = "#4D2B18",
+               prc_pop = "#D3A668")
+
+business_ownership %>%
+  filter(!Ownership%in%c("Owned equally by both groups", "Not Hispanic")) %>% 
+  select( Ownership, prc_pop, Prc_Ownership_With_Employees ) %>% 
+  pivot_longer(cols = c(prc_pop, Prc_Ownership_With_Employees), names_to = "group", values_to = "prc") %>% 
+
+  ggplot(aes(x =  Ownership,
+             y = prc,
+             fill = group)) +
+  geom_bar(position=position_dodge(width=0.7), stat = "identity",
+           color = "white",
+           width=0.7) +
+  labs(y="", x = "",
+       title="Business count by owner demographic group in Chicago-Naperville-Elgin,\nIL-IN-WI Metro Area",
+       caption = "Data Sources: Annual Business Survey, 2021 (Census); Nonemployer, Statistics by Demographics, 2021 (Census),\nTabulations by Great Cities Institute.",
+       fill="") +
+  scale_fill_manual(values = race_group,
+                    labels = c("% of Business Ownership", "% of Population")) +
+  geom_text(aes(label = paste0(format(round(prc, 1), nsmall = 1), "%")),
+            position=position_dodge(width=0.7),
+            vjust = -0.5,
+            hjust = 0.5,
+            size = 2.5) +
+
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 12)) + # Modify labels of ggplot2 barplot
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0,100), breaks = seq(0, 100, by = 100)) +
+
+  theme_plots +
+  theme(
+    # axis.text.x = element_text(size = 8),
+        panel.background = element_blank(),
+        # axis.ticks.y = element_blank(),
+        # axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line.y = element_blank(),
+        legend.position = "bottom",
+        legend.text = element_text(size = 7, color = "#636363"),
+        legend.key.size = unit(0.5, "lines"))
+  # guides(fill = guide_legend(nrow = 2, byrow = TRUE))
+
+
+```
