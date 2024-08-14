@@ -147,6 +147,8 @@ mex_foreign_born = case_when(
 # Chicago ca populationd data
 chicago_ca_pop <- read_sf("Data Tables/shp/comm_pop_chi_2022.shp") %>% as.data.frame()
 
+
+
 ```
 
 
@@ -1071,12 +1073,51 @@ df_bachelors <- education_rates %>% filter(education_level == "Bachelor's Degree
 ```{r}
 color_hispan_breakdown <- c(
   "Mexican" = "#CE1126", 
-  "Puerto Rican" = "#3F88C5",
-  "Ecuadorian" = "#FFD700", 
-  "Cuban" = "#FF6F61", 
-  "Guatemalan" = "#2E8B57", 
-  "Colombian" = "#8B4513"
+  "Puerto Rican" = "#32C2DC", 
+  "Ecuadorian" =  "#A9AD72",
+  "Cuban" = "#AB6E29", 
+  "Guatemalan" =  "#D3A668",
+  "Colombian" = "#F9C93C"
 )
+
+# Plot
+ggplot(df_bachelors, aes(x = hispan_breakdown, y = educational_rate, fill = hispan_breakdown)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
+  scale_fill_manual(values = color_hispan_breakdown) +
+  labs(x = "Race/Ethnicity", y = "Educational Rate (%)", fill = "Ethnicity") +
+  geom_text(aes(label = sprintf("%.1f%%", educational_rate)), 
+position = position_dodge(width = 0.9), 
+vjust = -1, 
+ size = 2.2, 
+fontface = "bold") + 
+  labs(title = "Share of U.S. Population Ages 25-34 with a Bachelor's Degree\n or Higher by Detailed Hispanic Origin in Chicago, 2008-2012 and 2018-2022\n(ACS 5-year Estimates)", 
+       caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2008-2012, 2018-2022 American Community Survey \n  5-year Estimates). Tabulations by Great Cities Institute.", fill = ''
+)  +
+  theme(legend.position = "bottom") +
+  facet_wrap(~year) +  # Separate plots by year
+  theme_minimal() +
+  theme(
+    panel.background = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(color = "#969696", linewidth = 1),
+    axis.text.x = element_blank(),  # Hide x-axis labels
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.line.y = element_blank(),
+    plot.title = element_text(face = "bold", size = 10, hjust = 0.5),
+    plot.subtitle = element_text(face = "italic", size = 8, color = "#636363"),
+    plot.caption = element_text(size = 8, hjust = 0, color = "black"),
+    legend.position = "bottom",
+    legend.key.size = unit(0.5, "lines"),
+    legend.text = element_text(size = 7, color = "#636363"),
+    legend.title = element_text(face = "bold", size = 8, color = "#636363")
+  ) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE))  # Distribute legend items across 2 rows
+  
+
 ```
 
 
