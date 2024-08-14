@@ -846,7 +846,7 @@ table_1d.1 <- income_levels %>% select(race_ethnicity, avg_hhincome, weighted_me
   column_spec(1, width = "14.2em") %>%
   column_spec(2:3, width = "7.9em") %>%  
 
-  row_spec(0, bold = T,
+  row_spec(0, bold = T,align = "c",
              #background = "#f2f0f7",
             font_size = 8) %>%
 
@@ -1463,7 +1463,7 @@ table_1d.5 <- poverty_rate_trends_wide  %>%
   
   kbl(, booktabs = T,
       col.names = c("", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Difference"),
-      align = c("l",rep("r",7)),
+      align = c("l",rep("r",8)),
       caption = "Population in Poverty and Poverty Rate for Mexicans and Other Racial/Ethnic Groups in Chicago, 2000 (Decennial Census), 2008-2012, and 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
@@ -1478,10 +1478,10 @@ table_1d.5 <- poverty_rate_trends_wide  %>%
     align = c("l",  rep("c", 4)),
     c(
       "Race/Ethnicity", 
-      "Poverty in 2000 " = 2, 
-      "Poverty in 2008-2012 " = 2, 
-      "Poverty in 2018-2022" = 2,
-     "Percentage Point\nDifference from\n2000 to 2018-2022" = 1),
+      "Poverty\nin 2000 " = 2, 
+      "Poverty\nin 2008-2012 " = 2, 
+      "Poverty\nin 2018-2022" = 2,
+     "Percentage Point\nDifference\nfrom 2000\nto 2018-2022" = 1),
     bold = TRUE, 
     font_size = 8) %>%
   row_spec(0, 
@@ -1566,37 +1566,41 @@ df_final <- rbind(top_10, totals, totals_min, df_all) %>% mutate(
 # visuals
 
 
-table_1e <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , prc_mxc) %>% 
- 
-   # using kable 
-  
+table_1e <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , prc_mxc) %>%
+
+   # using kable
+
   kbl(, booktabs = T,
       col.names = c("", "", "", "", "", ""),
-      align = c("l",rep("c",5)),
-      caption = "Total, Hispanic or Latino, and Mexican Population by 10 Community Areas with the Largest Share of Mexican\n Population, 2018-2022 (ACS 5-year Estimates)",
+      align = c("l",rep("r",5)),
+      caption = "Total, Hispanic or Latino, and Mexican Population by 10 Community Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
+      linesep = "")  %>%
+  kable_classic(full_width = F,
                 font_size = 8,
                 html_font = "Arial",
-                position = "center",
-                latex_options = "HOLD_position") %>% 
+                position = "center", 
+                latex_options = "HOLD_position"
+                ) %>%
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:6, width = "5.16em") %>%  
-  row_spec(0, align = "C") %>%  # Center column headers
+  column_spec(2:6, width = "5.16em") %>%
+  row_spec(0, align = "c",font_size = 0.01 ) %>%  # Center column headers
   add_header_above(
     align = c("l", rep("c", 5)),
     c(
-      "10 Community Areas\nwith the Largest Share\nof Mexican Population", 
-      "Total\nPopulation" = 1, 
-      "Hispanic or\nLatino Population " = 1, 
+      "10 Community Areas\nwith the Largest Share\nof Mexican Population",
+      "Total\nPopulation" = 1,
+      "Hispanic or\nLatino Population " = 1,
       "Mexican\nPopulation" = 1,
      "% Mexicans of\nHispanic or Latino" = 1,
      "% Mexicans\nof Total Pop" = 1),
-    bold = TRUE, 
-    font_size = 8) %>% 
- row_spec(c(11), hline_after = T) %>%  
-  row_spec(12:13, bold = T,
+    bold = TRUE,
+    font_size = 8) %>%
+  # row_spec(0, bold = T,
+  #            #background = "#f2f0f7",
+  #           font_size = 8) %>%
+ row_spec(c(10), hline_after = T) %>%
+  row_spec(11:13, bold = T,
              background = "#f2f0f7",
             font_size = 8) %>%
 

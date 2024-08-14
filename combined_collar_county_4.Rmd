@@ -155,10 +155,7 @@ theme_plots <-
       legend.text = element_text(size = 8, color = "#636363"),
       legend.title = element_text(face = "bold", size = 8, color = "#636363")) 
 
-color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51",
-                               "White (non-Hispanic or Latino)" = "#9CA168",
-                               "Black (non-Hispanic or Latino)" = "#8CBEC0",
-                               "Other (non-Hispanic or Latino)" = "#0B8489")
+
 
 color_hispan_breakdown <- c(
   "Mexican" = "#CE1126", 
@@ -169,6 +166,10 @@ color_hispan_breakdown <- c(
   "Colombian" = "#F9C93C"
 )
 
+color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Hispanics or Latinos" = "#F9AA51",
+                               "White (non-Hispanic or Latino)" = "#9CA168",
+                               "Black (non-Hispanic or Latino)" = "#8CBEC0",
+                               "Other (non-Hispanic or Latino)" = "#0B8489")
 
 school_indicator <- read_csv("School/df_school.csv")
 
@@ -201,10 +202,6 @@ comm_2000_2022 <- st_read ("Data Tables/shp/comm_pop_chi_2000_2022.shp" ) %>%
 \renewcommand{\arraystretch}{1.4}
 
 \clearpage
-
-
-\blandscape
- 
 # Demographic
 
 ## 1A.1: Mexican population in Chicago, 2000 to 2018-2022:
@@ -219,8 +216,8 @@ comm_2000_2022 <- st_read ("Data Tables/shp/comm_pop_chi_2000_2022.shp" ) %>%
 ```
 
 ## 1A.1: Mexican population in Chicago, 2000 to 2018-2022:
-
 \clearpage
+
 
 ### Mexican Population by Community Areas in Chicago, 2018-2022
 
@@ -3649,8 +3646,29 @@ Mhouse_value_plot <- comunity_house_value_shp %>%
 
 # 4. Health 
 
-## 4A: Health Outcomes in Top 4 Community Areas with the Largest Mexican Population Share, (2017-2021 and 2022-2023):
+```{r include=FALSE}
+chicago_health <- read_csv("Health Data/Chicago Health Atlas Data Download - Community areas.csv") %>% clean_names() %>% rename(
+  obesity_rate = hcsobp_2022_2023,
+  diabetes_rate = hcsdiap_2022_2023,
+  asthma_rate = hcsathp_2022_2023,
+  lbw_rate = vrbwp_2017_2021,
+  unmet_mental_health_rate = hcsumhap_2022_2023,
+  cancer_diagnosis_rate = ccr_2017_2021,
+  hyper_tension_rate = hcshytp_2022_2023,
+  psych_distress_rate =   hcsspdp_2022_2023,
+  lung_cancer_rate =ccg_2017_2021,
+  loneliness_rate = chavqos_2022_2023
+)
 
+
+# merge chicago ca with health atlas
+df_health <- chicago_ca_pop %>% select(commnty, prc_mxc, prc_nh_w, prc_nh_b) %>% mutate(commnty = str_to_title(tolower(commnty))) %>% left_join(chicago_health, by = c("commnty" = "name")) %>% select(-layer)  %>%
+ mutate(across(matches("rate$"), ~ format(round(as.numeric(.), 1), nsmall = 1))) %>% mutate(across(ends_with("rate"), ~ as.numeric(as.character(.))))
+
+```
+
+
+## 4A: Health Outcomes in Top 4 Community Areas with the Largest Mexican Population Share, (2017-2021 and 2022-2023):
 
 
 
@@ -3716,7 +3734,7 @@ table_4a <- df_final %>%
   
   kbl(, booktabs = T,
       col.names = c("Four Communities with the Largest Share of Mexican Population", "Adult Obesity Rate(2022-2023)", "Adult Diabetes Rate(2022-2023)", "Adult Asthma Rate(2022-2023)", "Low Birthweight Rate(2017-2021)"),
-      align = c("l",rep("c",4)),
+      align = c("l",rep("r",4)),
       caption = "Health Outcomes for Four Communities with the Largest Share of Mexican Population and by Race/Ethnicity in Chicago",
       format.args = list(big.mark = "%"),
       linesep = "")  %>% 
@@ -3727,17 +3745,18 @@ table_4a <- df_final %>%
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
   column_spec(2:5, width = "6.45em") %>%  
-row_spec(0, bold = TRUE, font_size = 8) %>%
+row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
   row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
+  row_spec(c(4), hline_after = T) %>%  
   
    add_footnote(
   c(
     "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).}",
     "\\footnotesize{Tabulations by Great Cities Institute}",
       "\\footnotesize{Note: Obesity is defined as percent of adults who reported a height and weight that yield a body mass index of 30 or greater.}",
-    "\\footnotesize{Note: Diabetes is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with diabetes.}",
-    "\\footnotesize{Note: Asthma is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with asthma.}",
-    "\\footnotesize{Note:Low birthweight is defined as percent of births with a birthweight less than 2500 grams (5.5 pounds).}"
+    "\\footnotesize{Diabetes is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with diabetes.}",
+    "\\footnotesize{Asthma is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with asthma.}",
+    "\\footnotesize{Low birthweight is defined as percent of births with a birthweight less than 2500 grams (5.5 pounds).}"
     
   ),
   notation = "none",
@@ -3812,7 +3831,7 @@ table_4b <- df_rates  %>% select(race_ethnicity, weighted_n_without_insurance, n
   column_spec(1, width = "14.2em") %>%
   column_spec(2:4, width = "8.6em") %>%  
 
-  row_spec(0, bold = T,
+  row_spec(0, bold = T,align = "c",
              #background = "#f2f0f7",
             font_size = 8) %>%
 
@@ -3883,14 +3902,17 @@ table_4c <- df_rates  %>% select(mex_foreign_born, weighted_n_without_insurance,
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "8.6em") %>%  
+  column_spec(2:3, width = "7.9em") %>%  
 
-  row_spec(0, bold = T,
+  row_spec(0, bold = T, align = "c",
              #background = "#f2f0f7",
             font_size = 8) %>%
-
-    footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
-           general_title = "")    
+  add_footnote(
+  c("\\footnotesize{Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute. }"),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
 
 
 table_4c
@@ -3964,16 +3986,17 @@ table_4e <- df_final %>%
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
   column_spec(2:4, width = "9.2em") %>%  
-row_spec(0, bold = TRUE, font_size = 8) %>%
+row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
   row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
+   row_spec(c(4), hline_after = T) %>%  
   
   add_footnote(
   c(
     "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).}",
     "\\footnotesize{Tabulations by Great Cities Institute}",
       "\\footnotesize{Note: Serious Psychological Distress is the percent of adults who experienced feelings of nervousness, hopelessness, and depression, in the past 30 days.}",
-    "\\footnotesize{Note: Unmet mental health need is the percent of adults with psychological distress who are not receiving treatment or medication.}",
-    "\\footnotesize{Note: Loneliness rate is defined as the percent of adults who reported feeling left out or felt alone}"
+    "\\footnotesize{Unmet mental health need is the percent of adults with psychological distress who are not receiving treatment or medication.}",
+    "\\footnotesize{Loneliness rate is defined as the percent of adults who reported feeling left out or felt alone}"
     
   ),
   notation = "none",
@@ -3987,6 +4010,97 @@ table_4e
 
 
 
+```
+
+
+## 4F: Chronic Health Indicators in top 4 Mexican Community Areas,(2017-2021, 2022-2023):
+
+```{r}
+# Analysis
+mexican_top <- df_health %>% 
+  arrange(desc(prc_mxc)) %>% 
+  top_n(4, prc_mxc) %>% 
+  select(commnty, cancer_diagnosis_rate, hyper_tension_rate, lung_cancer_rate) %>% 
+mutate(
+    cancer_diagnosis_rate = format(round(cancer_diagnosis_rate, 1), nsmall = 1),
+    hyper_tension_rate = paste0(format(round(hyper_tension_rate, 1), nsmall = 1), "%"),
+    lung_cancer_rate = format(round(lung_cancer_rate, 1), nsmall = 1)
+)
+
+df_white_city <- data.frame(
+  commnty = "White City Mean",
+  cancer_diagnosis_rate = 676.16, 
+  hyper_tension_rate = 29.8, 
+  lung_cancer_rate = 83.41
+)
+
+df_black_city <- data.frame(
+  commnty = "Black City Mean",
+  cancer_diagnosis_rate = 529.94, 
+  hyper_tension_rate = 43.9, 
+  lung_cancer_rate = 77.39
+)
+
+df_latino_city <- data.frame(
+  commnty = "Hispanic/Latino City Mean",
+  cancer_diagnosis_rate = 253.29, 
+  hyper_tension_rate = 25.7, 
+  lung_cancer_rate = 13.93
+)
+
+df_city_avgs <- rbind(df_white_city, df_black_city, df_latino_city) %>% 
+ mutate(
+    cancer_diagnosis_rate = format(round(cancer_diagnosis_rate, 1), nsmall = 1),
+    hyper_tension_rate = paste0(format(round(hyper_tension_rate, 1), nsmall = 1), "%"),
+    lung_cancer_rate = format(round(lung_cancer_rate, 1), nsmall = 1)
+)
+
+
+df_final <- rbind(mexican_top, df_city_avgs)
+
+```
+
+
+
+```{r}
+# visuals
+table_4f <- df_final %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Top 4 Community Areas with the Largest Mexican Population Share", "Adult Cancer Diagnosis Rate per 100,000 (2017-2021)", "Adult Hypertension Rate (2022-2023)", "Adult Lung Cancer Diagnosis Rate per 100,000 (2017-2021)"),
+      align = c("l",rep("r",3)),
+      caption = "Chronic Health Indicators for Four Communities with the Largest Share of Mexican Population and by Race/Ethnicity in Chicago",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:4, width = "9.2em") %>%  
+row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
+  row_spec(c(4), hline_after = T) %>%  
+  row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%   
+  
+    add_footnote(
+  c(
+    "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).}",
+    "\\footnotesize{Tabulations by Great Cities Institute}",
+      "\\footnotesize{Note: Cancer diagnosis is defined as the annual diagnosis rate for all invasive cancers, excluding pre-cancerous conditions.  All ages, risk-adjusted.}",
+    "\\footnotesize{Hypertension is the percentage of adults diagnosed with high blood pressure, excluding borderline or pregnancy-related cases.}",
+    "\\footnotesize{Lung cancer is defined as lung and bronchus cancer for ages 15 and over, risk-adjusted.}"
+    
+  ),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+  
+
+table_4f
 ```
 
 

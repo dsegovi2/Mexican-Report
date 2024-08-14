@@ -62,7 +62,7 @@ library("RColorBrewer")
 # tinytex::latexmk("demographic_visual.tex")
 options(knitr.kable.NA = '-')
 ##### Chicago boarder
-Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
+Chicago_boundary_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
   st_transform(crs = 4326)
 # mapview(community_shp)
 
@@ -71,7 +71,7 @@ Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Re
 
 # Read Data
 
-usa_data <- read.csv("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
+usa_data <- read.csv("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/final_Mexican_IL_2000_22.csv") %>% 
   mutate(race_ethnicity = case_when(hispan ==0 & race == 1 ~ "White (non-Hispanic or Latino)",
                                     hispan ==0 & race == 2 ~ "Black (non-Hispanic or Latino)",
                                     hispan %in% c(2,3,4) ~ "Other Hispanics or Latinos",
@@ -219,7 +219,7 @@ table_4a <- df_final %>%
   
   kbl(, booktabs = T,
       col.names = c("Four Communities with the Largest Share of Mexican Population", "Adult Obesity Rate(2022-2023)", "Adult Diabetes Rate(2022-2023)", "Adult Asthma Rate(2022-2023)", "Low Birthweight Rate(2017-2021)"),
-      align = c("l",rep("c",4)),
+      align = c("l",rep("r",4)),
       caption = "Health Outcomes for Four Communities with the Largest Share of Mexican Population and by Race/Ethnicity in Chicago",
       format.args = list(big.mark = "%"),
       linesep = "")  %>% 
@@ -230,9 +230,9 @@ table_4a <- df_final %>%
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
   column_spec(2:5, width = "6.45em") %>%  
-row_spec(0, bold = TRUE, font_size = 8) %>%
+row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
   row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
-  row_spec(c(5), hline_after = T) %>%  
+  row_spec(c(4), hline_after = T) %>%  
   
    add_footnote(
   c(
@@ -316,7 +316,7 @@ table_4b <- df_rates  %>% select(race_ethnicity, weighted_n_without_insurance, n
   column_spec(1, width = "14.2em") %>%
   column_spec(2:4, width = "8.6em") %>%  
 
-  row_spec(0, bold = T,
+  row_spec(0, bold = T,align = "c",
              #background = "#f2f0f7",
             font_size = 8) %>%
 
@@ -387,14 +387,17 @@ table_4c <- df_rates  %>% select(mex_foreign_born, weighted_n_without_insurance,
                 position = "center",
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:3, width = "8.6em") %>%  
+  column_spec(2:3, width = "7.9em") %>%  
 
-  row_spec(0, bold = T,
+  row_spec(0, bold = T, align = "c",
              #background = "#f2f0f7",
             font_size = 8) %>%
-
-    footnote(general = "Source: IPUMS-USA database (2018-2022 American Community Survey 5-Year Estimates). Tabulations by Great Cities Institute",
-           general_title = "")    
+  add_footnote(
+  c("\\footnotesize{Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute. }"),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
 
 
 table_4c
@@ -468,9 +471,9 @@ table_4e <- df_final %>%
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
   column_spec(2:4, width = "9.2em") %>%  
-row_spec(0, bold = TRUE, font_size = 8) %>%
+row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
   row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
-   row_spec(c(5), hline_after = T) %>%  
+   row_spec(c(4), hline_after = T) %>%  
   
   add_footnote(
   c(
@@ -563,7 +566,8 @@ table_4f <- df_final %>%
                 latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
   column_spec(2:4, width = "9.2em") %>%  
-row_spec(0, bold = TRUE, font_size = 8) %>%
+row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
+  row_spec(c(4), hline_after = T) %>%  
   row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%   
   
     add_footnote(
