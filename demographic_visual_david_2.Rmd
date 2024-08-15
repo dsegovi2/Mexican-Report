@@ -85,6 +85,19 @@ color_hispan_breakdown <- c(
   "Colombian" = "#F9C93C"
 )
 
+theme_plots <-
+  theme_minimal() +
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(color="#969696", linewidth = 1),
+        plot.title = element_text(face ="bold", size = 10, hjust = 0.5),
+      plot.subtitle = element_text(face ="italic", size = 8, color = "#636363"),
+      axis.text = element_text(size = 9),
+      axis.title = element_text(face ="bold", size = 9),
+      plot.caption = element_text(hjust = 0, size = 8, color = "black"),
+      legend.text = element_text(size = 8, color = "#636363"),
+      legend.title = element_text(face = "bold", size = 8, color = "#636363"))
 ```
 
 
@@ -313,8 +326,8 @@ ggplot(df_long, aes(x = age_group, y = percentage, fill = race_ethnicity)) +
             vjust = -1, 
             size = 2.2, 
             fontface = "bold") +
-  labs(title = "Population by Age for Mexicans and Other \nRacial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates) ", 
-       caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year\n Estimates). Tabulations by Great Cities Institute.", fill = ''
+  labs(title = "Population by Age for Mexicans and Other\nRacial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates) ", 
+       caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American\nCommunity Survey 5-year Estimates). Tabulations by Great Cities Institute.", fill = ''
 ) + 
   scale_y_continuous(limits = c(0, 50),breaks = seq(0, 50, by = 50)) +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 12))+
@@ -770,6 +783,47 @@ table_1c
 
 ```
 
+
+
+
+```{r fig.width=5, fig.height=4.5 ,fig.align='center'}
+
+# Plot
+ggplot(mean_household_size, aes(x = race_ethnicity, y = mean_household_size, fill = race_ethnicity)) +
+  
+  geom_bar(position=position_dodge(width=0.5), stat = "identity",
+           color = "white",
+           width=0.7) +
+  
+  scale_fill_manual(values = color_race_ethnicity) +
+  
+  labs(x = "", y = "", fill = "") +
+  geom_text(aes(label = mean_household_size), 
+position = position_dodge(width = 0.9), 
+vjust = -0.5,
+            hjust = 0.5,
+            size = 2.5,
+fontface = "bold") + 
+  labs(title = "Figure 3: Mean Household Size for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)", 
+       caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American\nCommunity Survey 5-year Estimates). Tabulations by Great Cities Institute.", fill = ''
+)  +
+  scale_y_discrete(labels = function(x) str_wrap(x, width = 12)) +
+  # scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0,100), breaks = seq(0, 100, by = 100)) +
+
+  theme_plots +
+  theme(
+        # axis.text.y = element_text(size = 8),
+        panel.background = element_blank(),
+        legend.position = "bottom",
+        legend.text = element_text(size = 7, color = "#636363"),
+        axis.ticks.y = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line.y= element_blank()) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE))  # Distribute legend items across 2 rows
+  
+
+```
 
 
 
