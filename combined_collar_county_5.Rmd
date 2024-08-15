@@ -205,6 +205,7 @@ comm_2000_2022 <- st_read ("Data Tables/shp/comm_pop_chi_2000_2022.shp" ) %>%
 
 \renewcommand{\arraystretch}{1.4}
 
+\clearpage
 
 # Demographic
 
@@ -218,7 +219,7 @@ comm_2000_2022 <- st_read ("Data Tables/shp/comm_pop_chi_2000_2022.shp" ) %>%
   mutate(comm_prc_label = paste0(str_to_title(tolower(commnty)), ":\n", prc2)) %>% 
   mutate(comm_pop_label = paste0(str_to_title(tolower(commnty)), ":\n", ttl_mxc2))
 ```
-\clearpage
+
 
 ### Mexican Population by Community Areas in Chicago, 2018-2022
 
@@ -947,7 +948,6 @@ table_1b.1
 
 
 
-
 ```{r fig.width=5, fig.height=4.5 ,fig.align='center'}
 # visual
 
@@ -988,8 +988,8 @@ ggplot(df_long, aes(x = age_group, y = percentage, fill = race_ethnicity)) +
             vjust = -1, 
             size = 2.2, 
             fontface = "bold") +
-  labs(title = "Population by Age for Mexicans and Other \nRacial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates) ", 
-       caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year\n Estimates). Tabulations by Great Cities Institute.", fill = ''
+  labs(title = "Figure 1: Population by Age for Mexicans and Other\nRacial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates) ", 
+       caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American\nCommunity Survey 5-year Estimates). Tabulations by Great Cities Institute.", fill = ''
 ) + 
   scale_y_continuous(limits = c(0, 50),breaks = seq(0, 50, by = 50)) +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 12))+
@@ -1010,6 +1010,7 @@ ggplot(df_long, aes(x = age_group, y = percentage, fill = race_ethnicity)) +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE)) # Distribute legend items across 2 rows
 
 ```
+
 
 
 
@@ -1158,8 +1159,8 @@ ggplot(df_long, aes(x = age_group, y = percentage, fill = hispan_breakdown)) +
             vjust = -1, 
             size = 2.2, 
             fontface = "bold") +
-  labs(title = "Population by Age for Hispanic or Latino Groups in Chicago,\n2018-2022 (ACS 5-year Estimates)", 
-      caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year\n Estimates). Tabulations by Great Cities Institute.", fill = ''
+  labs(title = "Figure 2: Population by Age for Hispanic or Latino Groups in Chicago,\n2018-2022 (ACS 5-year Estimates)", 
+      caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American\n Community Survey 5-year Estimates). Tabulations by Great Cities Institute.", fill = ''
 )  +
   scale_y_continuous(limits = c(0, 50),breaks = seq(0, 50, by = 50)) +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 12))+
@@ -2064,6 +2065,219 @@ table_1d.4.2
 
 ```
 
+## 1D(5): Population in Poverty and Poverty Rate for Mexicans and Other Racial/Ethnic Groups in Chicago, 2000 (Decennial Census), 2008-2012, and 2018-2022 (ACS 5-year Estimates)
+
+```{r}
+# analysis
+
+# poverty
+# filter for 2022
+
+data_chi_2018_22 <- usa_data 
+
+# Define the survey design using srvyr with only weights
+survey_design2 <- data_chi_2018_22  %>%
+  as_survey_design(weights = perwt)
+  
+
+  
+# Calculate poverty rates by group
+
+# Calculate total weighted count by race_category and ethnicity
+total_weighted_pop_count <- survey_design2 %>%
+  group_by(race_ethnicity, year) %>%
+  summarise(total_weighted_pop_count = survey_total())
+
+# Calculate total weighted count in poverty by race_category and ethnicity
+total_weighted_poverty_count <- survey_design2 %>%
+  filter(poverty <= 100) %>%
+  group_by(race_ethnicity, year) %>%
+  summarise(total_weighted_poverty_count = survey_total())
+
+# Combine total counts and poverty counts
+combined <- left_join(total_weighted_pop_count, total_weighted_poverty_count)
+
+
+poverty_rate_trends <- combined %>% mutate(poverty_rate = (total_weighted_poverty_count/total_weighted_pop_count)*100)
+
+poverty_rate_trends_wide <- poverty_rate_trends %>%  pivot_wider(
+  id_cols = race_ethnicity,
+    names_from = year,
+    values_from = c(
+      total_weighted_poverty_count,
+      poverty_rate
+    ),
+    names_sep = "_"
+  ) %>% select(race_ethnicity, total_weighted_poverty_count_2000, poverty_rate_2000,  total_weighted_poverty_count_2012, poverty_rate_2012,  total_weighted_poverty_count_2022, poverty_rate_2022) %>% mutate(diff_2022_2000 = poverty_rate_2022-poverty_rate_2000) %>%  mutate(across(starts_with("poverty_rate") | starts_with("diff"), ~ paste0(format(round(.x, 1), nsmall = 1), "%")))
+
+
+```
+
+
+```{r}
+# visuals
+
+
+table_1d.5 <- poverty_rate_trends_wide  %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("", "Number", "Percent", "Number", "Percent", "Number", "Percent", "Difference"),
+      align = c("l",rep("r",8)),
+      caption = "Population in Poverty and Poverty Rate for Mexicans and Other Racial/Ethnic Groups in Chicago, 2000 (Decennial Census), 2008-2012, and 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:8, width = "3.68em") %>%  
+ add_header_above(
+    align = c("l",  rep("c", 4)),
+    c(
+      "Race/Ethnicity", 
+      "Poverty\nin 2000 " = 2, 
+      "Poverty\nin 2008-2012 " = 2, 
+      "Poverty\nin 2018-2022" = 2,
+     "Changes\nfrom 2000\nto 2018-2022" = 1),
+    bold = TRUE, 
+    font_size = 8) %>%
+  row_spec(0, 
+           # bold = T,
+             #background = "#f2f0f7",
+            font_size = 8, align = "c") %>%
+  
+   add_footnote(
+  c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2000 Decennial Census, 2018-2012, and 2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+
+
+
+table_1d.5
+```
+
+## 1E: Total, Hispanic or Latino, and Mexican Population by 10 Community Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)
+
+```{r}
+# analysis
+top_10 <- chicago_ca_pop %>% as.data.frame() %>% select(commnty, totl_pp, ttl_hs_,ttl_mxc, prc_mx_, prc_mxc) %>%   mutate(commnty = str_to_title(commnty)) %>% arrange(desc(prc_mxc)) %>%  slice_max(order_by = prc_mxc, n = 10)
+
+
+# top 10 row
+totals <- top_10 %>%
+  summarise(
+    commnty = "10 Community Areas with the Largest Share of Mexican Population",
+    totl_pp = sum(totl_pp, na.rm = TRUE),
+    ttl_hs_ = sum(ttl_hs_, na.rm = TRUE),
+    ttl_mxc = sum(ttl_mxc, na.rm = TRUE),
+    prc_mx_ = (ttl_mxc/ttl_hs_) * 100,
+    prc_mxc = (ttl_mxc/totl_pp) * 100
+  )
+
+
+
+# rest of community areas
+min_67 <- chicago_ca_pop %>% as.data.frame() %>% select(commnty, totl_pp, ttl_hs_,ttl_mxc, prc_mx_, prc_mxc) %>%   mutate(commnty = str_to_title(commnty)) %>% slice_min(order_by = prc_mxc, n = 67)
+
+
+# the rest
+totals_min <- min_67 %>%
+  summarise(
+    commnty = "Other Community Areas",
+    totl_pp = sum(totl_pp, na.rm = TRUE),
+    ttl_hs_ = sum(ttl_hs_, na.rm = TRUE),
+    ttl_mxc = sum(ttl_mxc, na.rm = TRUE),
+    prc_mx_ = (ttl_mxc/ttl_hs_) * 100,
+    prc_mxc = (ttl_mxc/totl_pp) * 100
+  )
+
+
+
+# all of chicago
+df_all <- chicago_ca_pop %>% as.data.frame() %>% select(commnty, totl_pp, ttl_hs_,ttl_mxc, prc_mx_, prc_mxc) %>%   mutate(commnty = str_to_title(commnty)) %>% 
+  summarise(
+    commnty = "Chicago",
+    totl_pp = sum(totl_pp, na.rm = TRUE),
+    ttl_hs_ = sum(ttl_hs_, na.rm = TRUE),
+    ttl_mxc = sum(ttl_mxc, na.rm = TRUE),
+    prc_mx_ = (ttl_mxc/ttl_hs_) * 100,
+    prc_mxc = (ttl_mxc/totl_pp) * 100
+  )
+
+
+
+
+
+df_final <- rbind(top_10, totals, totals_min, df_all) %>% mutate(
+    prc_mx_ = paste0(format(round(prc_mx_, 1), nsmall = 1), "%"),
+    prc_mxc = paste0(format(round(prc_mxc, 1), nsmall = 1), "%")
+)
+
+
+```
+
+
+```{r}
+# visuals
+
+
+table_1e <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , prc_mxc) %>%
+
+   # using kable
+
+  kbl(, booktabs = T,
+      col.names = c("Total of 10 Community Areas", "Total Population", "Hispanic or Latino Population", "Mexican Population", "% Mexicans of Hispanic or Latino", "% Mexicans of Total Pop"),
+      align = c("l",rep("r",5)),
+      caption = "Total, Hispanic or Latino, and Mexican Population by 10 Community Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center", 
+                latex_options = "HOLD_position"
+                ) %>%
+  column_spec(1, width = "10em") %>%
+  column_spec(2:6, width = "6em") %>%
+  row_spec(0, align = "c",font_size = 8, bold = TRUE ) %>%  # Center column headers
+  # add_header_above(
+  #   align = c("l", rep("c", 5)),
+  #   c(
+  #     "10 Community Areas\nwith the Largest Share\nof Mexican Population",
+  #     "Total\nPopulation" = 1,
+  #     "Hispanic or\nLatino Population " = 1,
+  #     "Mexican\nPopulation" = 1,
+  #    "% Mexicans of\nHispanic or Latino" = 1,
+  #    "% Mexicans\nof Total Pop" = 1),
+  #   bold = TRUE,
+  #   font_size = 8) %>%
+  # row_spec(0, bold = T,
+  #            #background = "#f2f0f7",
+  #           font_size = 8) %>%
+ row_spec(c(10), hline_after = T) %>%
+  row_spec(11:13, bold = T,
+             background = "#f2f0f7",
+            font_size = 8) %>%
+
+     add_footnote(
+  c("\\footnotesize{Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+
+
+table_1e
+```
+
+
+
 \clearpage
 
 # 2. Education
@@ -2916,10 +3130,7 @@ table_2i
 
 
 
-
-
-
-## 2.J: Share of U.S. Population Ages 25-34 with a Bachelor's Degree or Higher by Detailed Hispanic Origin in Chicago, 2008-2012 and 2018-2022 (ACS 5-year Estimates)
+## 2.J: Share of U.S. Population Ages 25-34 with a Bachelor's Degree or Higher by Detailed Hispanic Origin 
 
 
 ```{r}
@@ -2994,7 +3205,7 @@ vjust = -0.5,
             hjust = 0.5,
             size = 2.5,
 fontface = "bold") + 
-  labs(title = "Share of U.S. Population Ages 25-34 with a Bachelor's Degree\n or Higher by Detailed Hispanic Origin in Chicago, 2008-2012 and 2018-2022\n(ACS 5-year Estimates)", 
+  labs(title = "Figure 3: Share of Population Aged 25-34 with a Bachelor’s Degree\nor Higher for Hispanic or Latino Groups in Chicago,\n2008-2012 and 2018-2022 (ACS 5-year Estimates)", 
        caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2008-2012, 2018-2022 American Community\nSurvey 5-year Estimates). Tabulations by Great Cities Institute.", fill = ''
 )  +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0,100), breaks = seq(0, 100, by = 100)) +
@@ -3028,7 +3239,7 @@ fontface = "bold") +
 \clearpage
 
 
-# Housing
+# 3.Housing
 
 ## 3.A: Rates of home ownership and rental housing among Mexicans with historical trends and comparisons to other groups.
 
@@ -3116,79 +3327,6 @@ escape = FALSE)
 table_a3
 
 ```
-
-
-<!-- ```{r} -->
-
-<!-- color_race_ethnicity <- c("Mexican" = "#CE1126", "Other Latinos" = "#F9AA51", -->
-<!--                                "White (non-Hispanic or Latino)" = "#9CA168", -->
-<!--                                "Black (non-Hispanic or Latino)" = "#8CBEC0", -->
-<!--                                "Other (non-Hispanic or Latino)" = "#0B8489") -->
-
-
-<!-- ownership_join2 <- ownership_join %>% filter(ownershp_f == "Owned or being bought (loan)") %>%  -->
-
-<!--   mutate(year = case_when(year == 2000 ~ "2000", -->
-<!--                           year == 2012 ~ "2008-2012", -->
-<!--                           year == 2022 ~ "2018-2022"), -->
-<!--          year = factor(year, levels = c("2000", "2008-2012", "2018-2022"))) -->
-
-
-<!--   ownership_join2 %>%  -->
-<!--   ggplot() + -->
-
-
-
-<!--     geom_bar(aes( -->
-<!--                x =  year, -->
-<!--              y = per, -->
-<!--              fill = interaction(scale, race_ethnicity)),  -->
-<!--              position=position_dodge(width=0.7), stat = "identity",  -->
-<!--            color = "white",  -->
-<!--            width=0.7) + -->
-<!-- facet_wrap (~ race_ethnicity) + -->
-<!--     scale_fill_manual(values = c("Chicago.Mexican" = "#CE1126", -->
-<!--                                "Chicago.Other Latinos" = "#F9AA51", -->
-<!--                                "Chicago.White (non-Hispanic or Latino)" = "#9CA168", -->
-<!--                                "Chicago.Black (non-Hispanic or Latino)" = "#8CBEC0", -->
-<!--                                "Chicago.Other (non-Hispanic or Latino)" = "#0B8489", -->
-<!--                                "USA.Mexican" = "gray", -->
-<!--                                "USA.Other Latinos" = "gray", -->
-<!--                                "USA.White (non-Hispanic or Latino)" = "gray", -->
-<!--                                "USA.Black (non-Hispanic or Latino)" = "gray", -->
-<!--                                "USA.Other (non-Hispanic or Latino)" = "gray"))  -->
-<!--   labs(y="", x = "", -->
-<!--        title="Homeownership by Race/Ethnicity in Chicago and USA, 2000 to 2018-2022", -->
-<!--        caption = "Source: IPUMS-USA database (2000, 2008-2012, 2018-2022). Tabulations by Great Cities Institute", -->
-<!--        fill="")  -->
-<!--   # scale_fill_manual(values = color_race_ethnicity) +  -->
-<!--   # geom_text(aes(label = prc2), -->
-<!--   #           position=position_dodge(width=0.7),  -->
-<!--   #           vjust = -0.5, -->
-<!--   #           hjust = 0.5, -->
-<!--   #           size = 2.5) + -->
-<!--   #  -->
-<!--   # scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) + # Modify labels of ggplot2 barplot -->
-<!--   # scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0,100), breaks = seq(0, 100, by = 100)) + -->
-<!--   #  -->
-<!--   # theme_plots + -->
-<!--   # theme( -->
-<!--   #   # axis.text.x = element_text(size = 8), -->
-<!--   #       panel.background = element_blank(), -->
-<!--   #       # axis.ticks.y = element_blank(), -->
-<!--   #       # axis.title.y = element_blank(), -->
-<!--   #       axis.text.y = element_blank(), -->
-<!--   #       axis.line.y = element_blank(), -->
-<!--   #       legend.position = "bottom", -->
-<!--   #       legend.text = element_text(size = 7, color = "#636363"), -->
-<!--   #       legend.key.size = unit(0.5, "lines"))+ -->
-<!--   # guides(fill = guide_legend(nrow = 2, byrow = TRUE))  -->
-
-
-
-
-
-<!-- ``` -->
 
 
 ## 3.B: Number and percentage of Mexicans who, live in crowded housing, or are rent-burdened.
@@ -3567,7 +3705,7 @@ Mhouse_value_plot <- comunity_house_value_shp %>%
            width=0.7,
            linewidth = 0.5) +
   labs(y="", x = "",
-       title="Median House Value for Chicago Community Areas with\nMore Than 50% Share of Mexican Population,\n2018-2022 (ACS 5-year Estimates) ",
+       title="Figure 4: Median House Value for Chicago Community Areas with\nMore Than 50% Share of Mexican Population,\n2018-2022 (ACS 5-year Estimates) ",
        caption = "Data source: IPUMS NHGIS, University of Minnesota, www.nhgis.org \n(2018-2022 American Community Survey 5-year Estimates).\nTabulations by Great Cities Institute",
        fill="") +
   geom_text(aes(label = paste0("$", scales::comma(Mvalue))),
@@ -3590,70 +3728,6 @@ Mhouse_value_plot <- comunity_house_value_shp %>%
   Mhouse_value_plot
 ```
 
-\clearpage
-
-# 4. Health 
-
-## 4A: Health Outcomes in Top 4 Community Areas with the Largest Mexican Population Share, (2017-2021 and 2022-2023):
-
-
-
-```{r}
-# analysis
-mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% top_n(4, prc_mxc) %>% select(commnty, obesity_rate, diabetes_rate, asthma_rate, lbw_rate)   %>%
-mutate(
-    obesity_rate = paste0(format(round(obesity_rate, 1), nsmall = 1), "%"),
-    diabetes_rate = paste0(format(round(diabetes_rate, 1), nsmall = 1), "%"),
-    asthma_rate = paste0(format(round(asthma_rate, 1), nsmall = 1), "%"),
-    lbw_rate = paste0(format(round(lbw_rate, 1), nsmall = 1), "%")
-)
-
-
-df_white_city <- data.frame(
-  commnty = "White Chicago Mean",
- obesity_rate = 24.5,
-  diabetes_rate = 6.9, 
-  asthma_rate = 9.1,
-  lbw_rate = 6.2
-)
-
-df_black_city <- data.frame(
-  commnty = "Black Chicago Mean",
-  obesity_rate = 47.6,
-  diabetes_rate = 19.6,
-  asthma_rate = 14.9, 
-  lbw_rate  =14.6
-)
-
-# Create a data frame
-df_latino_city <- data.frame(
-  commnty = "Hispanic or Latino Chicago Mean",
-  obesity_rate = 39.9,
-  diabetes_rate = 13.9, 
-  asthma_rate = 9.7, 
-  lbw_rate = 8.0
-)
-
-df_city_avgs <- rbind(df_white_city, df_black_city, df_latino_city)  %>%
-mutate(
-    obesity_rate = paste0(format(round(obesity_rate, 1), nsmall = 1), "%"),
-    diabetes_rate = paste0(format(round(diabetes_rate, 1), nsmall = 1), "%"),
-    asthma_rate = paste0(format(round(asthma_rate, 1), nsmall = 1), "%"),
-    lbw_rate = paste0(format(round(lbw_rate, 1), nsmall = 1), "%")
-)
-
-df_final <- rbind(mexican_top, df_city_avgs) %>%  mutate(across(
-    ends_with("Rate"),
-    ~ ifelse(. == "  NA%", "-", .)
-  ))
-
-
-```
-
-
-
-
-\renewcommand{\arraystretch}{1.4}
 \clearpage
 
 
@@ -4018,21 +4092,21 @@ mutate(
 )
 
 df_white_city <- data.frame(
-  commnty = "White City Mean",
+  commnty = "White Chicago Mean",
   cancer_diagnosis_rate = 676.16, 
   hyper_tension_rate = 29.8, 
   lung_cancer_rate = 83.41
 )
 
 df_black_city <- data.frame(
-  commnty = "Black City Mean",
+  commnty = "Black Chicago Mean",
   cancer_diagnosis_rate = 529.94, 
   hyper_tension_rate = 43.9, 
   lung_cancer_rate = 77.39
 )
 
 df_latino_city <- data.frame(
-  commnty = "Hispanic or Latino City Mean",
+  commnty = "Hispanic or Latino Chicago Mean",
   cancer_diagnosis_rate = 253.29, 
   hyper_tension_rate = 25.7, 
   lung_cancer_rate = 13.93
@@ -4092,7 +4166,7 @@ table_4f
 
 \clearpage
 
-# Employment and Business
+# 5. Employment and Business
 
 
 ## 5A.1: Unemployment Rate
@@ -4218,8 +4292,8 @@ LFP_rate %>%
            color = "white",
            width=0.7) +
   labs(y="", x = "",
-       title="Labor Force Participation Rate for Mexicans and Other Racial/Ethnic Groups in Chicago,\n2000 (Decennial Census), 2008-2012, and 2018-2022 (ACS 5-year Estimates)",
-       caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org\n(2000 Decennial Census, 2008-2012, and 2018-2022 American Community Survey 5-year Estimates).\nTabulations by Great Cities Institute.",
+       title="Figure 5: Labor Force Participation Rate for Mexicans and Other\nRacial/Ethnic Groups in Chicago, 2000 (Decennial Census),\n2008-2012, and 2018-2022 (ACS 5-year Estimates)",
+       caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org\n(2000 Decennial Census, 2018-2012, and 2018-2022 American Community Survey 5-year Estimates).\nTabulations by Great Cities Institute.",
        fill="") +
   scale_fill_manual(values = color_race_ethnicity) +
   geom_text(aes(label = prc2),
@@ -4325,15 +4399,17 @@ table_5a.2 <-  industry %>%
            
            font_size = 7
            ) %>%
+  
+  # add_footnote(
+  #   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+  #   notation = "none",
+  #   threeparttable = TRUE,
+  #   escape = FALSE
+  # )
   footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
            general_title = "",
            threeparttable = T,
            escape = FALSE)
-#   add_footnote(c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
-# notation = "none",
-# threeparttable = T,
-# escape = FALSE
-# )
 
 
 table_5a.2
@@ -4442,6 +4518,13 @@ table_5a.2_2 <-  industry3 %>%
            font_size = 8)  %>%
   pack_rows("Mexican", 1,10, hline_after = T, indent=FALSE  ) %>%
   pack_rows("Other Hispanics or Latinos", 11, 20, hline_before = T , hline_after = T, indent=FALSE) %>%
+  
+  # add_footnote(
+  #   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+  #   notation = "none",
+  #   threeparttable = TRUE,
+  #   escape = FALSE
+  # )
   footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
            general_title = "",
            threeparttable = T,
@@ -4522,6 +4605,12 @@ table_5a.3 <-  occupation %>%
            # background = "#f2f0f7",
            font_size = 7
            ) %>%
+  # add_footnote(
+  #   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+  #   notation = "none",
+  #   threeparttable = TRUE,
+  #   escape = FALSE
+  # )
   footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
            general_title = "",
            threeparttable = T,
@@ -4555,7 +4644,7 @@ occupation %>%
            color = "white",
            width=2/3) +
   labs(y="", x = "",
-       title="Percent Share of Occupation Employment for Mexicans and Other\nRacial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)",
+       title=" Figure 6 : Percent Share of Occupation Employment for\nMexicans and Other Racial/Ethnic Groups in Chicago,\n2018-2022 (ACS 5-year Estimates)",
        caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American\n Community Survey 5-year Estimates).Tabulations by Great Cities Institute.",
        fill="") +
   scale_fill_manual(values = color_race_ethnicity) +
@@ -4682,6 +4771,12 @@ table_5a.3_2 <-  occupation3 %>%
            font_size = 7.5) %>%
   pack_rows("Mexican", 1,10, hline_after = T  ) %>%
   pack_rows("Other Hispanics or Latinos", 11, 20, hline_before = T , hline_after = T) %>% 
+  # add_footnote(
+  #   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+  #   notation = "none",
+  #   threeparttable = TRUE,
+  #   escape = FALSE
+  # )
   footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
            general_title = "",
            threeparttable = T,
@@ -4874,7 +4969,7 @@ latino_gdp_tb <-  latino_gdp %>%
                 html_font = "Arial",
                 position = "center",
                 latex_options = "HOLD_position") %>%
-  column_spec(1, width = "30em") %>%
+  column_spec(1, width = "20em") %>%
   column_spec(2, width = "10em") %>%
   # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity",  "Total\nEmployed","Member of\nLabor Union" =2 ,"Covered by\nUnion but Not\na Member" = 2),
   #                   # background = "#cbc9e2",
@@ -4895,7 +4990,7 @@ latino_gdp_tb
 
 ```{r}
 country_gdp <- data.frame(
-  Country = c("United States", "China", "Japan", "Germany", "US Latinos",
+  Country = c("United States", "China", "Japan", "Germany", "U.S. Latinos",
               "India", "United Kingdom", "France", "Italy", "Canada", "Russia"),
   GDP_Billions_Dollars = c(23315.1, 17759.3, 5005.5, 4262.8, 3159.7,
                            3150.3, 3123.2, 2957.4, 2115.8, 2001.5, 1836.6)
@@ -4914,13 +5009,14 @@ country_gdp_tb <- country_gdp %>%
                 position = "center",
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "20em") %>%
-  column_spec(2, width = "20em") %>%
+  column_spec(2, width = "10em") %>%
   # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity",  "Total\nEmployed","Member of\nLabor Union" =2 ,"Covered by\nUnion but Not\na Member" = 2),
   #                   # background = "#cbc9e2",
   #                   bold = T, font_size =8) %>%
   row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
            font_size = 8) %>%
+  row_spec(5, bold = TRUE, background = "#f2f0f7" ) %>% 
   footnote(general = "\\\\footnotesize{Data Source: 2023 U.S. Latino GDP Report, www.LatinoGDP.us (International Monetary Fund and Organization for Economic Cooperation and Development).}",
            general_title = "",
            threeparttable = T,
@@ -4979,7 +5075,7 @@ business_ownership_tb <- business_ownership %>%
   kbl(booktabs = T,
       col.names = c("Ownership",  "Without Employees", "With Employees", "Total Businesses"),
       align = c("l",rep("r",3)),
-      caption = "Business count by owner demographic group in Chicago-Naperville-Elgin, IL-IN-WI Metro Area",
+      caption = "Share of Business Ownership (2021) and Population by Race/Ethnicity (2018-2022 ACS 5-year Estimates) in Chicago−Naperville−Elgin, IL−IN−WI Metro Area",
       format.args = list(big.mark = ","),
       linesep = "") %>%
  kable_classic(full_width = F,
@@ -4995,6 +5091,7 @@ business_ownership_tb <- business_ownership %>%
   row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
            font_size = 8) %>%
+  row_spec(3, hline_after = T, extra_latex_after = "%") %>% 
   add_footnote(c("\\footnotesize{Note: Counts include only businesses classifiable by owner demographic group}", "\\footnotesize{Data Sources: Annual Business Survey, 2021 (Census); Nonemployer Statistics by Demographics, 2021 (Census)
 }"),
 notation = "none",
@@ -5023,8 +5120,9 @@ business_ownership %>%
            color = "white",
            width=0.7) +
   labs(y="", x = "",
-       title="Business count by owner demographic group in Chicago-Naperville-Elgin,\nIL-IN-WI Metro Area",
-       caption = "Data Sources: Annual Business Survey, 2021 (Census); Nonemployer, Statistics by Demographics, 2021 (Census),\nTabulations by Great Cities Institute.",
+       title="Figure 7: Share of Business Ownership (2021) and Population\nby Race/Ethnicity (2018-2022 ACS 5-year Estimates) in\nChicago−Naperville−Elgin, IL−IN−WI Metro Area",
+       caption = "Data Sources: Annual Business Survey, 2021 (Census); Nonemployer Statistics\nby Demographics, 2021(Census). Tabulations by Great Cities Institute.",
+       
        fill="") +
   scale_fill_manual(values = race_group,
                     labels = c("% of Business Ownership", "% of Population")) +
@@ -5052,8 +5150,6 @@ business_ownership %>%
 
 
 ```
-
-\clearpage
 
 
 \clearpage
@@ -5150,7 +5246,7 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
   mutate(across(-race_ethnicity, ~ paste0(., "%"))) %>% 
   
   kbl(booktabs = T,
-      col.names = c("", "Non-citizen Rate", "Non-citizen Rate", "Non-citizen Rate", "Non-citizen Rate"),
+      col.names = c("", "2000", "2008-2012", "2018-2022", "Change from 2000 to 2018-2022"),
       align = c("l",rep("r",4)),
       caption = "U.S. Citizenship for Mexicans and Other Racial/Ethnic Groups in Chicago, 2000 (Decennial Census), 2008-2012, and 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
@@ -5162,7 +5258,7 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
   column_spec(2:5, width = "6.45em") %>%
-  add_header_above(align = c("l", rep("c",4)), c("Race/Ethnicity", "2000" = 1, "2008-2012" = 1, "2018-2022" = 1, "Change from\n2000 to 2018-2022" = 1), 
+  add_header_above(align = c("l", rep("c",1)), c("Race/Ethnicity", "Non-citizen Rate" = 4), 
                    bold = T, font_size =8) %>%
   row_spec(0, align = "c",
            # background = "#f2f0f7",
@@ -5231,9 +5327,9 @@ election_df <- data.frame(State = state,
 
   # using kable
 table_6b <- election_df %>%  kbl(, booktabs = T,
-      col.names = c("State", "# of Citizens", "% Registered" , "% Voting", "Rank Registered", "Rank Voting"),
+      col.names = c("", "Number", "Registered to Vote" , "% Voted", "Rank for % Registered", "Rank for % Voted"),
       align = c("l", rep("r", 5)),
-      caption = "2020 Presidential Election /Latino Registration and Voting By States",
+      caption = "Population, Percent Registered to Vote, and Percent Voted for Hispanics by State for the 2020 Presidential Election",
      format.args = list(big.mark = ","),
       linesep = "") %>%
   kable_classic(full_width = F,
@@ -5241,12 +5337,15 @@ table_6b <- election_df %>%  kbl(, booktabs = T,
                 html_font = "Arial",
                 position = "center",
                 latex_options = "HOLD_position") %>%
-  row_spec(0, bold = T, align = "c",
+  row_spec(0, 
+           align = "c",
            # background = "#f2f0f7",
            font_size = 8) %>% 
   column_spec(1, width = "10em") %>%
-  column_spec(2:6, width = "6em") %>%
-   row_spec(16, background = "#f2f0f7") %>%  # Highlight 16th row in light blue
+  column_spec(2:6, width_min = "6em") %>%
+  add_header_above(align = c("l", rep("c",1)), c("State", "Citizens Aged 18 and Older" = 5), 
+                   bold = T, font_size =8) %>%
+   row_spec(16, background = "#f2f0f7", bold = T) %>%  # Highlight 16th row in light blue
   add_footnote(
   c("\\footnotesize{Data source: U.S. Census Bureau, 'Voting and Registration in Election of November 2020,' Table 4a 'Voting and Registration By States,' GCI tabulation of states with more than 300,000 Latino citizens over age 18.}"),
   notation = "none",
@@ -5288,7 +5387,7 @@ voting_df <- data.frame(
 table_6c <- voting_df %>%  kbl(, booktabs = T,
       col.names = c("", "Hispanic or Latino", "Black (non-Hispanic or Latino)" , "White (non-Hispanic or Latino)", "Total"),
       align = c("l", rep("r", 4)),
-      caption = "Estimates of percent vote for Brandon Johnson, voter turnout, and percent of adult population that voted",
+      caption = "Estimates of Voter Turnout and Percent of Adult Population That Voted in 2023 Chicago Mayoral Race",
      format.args = list(big.mark = ","),
       linesep = "") %>%
   kable_classic(full_width = F,
@@ -5298,7 +5397,7 @@ table_6c <- voting_df %>%  kbl(, booktabs = T,
                 latex_options = "HOLD_position") %>%
   row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
-           font_size = 7.5) %>%
+           font_size = 7.5, monospace = FALSE, strikeout = FALSE) %>%
   column_spec(1, width = "9em") %>%
   column_spec(2:5, width = "7.75em") %>%
   add_footnote(
@@ -5481,7 +5580,7 @@ line_chart <- county_pop_1990_2020 %>%
             size = 2 ) +
   theme_plots +
   labs(y="", x = "",
-       title="Mexican Population in Chicago, Cook County, and Collar Counties,\n1990, 2000, 2010 (Decennial Censuses), and 2018-2022 (ACS 5-year Estimates)",
+       title="Figure 8: Mexican Population in Chicago, Cook County, and Collar Counties,\n1990, 2000, 2010 (Decennial Censuses), and 2018-2022 (ACS 5-year Estimates)",
        caption = "Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org (1990, 2000, 2010 Decennial Censuses,\nand 2018-2022 American Community Survey 5-year Estimates).\nTabulations by Great Cities Institute.",
        color="") +
   
@@ -5759,34 +5858,36 @@ pop_latino_2000_2020_tb
 
 
 # 8. Comparison of Chicago Mexican Community to Major Counties and Metropolitan Statistical Areas
-```{r include=FALSE}
+
+```{r include=F}
 
 msa_table_ownership_income <- read_csv("Data Tables/msa_table_ownership_income.csv")
 
 county_table_ownership_income <- read_csv("Data Tables/county_table_ownership_income.csv")
+
 ```
 
 
-# 1: Income and Home Ownership for Mexicans by 10 Metropolitan Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)
+# 1: Income and Home Ownership for Mexicans by 10 Metropolitan Areas 
 
 ```{r}
-table_1 <- msa_table_ownership_income %>% select(metro_name, total_pop, total_mexican,  prc_mexican, avg_incwage, weighted_median_incwage, per2) %>%
-
-   # using kable
-
+table_1 <- msa_table_ownership_income %>% select(metro_name, total_pop, total_mexican,  prc_mexican, avg_incwage, weighted_median_incwage, per2) %>% 
+ 
+   # using kable 
+  
   kbl(, booktabs = T,
        col.names = c("Metro Name", "Total Population", "Total Mexican Population",  "% Mexicans of Total Pop", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
       align = c("l",rep("r",6)),
-      caption = "Income and Home Ownership for Mexicans by 10 Metropolitan Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
+      caption = "Mexican Population, Income, and Mexican Homeownership Rate for 10 Metropolitan Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
-      linesep = "")  %>%
-  kable_classic(full_width = F,
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                latex_options = "HOLD_position") %>%
+                latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:7, width = "5.1em") %>%
+  column_spec(2:7, width = "5.1em") %>%  
 
   row_spec(0, bold = T, align = "c",
              #background = "#f2f0f7",
@@ -5801,7 +5902,7 @@ table_1 <- msa_table_ownership_income %>% select(metro_name, total_pop, total_me
   escape = FALSE
 )
 
-table_1
+table_1 
 
 
 ```
@@ -5809,29 +5910,29 @@ table_1
 
 
 
-# 2: Income and Home Ownership for Mexicans by 10 Counties with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)
+# 2: Income and Home Ownership for Mexicans by 10 Counties 
 
 
 
 ```{r}
-table_2 <- county_table_ownership_income %>% select(county_name, total_pop, total_mexican,  prc_mexican, avg_incwage, weighted_median_incwage, per2) %>%
-
-   # using kable
-
+table_2 <- county_table_ownership_income %>% select(county_name, total_pop, total_mexican,  prc_mexican, avg_incwage, weighted_median_incwage, per2) %>% 
+ 
+   # using kable 
+  
   kbl(, booktabs = T,
        col.names = c("County Name", "Total Population", "Total Mexican Population", "% Mexicans of Total Pop", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
       align = c("l",rep("r",6)),
-      caption = "Income and Home Ownership for Mexicans by 10 Counties with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
+      caption = "Mexican Population, Income, and Mexican Homeownership Rate for 10 Counties with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
-      linesep = "")  %>%
-  kable_classic(full_width = F,
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
                 font_size = 8,
                 html_font = "Arial",
                 position = "center",
-                latex_options = "HOLD_position") %>%
+                latex_options = "HOLD_position") %>% 
   column_spec(1, width = "14.2em") %>%
-  column_spec(2:7, width = "5.1em") %>%
-
+  column_spec(2:7, width = "5.1em") %>%  
+  
 row_spec(0, bold = T, align = "c",
              #background = "#f2f0f7",
             font_size = 7.5) %>%

@@ -17,6 +17,11 @@ header-includes:
   - \usepackage{pdflscape}
   - \newcommand{\blandscape}{\begin{landscape}}
   - \newcommand{\elandscape}{\end{landscape}}
+  - \usepackage{array}
+  - \usepackage{caption} 
+  - \usepackage{booktabs} 
+  - \usepackage{longtable}
+  - \usepackage{threeparttablex}
 editor_options: 
   chunk_output_type: console
 ---
@@ -163,7 +168,7 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
   mutate(across(-race_ethnicity, ~ paste0(., "%"))) %>% 
   
   kbl(booktabs = T,
-      col.names = c("", "Non-citizen Rate", "Non-citizen Rate", "Non-citizen Rate", "Non-citizen Rate"),
+      col.names = c("", "2000", "2008-2012", "2018-2022", "Change from 2000 to 2018-2022"),
       align = c("l",rep("r",4)),
       caption = "U.S. Citizenship for Mexicans and Other Racial/Ethnic Groups in Chicago, 2000 (Decennial Census), 2008-2012, and 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
@@ -175,7 +180,7 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
   column_spec(2:5, width = "6.45em") %>%
-  add_header_above(align = c("l", rep("c",4)), c("Race/Ethnicity", "2000" = 1, "2008-2012" = 1, "2018-2022" = 1, "Change from\n2000 to 2018-2022" = 1), 
+  add_header_above(align = c("l", rep("c",1)), c("Race/Ethnicity", "Non-citizen Rate" = 4), 
                    bold = T, font_size =8) %>%
   row_spec(0, align = "c",
            # background = "#f2f0f7",
@@ -244,9 +249,9 @@ election_df <- data.frame(State = state,
 
   # using kable
 table_6b <- election_df %>%  kbl(, booktabs = T,
-      col.names = c("State", "# of Citizens", "% Registered" , "% Voting", "Rank Registered", "Rank Voting"),
+      col.names = c("", "Number", "Registered to Vote" , "% Voted", "Rank for % Registered", "Rank for % Voted"),
       align = c("l", rep("r", 5)),
-      caption = "2020 Presidential Election /Latino Registration and Voting By States",
+      caption = "Population, Percent Registered to Vote, and Percent Voted for Hispanics by State for the 2020 Presidential Election",
      format.args = list(big.mark = ","),
       linesep = "") %>%
   kable_classic(full_width = F,
@@ -254,12 +259,15 @@ table_6b <- election_df %>%  kbl(, booktabs = T,
                 html_font = "Arial",
                 position = "center",
                 latex_options = "HOLD_position") %>%
-  row_spec(0, bold = T, align = "c",
+  row_spec(0, 
+           align = "c",
            # background = "#f2f0f7",
            font_size = 8) %>% 
   column_spec(1, width = "10em") %>%
-  column_spec(2:6, width = "6em") %>%
-   row_spec(16, background = "#f2f0f7") %>%  # Highlight 16th row in light blue
+  column_spec(2:6, width_min = "6em") %>%
+  add_header_above(align = c("l", rep("c",1)), c("State", "Citizens Aged 18 and Older" = 5), 
+                   bold = T, font_size =8) %>%
+   row_spec(16, background = "#f2f0f7", bold = T) %>%  # Highlight 16th row in light blue
   add_footnote(
   c("\\footnotesize{Data source: U.S. Census Bureau, 'Voting and Registration in Election of November 2020,' Table 4a 'Voting and Registration By States,' GCI tabulation of states with more than 300,000 Latino citizens over age 18.}"),
   notation = "none",
@@ -301,7 +309,7 @@ voting_df <- data.frame(
 table_6c <- voting_df %>%  kbl(, booktabs = T,
       col.names = c("", "Hispanic or Latino", "Black (non-Hispanic or Latino)" , "White (non-Hispanic or Latino)", "Total"),
       align = c("l", rep("r", 4)),
-      caption = "Estimates of percent vote for Brandon Johnson, voter turnout, and percent of adult population that voted",
+      caption = "Estimates of Voter Turnout and Percent of Adult Population That Voted in 2023 Chicago Mayoral Race",
      format.args = list(big.mark = ","),
       linesep = "") %>%
   kable_classic(full_width = F,
@@ -311,7 +319,7 @@ table_6c <- voting_df %>%  kbl(, booktabs = T,
                 latex_options = "HOLD_position") %>%
   row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
-           font_size = 7.5) %>%
+           font_size = 7.5, monospace = FALSE, strikeout = FALSE) %>%
   column_spec(1, width = "9em") %>%
   column_spec(2:5, width = "7.75em") %>%
   add_footnote(

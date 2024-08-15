@@ -1082,7 +1082,7 @@ vjust = -0.5,
             hjust = 0.5,
             size = 2.5,
 fontface = "bold") + 
-  labs(title = "Share of U.S. Population Ages 25-34 with a Bachelor's Degree\n or Higher by Detailed Hispanic Origin in Chicago, 2008-2012 and 2018-2022\n(ACS 5-year Estimates)", 
+  labs(title = "Share of Population Aged 25-34 with a Bachelor’s Degree\nor Higher for Hispanic or Latino Groups in Chicago,\n2008-2012 and 2018-2022 (ACS 5-year Estimates)", 
        caption = "Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2008-2012, 2018-2022 American Community\nSurvey 5-year Estimates). Tabulations by Great Cities Institute.", fill = ''
 )  +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0,100), breaks = seq(0, 100, by = 100)) +

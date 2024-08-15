@@ -54,9 +54,9 @@ library("RColorBrewer")
 
 options(knitr.kable.NA = '-') 
 library(readr)
-msa_table_ownership_income <- read_csv("msa_table_ownership_income.csv")
+msa_table_ownership_income <- read_csv("Data Tables/msa_table_ownership_income.csv")
 
-county_table_ownership_income <- read_csv("county_table_ownership_income.csv")
+county_table_ownership_income <- read_csv("Data Tables/county_table_ownership_income.csv")
 
 
 ```
@@ -71,7 +71,7 @@ county_table_ownership_income <- read_csv("county_table_ownership_income.csv")
 # Comparison of Chicago Mexican Community to Major Counties and Metropolitan Statistical Areas
 
 
-# 1: Income and Home Ownership for Mexicans by 10 Metropolitan Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)
+# 1: Income and Home Ownership for Mexicans by 10 Metropolitan Areas 
 
 ```{r}
 table_1 <- msa_table_ownership_income %>% select(metro_name, total_pop, total_mexican,  prc_mexican, avg_incwage, weighted_median_incwage, per2) %>% 
@@ -81,7 +81,7 @@ table_1 <- msa_table_ownership_income %>% select(metro_name, total_pop, total_me
   kbl(, booktabs = T,
        col.names = c("Metro Name", "Total Population", "Total Mexican Population",  "% Mexicans of Total Pop", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
       align = c("l",rep("r",6)),
-      caption = "Income and Home Ownership for Mexicans by 10 Metropolitan Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
+      caption = "Mexican Population, Income, and Mexican Homeownership Rate for 10 Metropolitan Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  
@@ -113,7 +113,7 @@ table_1
 
 
 
-# 2: Income and Home Ownership for Mexicans by 10 Counties with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)
+# 2: Income and Home Ownership for Mexicans by 10 Counties 
 
 
 
@@ -125,7 +125,7 @@ table_2 <- county_table_ownership_income %>% select(county_name, total_pop, tota
   kbl(, booktabs = T,
        col.names = c("County Name", "Total Population", "Total Mexican Population", "% Mexicans of Total Pop", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
       align = c("l",rep("r",6)),
-      caption = "Income and Home Ownership for Mexicans by 10 Counties with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
+      caption = "Mexican Population, Income, and Mexican Homeownership Rate for 10 Counties with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
       linesep = "")  %>% 
   kable_classic(full_width = F,  

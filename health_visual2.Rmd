@@ -509,21 +509,21 @@ mutate(
 )
 
 df_white_city <- data.frame(
-  commnty = "White City Mean",
+  commnty = "White Chicago Mean",
   cancer_diagnosis_rate = 676.16, 
   hyper_tension_rate = 29.8, 
   lung_cancer_rate = 83.41
 )
 
 df_black_city <- data.frame(
-  commnty = "Black City Mean",
+  commnty = "Black Chicago Mean",
   cancer_diagnosis_rate = 529.94, 
   hyper_tension_rate = 43.9, 
   lung_cancer_rate = 77.39
 )
 
 df_latino_city <- data.frame(
-  commnty = "Hispanic or Latino City Mean",
+  commnty = "Hispanic or Latino Chicago Mean",
   cancer_diagnosis_rate = 253.29, 
   hyper_tension_rate = 25.7, 
   lung_cancer_rate = 13.93

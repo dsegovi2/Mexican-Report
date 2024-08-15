@@ -931,7 +931,7 @@ latino_gdp_tb
 
 ```{r}
 country_gdp <- data.frame(
-  Country = c("United States", "China", "Japan", "Germany", "US Latinos",
+  Country = c("United States", "China", "Japan", "Germany", "U.S. Latinos",
               "India", "United Kingdom", "France", "Italy", "Canada", "Russia"),
   GDP_Billions_Dollars = c(23315.1, 17759.3, 5005.5, 4262.8, 3159.7,
                            3150.3, 3123.2, 2957.4, 2115.8, 2001.5, 1836.6)
@@ -957,6 +957,7 @@ country_gdp_tb <- country_gdp %>%
   row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
            font_size = 8) %>%
+  row_spec(5, bold = TRUE, background = "#f2f0f7" ) %>% 
   footnote(general = "\\\\footnotesize{Data Source: 2023 U.S. Latino GDP Report, www.LatinoGDP.us (International Monetary Fund and Organization for Economic Cooperation and Development).}",
            general_title = "",
            threeparttable = T,
@@ -1015,7 +1016,7 @@ business_ownership_tb <- business_ownership %>%
   kbl(booktabs = T,
       col.names = c("Ownership",  "Without Employees", "With Employees", "Total Businesses"),
       align = c("l",rep("r",3)),
-      caption = "Business count by owner demographic group in Chicago-Naperville-Elgin, IL-IN-WI Metro Area",
+      caption = "Share of Business Ownership (2021) and Population by Race/Ethnicity (2018-2022 ACS 5-year Estimates) in Chicago−Naperville−Elgin, IL−IN−WI Metro Area",
       format.args = list(big.mark = ","),
       linesep = "") %>%
  kable_classic(full_width = F,
@@ -1031,6 +1032,7 @@ business_ownership_tb <- business_ownership %>%
   row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
            font_size = 8) %>%
+  row_spec(3, hline_after = T, extra_latex_after = "%") %>% 
   add_footnote(c("\\footnotesize{Note: Counts include only businesses classifiable by owner demographic group}", "\\footnotesize{Data Sources: Annual Business Survey, 2021 (Census); Nonemployer Statistics by Demographics, 2021 (Census)
 }"),
 notation = "none",
@@ -1059,8 +1061,7 @@ business_ownership %>%
            color = "white",
            width=0.7) +
   labs(y="", x = "",
-       title="Business count by owner demographic group in Chicago-Naperville-Elgin,\nIL-IN-WI Metro Area",
-       caption = "Data Sources: Annual Business Survey, 2021 (Census); Nonemployer, Statistics by Demographics, 2021 (Census),\nTabulations by Great Cities Institute.",
+       title="Figure 6: Share of Business Ownership (2021) and Population\nby Race/Ethnicity (2018-2022 ACS 5-year Estimates) in\nChicago−Naperville−Elgin, IL−IN−WI Metro Area",
        fill="") +
   scale_fill_manual(values = race_group,
                     labels = c("% of Business Ownership", "% of Population")) +
