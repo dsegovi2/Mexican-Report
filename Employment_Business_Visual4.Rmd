@@ -360,15 +360,17 @@ table_5a.2 <-  industry %>%
            
            font_size = 7
            ) %>%
+  
+  # add_footnote(
+  #   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+  #   notation = "none",
+  #   threeparttable = TRUE,
+  #   escape = FALSE
+  # )
   footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
            general_title = "",
            threeparttable = T,
            escape = FALSE)
-#   add_footnote(c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
-# notation = "none",
-# threeparttable = T,
-# escape = FALSE
-# )
 
 
 table_5a.2
@@ -477,6 +479,13 @@ table_5a.2_2 <-  industry3 %>%
            font_size = 8)  %>%
   pack_rows("Mexican", 1,10, hline_after = T, indent=FALSE  ) %>%
   pack_rows("Other Hispanics or Latinos", 11, 20, hline_before = T , hline_after = T, indent=FALSE) %>%
+  
+  # add_footnote(
+  #   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+  #   notation = "none",
+  #   threeparttable = TRUE,
+  #   escape = FALSE
+  # )
   footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
            general_title = "",
            threeparttable = T,
@@ -557,6 +566,12 @@ table_5a.3 <-  occupation %>%
            # background = "#f2f0f7",
            font_size = 7
            ) %>%
+  # add_footnote(
+  #   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+  #   notation = "none",
+  #   threeparttable = TRUE,
+  #   escape = FALSE
+  # )
   footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
            general_title = "",
            threeparttable = T,
@@ -717,6 +732,12 @@ table_5a.3_2 <-  occupation3 %>%
            font_size = 7.5) %>%
   pack_rows("Mexican", 1,10, hline_after = T  ) %>%
   pack_rows("Other Hispanics or Latinos", 11, 20, hline_before = T , hline_after = T) %>% 
+  # add_footnote(
+  #   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+  #   notation = "none",
+  #   threeparttable = TRUE,
+  #   escape = FALSE
+  # )
   footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
            general_title = "",
            threeparttable = T,
@@ -1062,6 +1083,7 @@ business_ownership %>%
            width=0.7) +
   labs(y="", x = "",
        title="Figure 6: Share of Business Ownership (2021) and Population\nby Race/Ethnicity (2018-2022 ACS 5-year Estimates) in\nChicago−Naperville−Elgin, IL−IN−WI Metro Area",
+       caption = "Data Sources: Annual Business Survey, 2021 (Census); Nonemployer Statistics\nby Demographics, 2021(Census). Tabulations by Great Cities Institute.",
        fill="") +
   scale_fill_manual(values = race_group,
                     labels = c("% of Business Ownership", "% of Population")) +
