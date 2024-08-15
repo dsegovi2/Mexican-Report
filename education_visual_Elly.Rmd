@@ -382,10 +382,8 @@ table_2b <-df_final  %>% select(school_name, percent_ela_proficiency, percent_ma
   ) %>%
   
     add_footnote(
-  c(
-    "\\footnotesize{Data Source: Illinois Report Card (2023). Tabulations by Great Cities Institute.}",
-    "\\footnotesize{Sample size: 31 Chicago Public Schools Elementary Schools in Gage Park, East Side, West Lawn, and South Lawndale.}"
-  ),
+  c("\\footnotesize{Sample size: 31 Chicago Public Schools Elementary Schools in Gage Park, East Side, West Lawn, and South Lawndale.}",
+    "\\footnotesize{Data Source: Illinois Report Card (2023). Tabulations by Great Cities Institute.}"),
   notation = "none",
   threeparttable = TRUE,
   escape = FALSE
@@ -435,11 +433,9 @@ table_2c <-df_final  %>% select(school_name, chronic_absenteeism) %>%
     font_size = 8
   ) %>%
  add_footnote(
-  c(
-    "\\footnotesize{Data Source: Illinois Report Card (2023). Tabulations by Great Cities Institute.}",
-    "\\footnotesize{Sample size: 31 Chicago Public Schools Elementary Schools in Gage Park, East Side, West Lawn, and South Lawndale.}",
-      "\\footnotesize{Note: Chronic Absenteeism is defined as students who miss 10 percent or more of school days per year.}"
-  ),
+  c("\\footnotesize{Note: Sample size: 31 Chicago Public Schools Elementary Schools in Gage Park, East Side, West Lawn, and South Lawndale.}",
+      "\\footnotesize{Note: Chronic Absenteeism is defined as students who miss 10 percent or more of school days per year.}",
+    "\\footnotesize{Data Source: Illinois Report Card (2023). Tabulations by Great Cities Institute.}"),
   notation = "none",
   threeparttable = TRUE,
   escape = FALSE
@@ -512,10 +508,8 @@ table_2d <- lep_rate_by_ethnicity %>% select(race_ethnicity, lep_count, lep_perc
             font_size = 8) %>%
   
   add_footnote(
-  c(
-    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
-      "\\footnotesize{Note: English Proficiency is defined as respondents who does not speak English or speaks English poorly.}"
-  ),
+  c("\\footnotesize{Note: English Proficiency is defined as respondents who does not speak English or speaks English poorly.}",
+    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
   notation = "none",
   threeparttable = TRUE,
   escape = FALSE

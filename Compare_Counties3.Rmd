@@ -661,7 +661,7 @@ line_chart <- county_pop_1990_2020 %>%
             size = 2 ) +
   theme_plots +
   labs(y="", x = "",
-       title="Mexican Population in Chicago, Cook County, and Collar Counties,\n1990, 2000 (Decennial Censuses), 2008-2012, and 2018-2022 (ACS 5-year Estimates)",
+       title="Mexican Population in Chicago, Cook County, and Collar Counties,\n1990, 2000, 2010 (Decennial Censuses), and 2018-2022 (ACS 5-year Estimates)",
        caption = "Data Source: IPUMS NHGIS, University of Minnesota, www.nhgis.org (1990, 2000, 2010 Decennial Censuses,\nand 2018-2022 American Community Survey 5-year Estimates).\nTabulations by Great Cities Institute.",
        color="") +
   
@@ -746,7 +746,7 @@ mxc_pop_2020_collar_cook_tb
 ```
 
 
-### Mexican Population in Cook County, and Collar Counties, 1990, 2000 (Decennial Censuses), 2008-2012, and 2018-2022 (ACS 5-year Estimates)
+### Mexican Population in Cook County, and Collar Counties, 1990, 2000, 2010 (Decennial Censuses), and 2018-2022 (ACS 5-year Estimates)
 
 ```{r fig.height=10, fig.width=8}
 

@@ -236,14 +236,11 @@ row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
   
    add_footnote(
   c(
-    "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).}",
-    "\\footnotesize{Tabulations by Great Cities Institute}",
       "\\footnotesize{Note: Obesity is defined as percent of adults who reported a height and weight that yield a body mass index of 30 or greater.}",
     "\\footnotesize{Diabetes is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with diabetes.}",
     "\\footnotesize{Asthma is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with asthma.}",
-    "\\footnotesize{Low birthweight is defined as percent of births with a birthweight less than 2500 grams (5.5 pounds).}"
-    
-  ),
+    "\\footnotesize{Low birthweight is defined as percent of births with a birthweight less than 2500 grams (5.5 pounds).}",
+    "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021). Tabulations by Great Cities Institute}"),
   notation = "none",
   threeparttable = TRUE,
   escape = FALSE
@@ -476,12 +473,11 @@ row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
    row_spec(c(4), hline_after = T) %>%  
   
   add_footnote(
-  c(
-    "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).}",
-    "\\footnotesize{Tabulations by Great Cities Institute}",
+  c( 
       "\\footnotesize{Note: Serious Psychological Distress is the percent of adults who experienced feelings of nervousness, hopelessness, and depression, in the past 30 days.}",
     "\\footnotesize{Unmet mental health need is the percent of adults with psychological distress who are not receiving treatment or medication.}",
-    "\\footnotesize{Loneliness rate is defined as the percent of adults who reported feeling left out or felt alone}"
+    "\\footnotesize{Loneliness rate is defined as the percent of adults who reported feeling left out or felt alone.}",
+    "\\footnotesize{Data Source: Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).Tabulations by Great Cities Institute.}"
     
   ),
   notation = "none",
@@ -571,12 +567,9 @@ row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
   row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%   
   
     add_footnote(
-  c(
-    "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).}",
-    "\\footnotesize{Tabulations by Great Cities Institute}",
-      "\\footnotesize{Note: Cancer diagnosis is defined as the annual diagnosis rate for all invasive cancers, excluding pre-cancerous conditions.  All ages, risk-adjusted.}",
+  c("\\footnotesize{Note: Cancer diagnosis is defined as the annual diagnosis rate for all invasive cancers, excluding pre-cancerous conditions.  All ages, risk-adjusted.}",
     "\\footnotesize{Hypertension is the percentage of adults diagnosed with high blood pressure, excluding borderline or pregnancy-related cases.}",
-    "\\footnotesize{Lung cancer is defined as lung and bronchus cancer for ages 15 and over, risk-adjusted.}"
+    "\\footnotesize{Lung cancer is defined as lung and bronchus cancer for ages 15 and over, risk-adjusted.}", "\\footnotesize{Data Source: Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021).Tabulations by Great Cities Institute.}"
     
   ),
   notation = "none",

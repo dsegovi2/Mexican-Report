@@ -872,7 +872,7 @@ table5b <- Union %>%
   row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
            font_size = 8) %>%
-  add_footnote(c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
+  add_footnote(c("\\footnotesize{Data Source: Data Source: IPUMS CPS, University of Minnesota, www.ipums.org. (2022 Current Population Survey). Tabulations by Great Cities Institute.}"),
 notation = "none",
 threeparttable = T,
 escape = FALSE)

@@ -940,10 +940,8 @@ table_1d.2.1 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_
             font_size = 8) %>%
   
    add_footnote(
-  c(
-    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
-    "\\footnotesize{Data covers full-time employees working a minimum of 35 hours per week for at least 48 weeks each year.}"
-  ),
+  c("\\footnotesize{Note: Data covers full-time employees working a minimum of 35 hours per week for at least 48 weeks each year.}",
+    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}" ),
   notation = "none",
   threeparttable = TRUE,
   escape = FALSE
@@ -1032,10 +1030,8 @@ table_1d.2.2 <- income_levels %>% select(race_ethnicity, avg_incwage , weighted_
             font_size = 8) %>%
   
      add_footnote(
-  c(
-    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
-    "\\footnotesize{The data includes all employed individuals, regardless of whether they work full-time or part-time.}"
-  ),
+  c("\\footnotesize{Note: The data includes all employed individuals, regardless of whether they work full-time or part-time.}", 
+    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
   notation = "none",
   threeparttable = TRUE,
   escape = FALSE
@@ -1121,10 +1117,8 @@ table_1d.3.1 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighte
             font_size = 8) %>%
 
    add_footnote(
-  c(
-    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
-    "\\footnotesize{Data covers full-time employees working a minimum of 35 hours per week for at least 48 weeks each year.}"
-  ),
+  c("\\footnotesize{Note: Data covers full-time employees working a minimum of 35 hours per week for at least 48 weeks each year.}", 
+    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
   notation = "none",
   threeparttable = TRUE,
   escape = FALSE
@@ -1210,10 +1204,8 @@ table_1d.3.2 <- income_levels %>% select(hispan_breakdown, avg_incwage , weighte
             font_size = 8) %>%
   
      add_footnote(
-  c(
-    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
-    "\\footnotesize{The data includes all employed individuals, regardless of whether they work full-time or part-time.}"
-  ),
+  c("\\footnotesize{Note: The data includes all employed individuals, regardless of whether they work full-time or part-time.}",
+    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
   notation = "none",
   threeparttable = TRUE,
   escape = FALSE
@@ -1299,10 +1291,8 @@ table_1d.4.1 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighte
             font_size = 8) %>%
 
        add_footnote(
-  c(
-    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
-    "\\footnotesize{Data covers full-time employees working a minimum of 35 hours per week for at least 48 weeks each year.}"
-  ),
+  c( "\\footnotesize{Note: Data covers full-time employees working a minimum of 35 hours per week for at least 48 weeks each year.}",
+    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
   notation = "none",
   threeparttable = TRUE,
   escape = FALSE
@@ -1387,10 +1377,8 @@ table_1d.4.2 <- income_levels %>% select(mex_foreign_born, avg_incwage , weighte
             font_size = 8) %>%
   
          add_footnote(
-  c(
-    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
-    "\\footnotesize{Data covers full-time employees working a minimum of 35 hours per week for at least 48 weeks each year.}"
-  ),
+  c("\\footnotesize{Note: Data covers full-time employees working a minimum of 35 hours per week for at least 48 weeks each year.}",
+    "\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
   notation = "none",
   threeparttable = TRUE,
   escape = FALSE
