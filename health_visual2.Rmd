@@ -169,7 +169,7 @@ mutate(
 
 
 df_white_city <- data.frame(
-  commnty = "White Chicago Mean",
+  commnty = "White (non-Hispanic or Latino) Chicago Mean",
  obesity_rate = 24.5,
   diabetes_rate = 6.9, 
   asthma_rate = 9.1,
@@ -177,7 +177,7 @@ df_white_city <- data.frame(
 )
 
 df_black_city <- data.frame(
-  commnty = "Black Chicago Mean",
+  commnty = "Black (non-Hispanic or Latino) Chicago Mean",
   obesity_rate = 47.6,
   diabetes_rate = 19.6,
   asthma_rate = 14.9, 
@@ -416,14 +416,14 @@ mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% top_n(4, prc_mxc) %>% se
 
 
 df_white_city <- data.frame(
-  commnty = "White Chicago Mean",
+  commnty = "White (non-Hispanic or Latino) Chicago Mean",
  psych_distress_rate = 7.5,
   unmet_mental_health_rate = 57.2,
   loneliness_rate = 26.5
 )
 
 df_black_city <- data.frame(
-  commnty = "Black Chicago Mean",
+  commnty = "Black (non-Hispanic or Latino) Chicago Mean",
   psych_distress_rate = 9.9,
   unmet_mental_health_rate = 81.4,
   loneliness_rate = 30.2
@@ -509,14 +509,14 @@ mutate(
 )
 
 df_white_city <- data.frame(
-  commnty = "White Chicago Mean",
+  commnty = "White (non-Hispanic or Latino) Chicago Mean",
   cancer_diagnosis_rate = 676.16, 
   hyper_tension_rate = 29.8, 
   lung_cancer_rate = 83.41
 )
 
 df_black_city <- data.frame(
-  commnty = "Black Chicago Mean",
+  commnty = "Black (non-Hispanic or Latino) Chicago Mean",
   cancer_diagnosis_rate = 529.94, 
   hyper_tension_rate = 43.9, 
   lung_cancer_rate = 77.39
