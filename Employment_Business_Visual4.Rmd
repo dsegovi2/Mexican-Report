@@ -182,7 +182,7 @@ table_5.a1
 
 
 
-## 5A.1-2: The Labor Force Participation Rate
+## 5A.1-2: Labor Force Participation Rate for Mexicans and Other Racial/Ethnic Groups in Chicago, 2000 (Decennial Census), 2008-2012, and 2018-2022 (ACS 5-year Estimates)
 
 ```{r}
 LFP_rate = usa_data %>%
@@ -234,7 +234,7 @@ escape = FALSE)
 table_5.a1_2
 ```
 
-
+## 5A.1-2: figure: Labor Force Participation Rate for Mexicans and Other Racial/Ethnic Groups in Chicago, 2000 (Decennial Census), 2008-2012, and 2018-2022 (ACS 5-year Estimates)
 
 ```{r fig.width=6, fig.height=4 ,fig.align='center'}
 
@@ -283,7 +283,7 @@ LFP_rate %>%
 ```
 
 
-## 5A.2: Numbers and percentages of Mexicans employed, by industry
+## 5A.2: Employment by Industry and Percent Share of Industry Employment for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
 
 \blandscape
 
@@ -361,12 +361,6 @@ table_5a.2 <-  industry %>%
            font_size = 7
            ) %>%
   
-  # add_footnote(
-  #   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
-  #   notation = "none",
-  #   threeparttable = TRUE,
-  #   escape = FALSE
-  # )
   footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
            general_title = "",
            threeparttable = T,
@@ -382,7 +376,7 @@ table_5a.2
 
 \clearpage
 
-
+## 5A.2 -2: Employment by Industry and Percent Share of Industry Employment for 10 Sub-industries Where Hispanics or Latinos Have the Highest Number of Employees for Mexicans and Other Hispanics or Latinos in Chicago, 2018-2022 (ACS 5-year Estimates)
 
 ```{r}
 
@@ -502,7 +496,7 @@ table_5a.2_2
 \blandscape
 
 
-## 5A.3: Numbers and percentages of Mexicans employed, by Occupation
+## 5A.3-1: Employment by Occupation and Percent Share of Occupation Employment for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
 
 
 ```{r}
@@ -637,6 +631,7 @@ occupation %>%
 ```
 \clearpage
 
+## 5A.3-2: Employment by Sub-occupation and Percent Share of Occupation Employment for 10 Sub-occupations Where Hispanics or Latinos Have the Highest Number of Employees for Mexicans and Other Hispanics or Latinos in Chicago, 2018-2022 (ACS 5-year Estimates)
 
 ```{r}
 
@@ -724,20 +719,13 @@ table_5a.3_2 <-  occupation3 %>%
   column_spec(1:2, width = "20em") %>%
   column_spec(3, width = "5em") %>%
   column_spec(4, width = "6em") %>% 
-  # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
-  #                   # background = "#cbc9e2",
-  #                   bold = T, font_size =8) %>%
+
   row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
            font_size = 7.5) %>%
-  pack_rows("Mexican", 1,10, hline_after = T  ) %>%
-  pack_rows("Other Hispanics or Latinos", 11, 20, hline_before = T , hline_after = T) %>% 
-  # add_footnote(
-  #   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
-  #   notation = "none",
-  #   threeparttable = TRUE,
-  #   escape = FALSE
-  # )
+  pack_rows("Mexican", 1,10, hline_after = T  , indent=FALSE) %>%
+  pack_rows("Other Hispanics or Latinos", 11, 20, hline_before = T , hline_after = T, indent=FALSE) %>% 
+
   footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
            general_title = "",
            threeparttable = T,
@@ -749,6 +737,140 @@ table_5a.3_2
 
 
 ```
+
+\clearpage
+## 5A.3-3: Employment by Industry and Percent Share of Industry Employment for 10 Sub-industries Where Mexican Males and Females Have the Highest Number of Employees in Chicago, 2018-2022 (ACS 5-year Estimates)
+```{r}
+occupation4 <- usa_data %>%
+  filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+
+  as_survey_design(weights = perwt) %>%
+  survey_count(race_ethnicity, sex_f, occ, employment=empstat_f, name="count") %>%
+  filter(employment == "Employed") %>%
+  group_by(occ) %>%
+  mutate(total_employed = sum(count, na.rm = T)) %>% 
+mutate(sex_f = factor(sex_f, levels = c("Male", "Female")))
+  # mutate(prc = 100* round(count/total_employed, 4),
+  #        prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) %>%
+  # filter(!is.na(occ)) %>%
+  # ungroup()
+
+
+
+top_occ_male_mxc <- occupation4 %>%
+  filter(race_ethnicity == "Mexican" & sex_f == "Male") %>%
+  group_by(occ) %>%
+  mutate(prc = 100* round(count/total_employed, 4),
+         prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) %>%
+  filter(!is.na(occ)) %>%
+  ungroup() %>% 
+  arrange(desc(count)) %>%
+  slice(1:10) %>%
+  pull(occ)
+
+
+top_occ_female_mxc <- occupation4 %>%
+  filter(race_ethnicity == "Mexican" & sex_f == "Female") %>%
+  group_by(occ) %>%
+  mutate(prc = 100* round(count/total_employed, 4),
+         prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) %>%
+  filter(!is.na(occ)) %>%
+  ungroup() %>% 
+  arrange(desc(count)) %>%
+  slice(1:10) %>%
+  pull(occ)
+
+
+occupation5 <-  occupation4 %>%
+  filter(occ %in% top_occ_male_mxc & race_ethnicity == "Mexican" & sex_f == "Male"|
+         occ %in% top_occ_female_mxc & race_ethnicity == "Mexican" & sex_f == "Female") %>% 
+  group_by(sex_f, occ) %>% 
+  mutate(prc = 100* round(count/total_employed, 4),
+         prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) %>% 
+  
+  mutate(sub_Occupation = case_when(occ == 2310 ~ "Elementary and middle school teachers",
+                                    occ == 4020 ~ "Cooks",
+                                    occ == 4110 ~ "Waiters and waitresses",
+                                    occ == 4220 ~ "Janitors and building cleaners",
+                                    occ == 4230 ~ "Maids and housekeeping cleaners",
+                                    occ == 4600 ~ "Childcare workers",
+                                    occ == 4720 ~ "Cashiers",
+                                    occ == 4760 ~ "Retail salespersons",
+                                    occ == 5240 ~ "Customer service representatives",
+                                    occ == 5740 ~ "Secretaries and administrative assistants, except legal, medical, and executive",
+                                    occ == 4251 ~ "Landscaping and groundskeeping workers",
+                                    occ == 6230 ~ "Carpenters",
+                                    occ == 6260 ~ "Construction laborers",
+                                    occ == 6410 ~ "Painters and paperhangers",
+                                    occ == 7200 ~ "Automotive service technicians and mechanics",
+                                    occ == 8990 ~ "Miscellaneous production workers, including equipment operators and tenders",
+                                    occ == 9130 ~ "Driver/sales workers and truck drivers",
+                                    occ == 9620 ~ "Laborers and freight, stock, and material movers, hand"),
+         
+         
+         Occupation_group = case_when(occ == 2310 ~ "Education, Legal, Community Service, Arts, and Media Occupations",
+                                      occ == 4020 ~ "Service Occupations",
+                                      occ == 4110 ~ "Service Occupations",
+                                      occ == 4220 ~ "Service Occupations",
+                                      occ == 4230 ~ "Service Occupations",
+                                      occ == 4600 ~ "Service Occupations",
+                                      occ == 4720 ~ "Sales and Related Occupations",
+                                      occ == 4760 ~ "Sales and Related Occupations",
+                                      occ == 5240 ~ "Office and Administrative Support Occupations",
+                                      occ == 5740 ~ "Office and Administrative Support Occupations",
+                                      occ == 4251 ~ "Service Occupations",
+                                      occ == 6230 ~ "Construction and Extraction Occupations",
+                                      occ == 6260 ~ "Construction and Extraction Occupations",
+                                      occ == 6410 ~ "Construction and Extraction Occupations",
+                                      occ == 7200 ~ "Installation, Maintenance, and Repair Occupations",
+                                      occ == 8990 ~ "Production Occupations",
+                                      occ == 9130 ~ "Transportation and Material Moving Occupations",
+                                      occ == 9620 ~ "Transportation and Material Moving Occupations")) %>% 
+  
+  arrange(factor(sex_f, levels = levels(occupation4$sex_f)), desc(count)) %>%
+  ungroup()
+  
+  
+  
+table_5a.3_3 <-  occupation5 %>%
+
+  select(Occupation_group, sub_Occupation, count,  prc2) %>%
+
+   # using kable
+  kable(booktabs = T,
+        col.names = c("Occupation Group","Sub-occupation ", "Number", "% Share of Occupation Employment"   ),
+      align = c("l","l" ,rep("r",2)),
+      caption = "Employment by Industry and Percent Share of Industry Employment for 10 Sub-industries Where Mexican Males and Females Have the Highest Number of Employees in Chicago, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                # latex_options = "HOLD_position",
+                ) %>%
+  column_spec(1:2, width = "20em") %>%
+  column_spec(3, width = "5em") %>%
+  column_spec(4, width = "6em") %>% 
+
+  row_spec(0, bold = T, align = "c",
+           # background = "#f2f0f7",
+           font_size = 7.5) %>%
+  pack_rows("Mexican Males", 1,10, hline_after = T  , indent=FALSE) %>%
+  pack_rows("Mexican Females", 11, 20, hline_before = T , hline_after = T, indent=FALSE) %>% 
+
+  footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
+           general_title = "",
+           threeparttable = T,
+           escape = FALSE)
+
+
+
+table_5a.3_3
+
+```
+
+
 
 
 \clearpage
