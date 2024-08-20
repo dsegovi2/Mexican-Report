@@ -28,17 +28,17 @@ chicago_ca <- st_read("Boundaries - Community Areas (current)/geo_export_2081dd0
 
 ## Get data from IPUMS: https://cran.r-project.org/web/packages/ipumsr/vignettes/ipums-api.html
 
-nnnnnn = get_sample_info("usa")
-
-```{r}
-?get_sample_info
-```
-
-
-```{r}
-get_sample_info("usa")
-```
-
+# nnnnnn = get_sample_info("usa")
+# 
+# ```{r}
+# ?get_sample_info
+# ```
+# 
+# 
+# ```{r}
+# get_sample_info("usa")
+# ```
+# 
 
 
 ## data extract
@@ -47,7 +47,7 @@ usa_extract <- define_extract_usa(
   description = "2000 Census, 2012 ACS, 2022 ACS",
   samples = c("us2000g", "us2012e", "us2022c"),
   variables = list(
-                   "CITY", "PUMA", "COUNTYICP", "COUNTYFIP",   "HISPAN", "AGE", "FAMSIZE", "RACE", "HHINCOME", "POVERTY",   
+                   "CITY", "PUMA", "COUNTYICP", "COUNTYFIP",   "HISPAN","SEX",  "AGE", "FAMSIZE", "RACE", "HHINCOME", "POVERTY",   
                 "SCHLTYPE", "SPEAKENG", "SCHOOL", "CITIZEN", "GRADEATT", "EDUC", "OWNERSHP", "ROOMS", 
                 "RENTGRS", "VALUEH",  "MORTGAGE", "UNITSSTR", "SERIAL", "EMPSTAT", "IND", "OCC", "GQTYPE", 
                 "ANCESTR1", "TRIBE", "OWNCOST", "NUMPREC", "LABFORCE", "HCOVANY", "STATEICP", "BPL", "HINSEMP", "TRANWORK", "INCWAGE", "UHRSWORK", "WKSWORK1", "RELATE", "MET2013")) %>% 
