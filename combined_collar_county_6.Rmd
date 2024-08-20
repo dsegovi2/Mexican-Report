@@ -252,6 +252,75 @@ county_table_ownership_income <- read_csv("Data Tables/county_table_ownership_in
 
 ```
 
+## Mexican Population for 10 Cities with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)
+
+```{r}
+# Create the data frame with percentages rounded to one decimal place
+city_data <- data.frame(
+  City = c("Los Angeles", "San Antonio", "Houston", "Phoenix", "Chicago", 
+           "El Paso", "Dallas", "San Diego", "New York City", "Fort Worth"),
+  
+   Total_Population = c(3881041, 1445662, 2296253, 1609456, 2710105, 
+                       677181, 1300642, 1383987, 8622467, 924663),
+  
+   Total_Latino = c(1865763, 951823, 1029429, 691205, 787050, 
+                   552434, 551447, 416630, 2503005, 325185),
+  
+  Percent_Latino = c(48.1, 65.8, 44.8, 43.0, 29.0, 
+                     81.6, 42.4, 30.1, 29.0, 35.2),
+  
+   Total_Mexican = c(1196186, 808918, 686373, 607389, 581376, 
+                    519100, 449290, 353790, 338119, 271493),
+  
+ 
+  Percent_Mexican = c(30.8, 56.0, 29.9, 37.7, 21.5, 
+                      76.7, 34.5, 25.6, 3.9, 29.4),
+ 
+  
+  Percent_Latino_Mexican = c(64.1, 85.0, 66.7, 87.9, 73.9, 
+                             94.0, 81.5, 84.9, 13.5, 83.5)
+ 
+)
+
+
+table_1 <- city_data %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+       col.names = c("City Name", "Total Population", "Hispanic or Latino Population", "% Hispanic or Latino of Total Population",  "Total Mexican Population",  "% Mexicans of Total Population", "% Mexicans of Hispanic or Latino Population"),
+      align = c("l",rep("r",6)),
+      caption = "Mexican Population for 10 Cities with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:7, width = "5.1em") %>%  
+
+  row_spec(0, bold = T, align = "c",
+             #background = "#f2f0f7",
+            font_size = 7.5) %>%
+  add_footnote(
+  c(
+    "\\footnotesize{Data Sources:  IPUMS NHGIS, University of Minnesota, www.nhgis.org (2018-2022 American Community
+Survey 5-year Estimates). Tabulations by Great Cities Institute. 2018-2022 American Community Survey 5-year Estimates, U.S. Census Bureau, https://data.census.gov/.}"
+  ),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+
+table_1
+
+
+
+```
+
+
 ## Mexican Population, Income, and Mexican Homeownership Rate for 10 Metropolitan Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)
 
 ```{r}
@@ -260,7 +329,7 @@ table_1 <- msa_table_ownership_income %>% select(metro_name, total_pop, total_me
    # using kable 
   
   kbl(, booktabs = T,
-       col.names = c("Metro Name", "Total Population", "Total Mexican Population",  "% Mexicans of Total Pop", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
+       col.names = c("Metro Name", "Total Population", "Total Mexican Population",  "% Mexicans of Total Population", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
       align = c("l",rep("r",6)),
       caption = "Mexican Population, Income, and Mexican Homeownership Rate for 10 Metropolitan Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
@@ -301,7 +370,7 @@ table_2 <- county_table_ownership_income %>% select(county_name, total_pop, tota
    # using kable 
   
   kbl(, booktabs = T,
-       col.names = c("County Name", "Total Population", "Total Mexican Population", "% Mexicans of Total Pop", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
+       col.names = c("County Name", "Total Population", "Total Mexican Population", "% Mexicans of Total Population", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
       align = c("l",rep("r",6)),
       caption = "Mexican Population, Income, and Mexican Homeownership Rate for 10 Counties with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
@@ -1305,7 +1374,7 @@ table_1e <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , 
    # using kable
 
   kbl(, booktabs = T,
-      col.names = c("Total of 10 Community Areas", "Total Population", "Hispanic or Latino Population", "Mexican Population", "% Mexicans of Hispanic or Latino", "% Mexicans of Total Pop"),
+      col.names = c("Total of 10 Community Areas", "Total Population", "Hispanic or Latino Population", "Mexican Population", "% Mexicans of Hispanic or Latino", "% Mexicans of Total Population"),
       align = c("l",rep("r",5)),
       caption = "Total, Hispanic or Latino, and Mexican Population by 10 Community Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
@@ -3747,104 +3816,6 @@ Mhouse_value_plot <- comunity_house_value_shp %>%
 
 # Health
 
-## Health Outcomes for Four Communities with the Largest Share of Mexican Population and by Race/Ethnicity in Chicago, (2017-2021, aand 2022-2023):
-
-
-
-```{r}
-# analysis
-mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% top_n(4, prc_mxc) %>% select(commnty, obesity_rate, diabetes_rate, asthma_rate, lbw_rate)   %>%
-mutate(
-    obesity_rate = paste0(format(round(obesity_rate, 1), nsmall = 1), "%"),
-    diabetes_rate = paste0(format(round(diabetes_rate, 1), nsmall = 1), "%"),
-    asthma_rate = paste0(format(round(asthma_rate, 1), nsmall = 1), "%"),
-    lbw_rate = paste0(format(round(lbw_rate, 1), nsmall = 1), "%")
-)
-
-
-df_white_city <- data.frame(
-  commnty = "White (non-Hispanic or Latino) Chicago Mean",
- obesity_rate = 24.5,
-  diabetes_rate = 6.9, 
-  asthma_rate = 9.1,
-  lbw_rate = 6.2
-)
-
-df_black_city <- data.frame(
-  commnty = "Black (non-Hispanic or Latino) Chicago Mean",
-  obesity_rate = 47.6,
-  diabetes_rate = 19.6,
-  asthma_rate = 14.9, 
-  lbw_rate  =14.6
-)
-
-# Create a data frame
-df_latino_city <- data.frame(
-  commnty = "Hispanic or Latino Chicago Mean",
-  obesity_rate = 39.9,
-  diabetes_rate = 13.9, 
-  asthma_rate = 9.7, 
-  lbw_rate = 8.0
-)
-
-df_city_avgs <- rbind(df_white_city, df_black_city, df_latino_city)  %>%
-mutate(
-    obesity_rate = paste0(format(round(obesity_rate, 1), nsmall = 1), "%"),
-    diabetes_rate = paste0(format(round(diabetes_rate, 1), nsmall = 1), "%"),
-    asthma_rate = paste0(format(round(asthma_rate, 1), nsmall = 1), "%"),
-    lbw_rate = paste0(format(round(lbw_rate, 1), nsmall = 1), "%")
-)
-
-df_final <- rbind(mexican_top, df_city_avgs) %>%  mutate(across(
-    ends_with("Rate"),
-    ~ ifelse(. == "  NA%", "-", .)
-  ))
-
-
-```
-
-
-```{r}
-
-# visuals
-table_4a <- df_final %>% 
- 
-   # using kable 
-  
-  kbl(, booktabs = T,
-      col.names = c("Four Communities with the Largest Share of Mexican Population", "Adult Obesity Rate(2022-2023)", "Adult Diabetes Rate(2022-2023)", "Adult Asthma Rate(2022-2023)", "Low Birthweight Rate(2017-2021)"),
-      align = c("l",rep("r",4)),
-      caption = "Health Outcomes for Four Communities with the Largest Share of Mexican Population and by Race/Ethnicity in Chicago, 2017-2021, aand 2022-2023",
-      format.args = list(big.mark = "%"),
-      linesep = "")  %>% 
-  kable_classic(full_width = F,  
-                font_size = 8,
-                html_font = "Arial",
-                position = "center",
-                latex_options = "HOLD_position") %>% 
-  column_spec(1, width = "14.2em") %>%
-  column_spec(2:5, width = "6.45em") %>%  
-row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
-  row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
-  row_spec(c(4), hline_after = T) %>%  
-  
-   add_footnote(
-  c(
-      "\\footnotesize{Note: Obesity is defined as percent of adults who reported a height and weight that yield a body mass index of 30 or greater.}",
-    "\\footnotesize{Diabetes is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with diabetes.}",
-    "\\footnotesize{Asthma is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with asthma.}",
-    "\\footnotesize{Low birthweight is defined as percent of births with a birthweight less than 2500 grams (5.5 pounds).}",
-    "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021). Tabulations by Great Cities Institute}"),
-  notation = "none",
-  threeparttable = TRUE,
-  escape = FALSE
-)
-
-
-table_4a
-
-```
-
 
 
 ## No Health Insurance for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
@@ -3993,6 +3964,106 @@ table_4c <- df_rates  %>% select(mex_foreign_born, weighted_n_without_insurance,
 
 
 table_4c
+
+```
+
+
+
+## Health Outcomes for Four Communities with the Largest Share of Mexican Population and by Race/Ethnicity in Chicago, (2017-2021, and 2022-2023):
+
+
+
+```{r}
+# analysis
+mexican_top <- df_health %>% arrange(desc(prc_mxc)) %>% top_n(4, prc_mxc) %>% select(commnty, obesity_rate, diabetes_rate, asthma_rate, lbw_rate)   %>%
+mutate(
+    obesity_rate = paste0(format(round(obesity_rate, 1), nsmall = 1), "%"),
+    diabetes_rate = paste0(format(round(diabetes_rate, 1), nsmall = 1), "%"),
+    asthma_rate = paste0(format(round(asthma_rate, 1), nsmall = 1), "%"),
+    lbw_rate = paste0(format(round(lbw_rate, 1), nsmall = 1), "%")
+)
+
+
+df_white_city <- data.frame(
+  commnty = "White (non-Hispanic or Latino) Chicago Mean",
+ obesity_rate = 24.5,
+  diabetes_rate = 6.9, 
+  asthma_rate = 9.1,
+  lbw_rate = 6.2
+)
+
+df_black_city <- data.frame(
+  commnty = "Black (non-Hispanic or Latino) Chicago Mean",
+  obesity_rate = 47.6,
+  diabetes_rate = 19.6,
+  asthma_rate = 14.9, 
+  lbw_rate  =14.6
+)
+
+# Create a data frame
+df_latino_city <- data.frame(
+  commnty = "Hispanic or Latino Chicago Mean",
+  obesity_rate = 39.9,
+  diabetes_rate = 13.9, 
+  asthma_rate = 9.7, 
+  lbw_rate = 8.0
+)
+
+df_city_avgs <- rbind(df_white_city, df_black_city, df_latino_city)  %>%
+mutate(
+    obesity_rate = paste0(format(round(obesity_rate, 1), nsmall = 1), "%"),
+    diabetes_rate = paste0(format(round(diabetes_rate, 1), nsmall = 1), "%"),
+    asthma_rate = paste0(format(round(asthma_rate, 1), nsmall = 1), "%"),
+    lbw_rate = paste0(format(round(lbw_rate, 1), nsmall = 1), "%")
+)
+
+df_final <- rbind(mexican_top, df_city_avgs) %>%  mutate(across(
+    ends_with("Rate"),
+    ~ ifelse(. == "  NA%", "-", .)
+  ))
+
+
+```
+
+
+```{r}
+
+# visuals
+table_4a <- df_final %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+      col.names = c("Four Communities with the Largest Share of Mexican Population", "Adult Obesity Rate(2022-2023)", "Adult Diabetes Rate(2022-2023)", "Adult Asthma Rate(2022-2023)", "Low Birthweight Rate(2017-2021)"),
+      align = c("l",rep("r",4)),
+      caption = "Health Outcomes for Four Communities with the Largest Share of Mexican Population and by Race/Ethnicity in Chicago, 2017-2021, and 2022-2023",
+      format.args = list(big.mark = "%"),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:5, width = "6.45em") %>%  
+row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
+  row_spec(5:7, bold = TRUE, background = "#f2f0f7") %>%
+  row_spec(c(4), hline_after = T) %>%  
+  
+   add_footnote(
+  c(
+      "\\footnotesize{Note: Obesity is defined as percent of adults who reported a height and weight that yield a body mass index of 30 or greater.}",
+    "\\footnotesize{Diabetes is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with diabetes.}",
+    "\\footnotesize{Asthma is defined as percent of adults who reported that a doctor, nurse or other health professional has diagnosed them with asthma.}",
+    "\\footnotesize{Low birthweight is defined as percent of births with a birthweight less than 2500 grams (5.5 pounds).}",
+    "\\footnotesize{Data Source:Chicago Health Atlas, Chicago Department of Public Health (2022–2023) and Illinois Department of Public Health (2017-2021). Tabulations by Great Cities Institute}"),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+
+
+table_4a
 
 ```
 
@@ -4811,84 +4882,6 @@ table_5a.3_2
 \clearpage
 
 
-## Primary Means of Transportation to Work for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
-
-```{r}
-tranwork <- usa_data %>%
-  
-  filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
-
-  as_survey_design(weights = perwt) %>%
-  survey_count(race_ethnicity, employment=empstat_f, laborforce= labforce_f, tranwork_f, name="count") %>%
-  filter(employment == "Employed") %>%
-  mutate(race_ethnicity = if_else(race_ethnicity%in% c("White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)", "Other (non-Hispanic or Latino)"), "Non-Hispanic or Latino",race_ethnicity )) %>%
-
-
-  group_by(race_ethnicity) %>%
-  mutate(total_employed = sum(count, na.rm = T)) %>%
-  group_by(race_ethnicity, tranwork_f, total_employed) %>%
-  summarise(count = sum(count, na.rm =TRUE)) %>%
-  mutate(prc = 100 * round(count/total_employed, 4),
-         prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) 
-  # mutate(tranwork_f = if_else(tranwork_f== "Light rail, streetcar, or trolley (Carro p\u00fablico in PR)", "Light rail, streetcar, or trolley", tranwork_f ))
-
-
-# options(knitr.kable.NA = '-')
-
-table_5.d <- tranwork %>%
-  pivot_wider(id_cols =tranwork_f, names_from = race_ethnicity,
-              values_from = c(count, prc2 )) %>%
-  filter( tranwork_f != "N/A") %>% 
-  # mutate(tranwork_f = factor(tranwork_f, levels = c("Auto, truck, or van", "Motorcycle", "Bus", "Light rail, streetcar, or trolley", "Subway or elevated", "Long-distance train or commuter train", "Taxicab", "Ferryboat",	"Bicycle", "Walked only", "Other", "Worked at home", "N/A"))) %>%
-  select(tranwork_f, count_Mexican, prc2_Mexican, `count_Other Hispanics or Latinos` ,`prc2_Other Hispanics or Latinos`, `count_Non-Hispanic or Latino`, `prc2_Non-Hispanic or Latino` ) %>%
-
-  # using kable
-  kbl(booktabs = T,
-      col.names = c("", "Number", "Percent",
-                    "Number", "Percent",
-                    "Number", "Percent"),
-      align = c("l",rep("r",6)),
-      caption = "Primary Means of Transportation to Work for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)",
-      format.args = list(big.mark = ","),
-      linesep = "") %>%
-  kable_classic(full_width = F,
-                font_size = 8,
-                html_font = "Arial",
-                position = "center",
-                latex_options = "HOLD_position",
-                ) %>%
-  column_spec(1, width = "12em") %>%
-  column_spec(2:7, width = "5.5em") %>%
-  add_header_above( c("Means of\nTransportation", "Mexican" = 2, "Other Hispanics\nor Latinos" = 2, "Non-Hispanic\nor Latino" = 2),
-                    # background = "#cbc9e2",
-                    bold = T, font_size =8) %>%
-  row_spec(0, 
-           # bold = T, 
-           align = "c"
-           # background = "#f2f0f7",
-           # font_size = 8
-           ) %>%
-
-  footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
-           general_title = "",
-           threeparttable = T,
-           escape = FALSE)
-
-table_5.d
-```
-
-
-## Map 10: The Proximity of Industrial Corridors to Mexican Neighborhoods in Chicago
-
-```{r, echo=FALSE, fig.height=10, fig.width=7 }
-#####out.width="50%"
-knitr::include_graphics("Data Tables/MexicansChicago_IndustrialCorridors.png")
-```
-
-
-\clearpage
-
-
 
 ## Union Membership and Coverage for Mexicans and Other Racial/Ethnic Groups in the U.S., 2022
 
@@ -4972,6 +4965,85 @@ escape = FALSE)
  table5b
 
 ``` 
+
+
+## Map 10: The Proximity of Industrial Corridors to Mexican Neighborhoods in Chicago
+
+```{r, echo=FALSE, fig.height=10, fig.width=7 }
+#####out.width="50%"
+knitr::include_graphics("Data Tables/MexicansChicago_IndustrialCorridors.png")
+```
+
+
+\clearpage
+
+
+## Primary Means of Transportation to Work for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)
+
+```{r}
+tranwork <- usa_data %>%
+  
+  filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
+
+  as_survey_design(weights = perwt) %>%
+  survey_count(race_ethnicity, employment=empstat_f, laborforce= labforce_f, tranwork_f, name="count") %>%
+  filter(employment == "Employed") %>%
+  mutate(race_ethnicity = if_else(race_ethnicity%in% c("White (non-Hispanic or Latino)", "Black (non-Hispanic or Latino)", "Other (non-Hispanic or Latino)"), "Non-Hispanic or Latino",race_ethnicity )) %>%
+
+
+  group_by(race_ethnicity) %>%
+  mutate(total_employed = sum(count, na.rm = T)) %>%
+  group_by(race_ethnicity, tranwork_f, total_employed) %>%
+  summarise(count = sum(count, na.rm =TRUE)) %>%
+  mutate(prc = 100 * round(count/total_employed, 4),
+         prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) 
+  # mutate(tranwork_f = if_else(tranwork_f== "Light rail, streetcar, or trolley (Carro p\u00fablico in PR)", "Light rail, streetcar, or trolley", tranwork_f ))
+
+
+# options(knitr.kable.NA = '-')
+
+table_5.d <- tranwork %>%
+  pivot_wider(id_cols =tranwork_f, names_from = race_ethnicity,
+              values_from = c(count, prc2 )) %>%
+  filter( tranwork_f != "N/A") %>% 
+  # mutate(tranwork_f = factor(tranwork_f, levels = c("Auto, truck, or van", "Motorcycle", "Bus", "Light rail, streetcar, or trolley", "Subway or elevated", "Long-distance train or commuter train", "Taxicab", "Ferryboat",	"Bicycle", "Walked only", "Other", "Worked at home", "N/A"))) %>%
+  select(tranwork_f, count_Mexican, prc2_Mexican, `count_Other Hispanics or Latinos` ,`prc2_Other Hispanics or Latinos`, `count_Non-Hispanic or Latino`, `prc2_Non-Hispanic or Latino` ) %>%
+
+  # using kable
+  kbl(booktabs = T,
+      col.names = c("", "Number", "Percent",
+                    "Number", "Percent",
+                    "Number", "Percent"),
+      align = c("l",rep("r",6)),
+      caption = "Primary Means of Transportation to Work for Mexicans and Other Racial/Ethnic Groups in Chicago, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position",
+                ) %>%
+  column_spec(1, width = "12em") %>%
+  column_spec(2:7, width = "5.5em") %>%
+  add_header_above( c("Means of\nTransportation", "Mexican" = 2, "Other Hispanics\nor Latinos" = 2, "Non-Hispanic\nor Latino" = 2),
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
+  row_spec(0, 
+           # bold = T, 
+           align = "c"
+           # background = "#f2f0f7",
+           # font_size = 8
+           ) %>%
+
+  footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
+           general_title = "",
+           threeparttable = T,
+           escape = FALSE)
+
+table_5.d
+```
+
 
 ## Illinois and Chicago Metro Area Latino GDP, 2018
 
