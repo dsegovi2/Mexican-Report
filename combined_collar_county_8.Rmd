@@ -4463,6 +4463,15 @@ table_5a.2_2
 ```
 
 
+```{r}
+# new table goes here for top 10 sub industry employment by sex
+
+
+
+
+```
+
+
 \blandscape
 
 
@@ -5306,7 +5315,9 @@ voting_df <- data.frame(
 
 
   # using kable
-table_6c <- voting_df %>%  kbl(, booktabs = T,
+table_6c <- voting_df %>%  
+  filter(Category != "Percent vote for Brandon Johnson") %>% 
+  kbl(, booktabs = T,
       col.names = c("", "Hispanic or Latino", "Black (non-Hispanic or Latino)" , "White (non-Hispanic or Latino)", "Total"),
       align = c("l", rep("r", 4)),
       caption = "Estimates of Voter Turnout and Percent of Adult Population That Voted in 2023 Chicago Mayoral Race",
@@ -5332,6 +5343,44 @@ table_6c <- voting_df %>%  kbl(, booktabs = T,
 
 table_6c
 
+```
+
+```{r}
+
+illinois_legislature <- data.frame(
+  Body = c("Senate", "House"),
+  Members = c(59, 118),
+  Mexicans = c(4, 8),
+  Other_Hispanic_or_Latino = c(2, 4),
+  Percent_Hispanic_or_Latino = c("10.2%", "10.2%")
+)
+
+
+table_6D <- illinois_legislature %>%  
+  kbl(, booktabs = T,
+      col.names = c("Body", "Members", "Mexicans" , "Other Hispanic or Latino", "Percent Hispanic or Latino"),
+      align = c("l", rep("r", 4)),
+      caption = "Mexican and Hispanic/Latino Representation in the Illinois Legislature, 2024",
+     format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  row_spec(0, bold = T, align = "c",
+           # background = "#f2f0f7",
+           font_size = 7.5, monospace = FALSE, strikeout = FALSE) %>%
+  column_spec(1, width = "8em") %>%
+  column_spec(2:5, width = "8em") %>%
+  add_footnote(
+  c("\\footnotesize{Data Source: Illinois Legislative Latino Caucus Foundation. Tabulation by Great Cities Institute}"),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+
+table_6D
 ```
 
 \clearpage
