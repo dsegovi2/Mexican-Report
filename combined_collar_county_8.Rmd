@@ -274,6 +274,12 @@ city_data <- data.frame(
 )
 
 
+       
+       
+city_data <- city_data %>% mutate(
+   mutate(across(matches("(?i)^Percent|Percent"), ~ paste0(format(round(.x, 1), nsmall = 1), "%")))
+)
+
 table_1 <- city_data %>% 
  
    # using kable 
@@ -4351,81 +4357,79 @@ table_5a.2
 
 ```{r}
 
-industry2 = usa_data %>%
+occupation2 <- usa_data %>%
   filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
 
   as_survey_design(weights = perwt) %>%
-  survey_count(race_ethnicity, ind, employment=empstat_f, name="count") %>%
+  survey_count(race_ethnicity, occ, employment=empstat_f, name="count") %>%
   filter(employment == "Employed") %>%
-
-  group_by(ind) %>%
+  group_by(occ) %>%
   mutate(total_employed = sum(count, na.rm = T)) %>%
   mutate(prc = 100* round(count/total_employed, 4),
          prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) %>%
+  filter(!is.na(occ)) %>%
   ungroup()
-  # mutate(mexican_count = ifelse(race_ethnicity == "Mexican", count, NA)) %>%
-  # arrange(desc(mexican_count))
 
 
-top_ind_mxc <- industry2 %>%
+top_occ_mxc <- occupation2 %>%
   filter(race_ethnicity == "Mexican") %>%
   arrange(desc(count)) %>%
   slice(1:10) %>%
-  pull(ind)
+  pull(occ)
 
-
-top_ind_latinos <- industry2 %>%
+top_occ_latinos <- occupation2 %>%
   filter(race_ethnicity == "Other Hispanics or Latinos") %>%
   arrange(desc(count)) %>%
   slice(1:10) %>%
-  pull(ind)
+  pull(occ)
 
 
-industry3 <- industry2 %>%
-  filter(ind %in% top_ind_mxc & race_ethnicity == "Mexican" | ind %in% top_ind_latinos & race_ethnicity == "Other Hispanics or Latinos" ) %>%
 
-  mutate(sub_industry = case_when(ind == 8680 ~ "Restaurants and other food services",
-                    ind == 770 ~ "The cleaning of buildings and dwellings is incidental during construction and immediately after construction",
-                    ind == 7860 ~ "Elementary and secondary schools",
-                    ind == 8191 ~ "General medical and surgical hospitals, and specialty (except psychiatric and substance abuse) hospitals",
-                    ind == 7690 ~ "Services to buildings and dwellings (except cleaning during construction and immediately after construction)",
-                    ind == 4971 ~ "Supermarkets and other grocery (except convenience) stores",
-                    ind == 8770 ~ "Automotive repair and maintenance",
-                    ind == 7870 ~ "Colleges, universities, and professional schools, including junior colleges",
-                    ind == 7770 ~ "Landscaping services",
-                    ind == 3990 ~ "Not specified manufacturing industries",
-                    ind == 7380 ~ "Computer systems design and related services",
-                    ind == 8470 ~ "Child day care services",
-                    ind == 9470 ~ "Justice, public order, and safety activities"),
+occupation3 <- occupation2 %>%
+  filter(occ %in% top_occ_mxc & race_ethnicity == "Mexican"|
+         occ %in% top_occ_latinos & race_ethnicity == "Other Hispanics or Latinos") %>%
 
-         group_ind = case_when(ind == 8680 ~ "Accommodation and Food Services",
-                    ind == 770 ~ "Construction",
-                    ind == 7860 ~ "Educational Services",
-                    ind == 8191 ~ "Health Care and Social Assistance",
-                    ind == 7690 ~ "Administrative and support and waste management services",
-                    ind == 4971 ~ "Retail Trade",
-                    ind == 8770 ~ "Other Services, Except Public Administration",
-                    ind == 7870 ~ "Educational Services",
-                    ind == 7770 ~ "Administrative and support and waste management services",
-                    ind == 3990 ~ "Manufacturing",
-                    ind == 7380 ~ "Professional, Scientific, and Technical Services",
-                    ind == 8470 ~ "Health Care and Social Assistance",
-                    ind == 9470 ~ "Public Administration"
-                    )) %>%
-  arrange(factor(race_ethnicity, levels = levels(industry2$race_ethnicity)), desc(count)) %>%
+  mutate(sub_Occupation = case_when(occ == 4220 ~ "Janitors and building cleaners",
+                                    occ == 9620 ~ "Laborers and freight, stock, and material movers, hand",
+                                    occ == 4020 ~ "Cooks",
+                                    occ == 4720 ~ "Cashiers",
+                                    occ == 9130 ~ "Driver/sales workers and truck drivers",
+                                    occ == 5240 ~ "Customer service representatives",
+                                    occ == 6260 ~ "Construction laborers",
+                                    occ == 4760 ~ "Retail salespersons",
+                                    occ == 4110 ~ "Waiters and waitresses",
+                                    occ == 8990 ~ "Miscellaneous production workers, including equipment operators and tenders",
+                                    occ == 440 ~ "Other managers",
+                                    occ == 4700 ~ "First-line supervisors of retail sales workers"),
+  Occupation_group = case_when(occ == 4220 ~ "Service Occupations",
+                               occ == 9620 ~ "Transportation and Material Moving Occupations",
+                               occ == 4020 ~ "Service Occupations",
+                               occ == 4720 ~ "Sales and Related Occupations",
+                               occ == 9130 ~ "Transportation and Material Moving Occupations",
+                               occ == 5240 ~ "Office and Administrative Support Occupations",
+                                occ == 6260 ~ "Construction and Extraction Occupations",
+                               occ == 4760 ~ "Sales and Related Occupations",
+                               occ == 4110 ~ "Service Occupations",
+                               occ == 8990 ~ "Production Occupations",
+                               occ == 440 ~ "Management, Business, and Financial Occupations",
+                               occ == 4700 ~ "Sales and Related Occupations"
+
+                                    )) %>%
+  arrange(factor(race_ethnicity, levels = levels(occupation2$race_ethnicity)), desc(count)) %>%
   ungroup()
 
+##########
 
 
-table_5a.2_2 <-  industry3 %>%
+table_5a.3_2 <-  occupation3 %>%
 
-  select(group_ind, sub_industry, count,  prc2) %>%
+  select(Occupation_group, sub_Occupation, count,  prc2) %>%
 
    # using kable
   kable(booktabs = T,
-        col.names = c("Group", "Sub-industries", "Number", "% Share of Industry Employment"   ),
-      align = c("l", "l", rep("r",2)),
-      caption = "Employment by Industry and Percent Share of Industry Employment for 10 Sub-industries Where Hispanics or Latinos Have the Highest Number of Employees for Mexicans and Other Hispanics or Latinos in Chicago, 2018-2022 (ACS 5-year Estimates)",
+        col.names = c("Occupation Group","Sub-occupation ", "Number", "% Share of Occupation Employment"   ),
+      align = c("l","l" ,rep("r",2)),
+      caption = "Employment by Sub-occupation and Percent Share of Occupation Employment for 10 Sub-occupations Where Hispanics or Latinos Have the Highest Number of Employees for Mexicans and Other Hispanics or Latinos in Chicago, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
       linesep = "") %>%
   kable_classic(full_width = F,
@@ -4435,22 +4439,15 @@ table_5a.2_2 <-  industry3 %>%
                 # latex_options = "HOLD_position",
                 ) %>%
   column_spec(1:2, width = "20em") %>%
-  column_spec(3:4, width = "5.5em") %>%
-  # add_header_above( c("Race/Ethnicity", "2000" = 2, "2008-2012" = 2, "2018-2022" = 2, "Change from\n2000 to 2018-2022" = 2),
-  #                   # background = "#cbc9e2",
-  #                   bold = T, font_size =8) %>%
+  column_spec(3, width = "5em") %>%
+  column_spec(4, width = "6em") %>% 
+
   row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
-           font_size = 8)  %>%
-  pack_rows("Mexican", 1,10, hline_after = T, indent=FALSE  ) %>%
-  pack_rows("Other Hispanics or Latinos", 11, 20, hline_before = T , hline_after = T, indent=FALSE) %>%
-  
-  # add_footnote(
-  #   c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
-  #   notation = "none",
-  #   threeparttable = TRUE,
-  #   escape = FALSE
-  # )
+           font_size = 7.5) %>%
+  pack_rows("Mexican", 1,10, hline_after = T  , indent=FALSE) %>%
+  pack_rows("Other Hispanics or Latinos", 11, 20, hline_before = T , hline_after = T, indent=FALSE) %>% 
+
   footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
            general_title = "",
            threeparttable = T,
@@ -4458,14 +4455,140 @@ table_5a.2_2 <-  industry3 %>%
 
 
 
-table_5a.2_2
+table_5a.3_2
 
 ```
 
+\clearpage
 
 ```{r}
 # new table goes here for top 10 sub industry employment by sex
+occupation4 <- usa_data %>%
+  filter( city == 1190, year == 2022) %>%  #### dont forget to filter PUMA   ## Should I filter pernum or not?
 
+  as_survey_design(weights = perwt) %>%
+  survey_count(race_ethnicity, sex_f, occ, employment=empstat_f, name="count") %>%
+  filter(employment == "Employed") %>%
+  group_by(occ) %>%
+  mutate(total_employed = sum(count, na.rm = T)) %>% 
+mutate(sex_f = factor(sex_f, levels = c("Male", "Female")))
+  # mutate(prc = 100* round(count/total_employed, 4),
+  #        prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) %>%
+  # filter(!is.na(occ)) %>%
+  # ungroup()
+
+
+
+top_occ_male_mxc <- occupation4 %>%
+  filter(race_ethnicity == "Mexican" & sex_f == "Male") %>%
+  group_by(occ) %>%
+  mutate(prc = 100* round(count/total_employed, 4),
+         prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) %>%
+  filter(!is.na(occ)) %>%
+  ungroup() %>% 
+  arrange(desc(count)) %>%
+  slice(1:10) %>%
+  pull(occ)
+
+
+top_occ_female_mxc <- occupation4 %>%
+  filter(race_ethnicity == "Mexican" & sex_f == "Female") %>%
+  group_by(occ) %>%
+  mutate(prc = 100* round(count/total_employed, 4),
+         prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) %>%
+  filter(!is.na(occ)) %>%
+  ungroup() %>% 
+  arrange(desc(count)) %>%
+  slice(1:10) %>%
+  pull(occ)
+
+
+occupation5 <-  occupation4 %>%
+  filter(occ %in% top_occ_male_mxc & race_ethnicity == "Mexican" & sex_f == "Male"|
+         occ %in% top_occ_female_mxc & race_ethnicity == "Mexican" & sex_f == "Female") %>% 
+  group_by(sex_f, occ) %>% 
+  mutate(prc = 100* round(count/total_employed, 4),
+         prc2 = paste0(format(round(prc, 1), nsmall = 1), "%")) %>% 
+  
+  mutate(sub_Occupation = case_when(occ == 2310 ~ "Elementary and middle school teachers",
+                                    occ == 4020 ~ "Cooks",
+                                    occ == 4110 ~ "Waiters and waitresses",
+                                    occ == 4220 ~ "Janitors and building cleaners",
+                                    occ == 4230 ~ "Maids and housekeeping cleaners",
+                                    occ == 4600 ~ "Childcare workers",
+                                    occ == 4720 ~ "Cashiers",
+                                    occ == 4760 ~ "Retail salespersons",
+                                    occ == 5240 ~ "Customer service representatives",
+                                    occ == 5740 ~ "Secretaries and administrative assistants, except legal, medical, and executive",
+                                    occ == 4251 ~ "Landscaping and groundskeeping workers",
+                                    occ == 6230 ~ "Carpenters",
+                                    occ == 6260 ~ "Construction laborers",
+                                    occ == 6410 ~ "Painters and paperhangers",
+                                    occ == 7200 ~ "Automotive service technicians and mechanics",
+                                    occ == 8990 ~ "Miscellaneous production workers, including equipment operators and tenders",
+                                    occ == 9130 ~ "Driver/sales workers and truck drivers",
+                                    occ == 9620 ~ "Laborers and freight, stock, and material movers, hand"),
+         
+         
+         Occupation_group = case_when(occ == 2310 ~ "Education, Legal, Community Service, Arts, and Media Occupations",
+                                      occ == 4020 ~ "Service Occupations",
+                                      occ == 4110 ~ "Service Occupations",
+                                      occ == 4220 ~ "Service Occupations",
+                                      occ == 4230 ~ "Service Occupations",
+                                      occ == 4600 ~ "Service Occupations",
+                                      occ == 4720 ~ "Sales and Related Occupations",
+                                      occ == 4760 ~ "Sales and Related Occupations",
+                                      occ == 5240 ~ "Office and Administrative Support Occupations",
+                                      occ == 5740 ~ "Office and Administrative Support Occupations",
+                                      occ == 4251 ~ "Service Occupations",
+                                      occ == 6230 ~ "Construction and Extraction Occupations",
+                                      occ == 6260 ~ "Construction and Extraction Occupations",
+                                      occ == 6410 ~ "Construction and Extraction Occupations",
+                                      occ == 7200 ~ "Installation, Maintenance, and Repair Occupations",
+                                      occ == 8990 ~ "Production Occupations",
+                                      occ == 9130 ~ "Transportation and Material Moving Occupations",
+                                      occ == 9620 ~ "Transportation and Material Moving Occupations")) %>% 
+  
+  arrange(factor(sex_f, levels = levels(occupation4$sex_f)), desc(count)) %>%
+  ungroup()
+  
+  
+  
+table_5a.3_3 <-  occupation5 %>%
+
+  select(Occupation_group, sub_Occupation, count,  prc2) %>%
+
+   # using kable
+  kable(booktabs = T,
+        col.names = c("Occupation Group","Sub-occupation ", "Number", "% Share of Occupation Employment"   ),
+      align = c("l","l" ,rep("r",2)),
+      caption = "Employment by Industry and Percent Share of Industry Employment for 10 Sub-industries Where Mexican Males and Females Have the Highest Number of Employees in Chicago, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                # latex_options = "HOLD_position",
+                ) %>%
+  column_spec(1:2, width = "20em") %>%
+  column_spec(3, width = "5em") %>%
+  column_spec(4, width = "6em") %>% 
+
+  row_spec(0, bold = T, align = "c",
+           # background = "#f2f0f7",
+           font_size = 7.5) %>%
+  pack_rows("Mexican Males", 1,10, hline_after = T  , indent=FALSE) %>%
+  pack_rows("Mexican Females", 11, 20, hline_before = T , hline_after = T, indent=FALSE) %>% 
+
+  footnote(general = "\\\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}",
+           general_title = "",
+           threeparttable = T,
+           escape = FALSE)
+
+
+
+table_5a.3_3
 
 
 

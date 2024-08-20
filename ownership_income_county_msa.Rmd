@@ -100,7 +100,10 @@ city_data <- data.frame(
                              94.0, 81.5, 84.9, 13.5, 83.5)
  
 )
-
+    
+city_data <- city_data %>% mutate(
+   mutate(across(matches("(?i)^Percent|Percent"), ~ paste0(format(round(.x, 1), nsmall = 1), "%")))
+)
 
 table_1 <- city_data %>% 
  
