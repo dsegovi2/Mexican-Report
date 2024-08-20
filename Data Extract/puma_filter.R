@@ -18,7 +18,7 @@ getwd()
 
 # Read Data
 
-ddi_file <- read_ipums_ddi("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/usa_00056.xml") 
+ddi_file <- read_ipums_ddi("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/usa_00015.xml") 
   
 data_everything <- read_ipums_micro(ddi_file)
 
@@ -88,7 +88,7 @@ data_chi_2000  <- data_chi %>% filter(year == 2000)  %>% clean_names()
 
 final_data <- rbind(data_chi_pumas_2018_2022, data_chi_pumas_2008_12, data_chi_2000)
 
-final_data <- final_data %>%  mutate(across(16:61, as_factor, .names = "{col}_f"))
+final_data <- final_data %>%  mutate(across(16:64, as_factor, .names = "{col}_f"))
 
 
 # export to csv(change)
