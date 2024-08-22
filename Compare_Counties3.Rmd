@@ -56,10 +56,10 @@ library(tmaptools)
 library("RColorBrewer") 
 
 ##### Chicago boarder
-Chicago_boundary_shp <- read_sf("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
+Chicago_boundary_shp <- read_sf("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/Boundaries_Chicago/geo_export_8881adc5-2460-457b-892f-04f4d6028b72.shp") %>% 
   st_transform(crs = 4326)
 # mapview(community_shp)
-collar_county_border <- st_read("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/cb_2018_us_county_500k/cb_2018_us_county_500k.shp") %>% 
+collar_county_border <- st_read("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/cb_2018_us_county_500k/cb_2018_us_county_500k.shp") %>% 
   filter(GEOID %in% c(17043, 17089, 17031, 17097, 17111, 17197)) %>% 
   st_transform(crs = 4326) %>% 
   select(GEOID,NAME, geometry) %>% 
@@ -143,7 +143,7 @@ color_race_ethnicity <- c("Mexican" = "#CE1126",
 
 # chicago_tracts_1980 <- st_read("Data Tables/shp/intersect_census_1980.shp")
 # 
-# mexican_pop_1980 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+# mexican_pop_1980 <- read_nhgis("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
 #                                file_select = "nhgis0044_csv/nhgis0044_ds104_1980_tract.csv") %>%
 # 
 #   filter(STATEA == 17) %>%
@@ -186,7 +186,7 @@ color_race_ethnicity <- c("Mexican" = "#CE1126",
 # chicago_tracts_1990 <- st_read("Data Tables/shp/intersect_census_1990.shp")
 # 
 # 
-# mexican_pop_1990 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+# mexican_pop_1990 <- read_nhgis("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
 #                                file_select = "nhgis0044_csv/nhgis0044_ds120_1990_tract.csv") %>%
 # 
 #   filter(STATEA == 17) %>%
@@ -245,7 +245,7 @@ color_race_ethnicity <- c("Mexican" = "#CE1126",
 # chicago_tracts_2000 <- st_read("Data Tables/shp/intersect_census_2000.shp")
 # 
 # 
-# mexican_pop_2000 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+# mexican_pop_2000 <- read_nhgis("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
 #                                file_select = "nhgis0044_csv/nhgis0044_ds146_2000_tract.csv") %>%
 # 
 #   filter(STATEA == 17) %>%
@@ -331,7 +331,7 @@ color_race_ethnicity <- c("Mexican" = "#CE1126",
 # chicago_tracts_2010 <- st_read("Data Tables/shp/intersect_census_2010.shp")
 # 
 # 
-# mexican_pop_2010 <- read_nhgis("C:/Users/elhamp2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
+# mexican_pop_2010 <- read_nhgis("C:/Users/dsegovi2/Box/Great Cities Institute/Research/Mexican Report/nhgis0044_csv.zip",
 #                                file_select = "nhgis0044_csv/nhgis0044_ds173_2010_tract.csv") %>%
 # 
 #   filter(STATEA == 17) %>%
@@ -917,7 +917,7 @@ pop_latino_2000_2020_tb <- pop_latino_2000_2020 %>%
             hline_after = T, indent=FALSE ) %>%
   pack_rows("Will County", 41, 48,  hline_before = T, hline_after = T, indent=FALSE ) %>%
   # column_spec(1, width = "8em", border_left = FALSE, extra_css = "text-align: left;", monospace = TRUE) %>%
-  row_spec(c(7,8, 15,16, 23, 24, 31, 32, 39, 40, 47, 48),  background = "#f2f0f7") %>% 
+  row_spec(c(7,8, 15,16, 23, 24, 31, 32, 39, 40, 47, 48),  background = "#e6e0f1") %>% 
   row_spec(c(6, 14, 22, 30, 38, 46), hline_after = T) %>% 
   column_spec(1, width = "10.5em") %>%
   column_spec(2:8, width = "4.2em") %>%
