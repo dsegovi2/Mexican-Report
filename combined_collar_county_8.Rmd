@@ -233,9 +233,10 @@ pop_county_chicago_1990_2020 <- read_csv("Data Tables/mxc_county_chicago_1990_20
 
 latino_Chi_county_2000_2020 <- read_csv("Data Tables/latino_Chi_county_2000_2020.csv")
 
-county_pop_1990_2020 <- pop_county_chicago_1990_2020 %>%
-  mutate(prc_mex_his = 100*round(mexican/total_his, 4),
-            prc_mex_total = 100*round(mexican/total_pop, 4)) %>%
+county_pop_1990_2020 <- pop_county_chicago_1990_2020 %>% 
+  mutate(prc_mex_his = round(100 *(mexican/total_his), 1),
+            prc_mex_total = round(100 * (mexican/total_pop), 1)) %>%
+  
   mutate(prc_mex_his2 = paste0(format(round(prc_mex_his, 1), nsmall = 1), "%"),
          prc_mex_total2 = paste0(format(round(prc_mex_total, 1), nsmall = 1), "%"))
 
