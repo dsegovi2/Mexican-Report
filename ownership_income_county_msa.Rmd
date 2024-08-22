@@ -68,18 +68,90 @@ county_table_ownership_income <- read_csv("Data Tables/county_table_ownership_in
 
  
 
-# Comparison of Chicago Mexican Community to Major Counties and Metropolitan Statistical Areas
+# Comparison of Chicago Mexican Community to Major Cities, Counties and Metropolitan Statistical Areas
 
 
-# 1: Income and Home Ownership for Mexicans by 10 Metropolitan Areas 
+# 1: Cities
 
 ```{r}
-table_1 <- msa_table_ownership_income %>% select(metro_name, total_pop, total_mexican,  prc_mexican, avg_incwage, weighted_median_incwage, per2) %>% 
+# Create the data frame with percentages rounded to one decimal place
+city_data <- data.frame(
+  City = c("Los Angeles", "San Antonio", "Houston", "Phoenix", "Chicago", 
+           "El Paso", "Dallas", "San Diego", "New York City", "Fort Worth"),
+  
+   Total_Population = c(3881041, 1445662, 2296253, 1609456, 2710105, 
+                       677181, 1300642, 1383987, 8622467, 924663),
+  
+   Total_Latino = c(1865763, 951823, 1029429, 691205, 787050, 
+                   552434, 551447, 416630, 2503005, 325185),
+  
+  Percent_Latino = c(48.1, 65.8, 44.8, 43.0, 29.0, 
+                     81.6, 42.4, 30.1, 29.0, 35.2),
+  
+   Total_Mexican = c(1196186, 808918, 686373, 607389, 581376, 
+                    519100, 449290, 353790, 338119, 271493),
+  
+ 
+  Percent_Mexican = c(30.8, 56.0, 29.9, 37.7, 21.5, 
+                      76.7, 34.5, 25.6, 3.9, 29.4),
+ 
+  
+  Percent_Latino_Mexican = c(64.1, 85.0, 66.7, 87.9, 73.9, 
+                             94.0, 81.5, 84.9, 13.5, 83.5)
+ 
+)
+    
+city_data <- city_data %>% mutate(
+   mutate(across(matches("(?i)^Percent|Percent"), ~ paste0(format(round(.x, 1), nsmall = 1), "%")))
+)
+
+table_1 <- city_data %>% 
  
    # using kable 
   
   kbl(, booktabs = T,
-       col.names = c("Metro Name", "Total Population", "Total Mexican Population",  "% Mexicans of Total Pop", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
+       col.names = c("City Name", "Total Population", "Hispanic or Latino Population", "% Hispanic or Latino of Total Population",  "Total Mexican Population",  "% Mexicans of Total Population", "% Mexicans of Hispanic or Latino Population"),
+      align = c("l",rep("r",6)),
+      caption = "Mexican Population for 10 Cities with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
+      format.args = list(big.mark = ","),
+      linesep = "")  %>% 
+  kable_classic(full_width = F,  
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>% 
+  column_spec(1, width = "14.2em") %>%
+  column_spec(2:7, width = "5.1em") %>%  
+
+  row_spec(0, bold = T, align = "c",
+             #background = "#f2f0f7",
+            font_size = 7.5) %>%
+  add_footnote(
+  c(
+    "\\footnotesize{Data Sources:  IPUMS NHGIS, University of Minnesota, www.nhgis.org (2018-2022 American Community
+Survey 5-year Estimates). Tabulations by Great Cities Institute. 2018-2022 American Community Survey 5-year Estimates, U.S. Census Bureau, https://data.census.gov/.}"
+  ),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+
+table_1
+
+
+
+```
+
+
+# 2: Income and Home Ownership for Mexicans by 10 Metropolitan Areas 
+
+```{r}
+table_2 <- msa_table_ownership_income %>% select(metro_name, total_pop, total_mexican,  prc_mexican, avg_incwage, weighted_median_incwage, per2) %>% 
+ 
+   # using kable 
+  
+  kbl(, booktabs = T,
+       col.names = c("Metro Name", "Total Population", "Total Mexican Population",  "% Mexicans of Total Population", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
       align = c("l",rep("r",6)),
       caption = "Mexican Population, Income, and Mexican Homeownership Rate for 10 Metropolitan Areas with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
@@ -105,7 +177,7 @@ table_1 <- msa_table_ownership_income %>% select(metro_name, total_pop, total_me
   escape = FALSE
 )
 
-table_1 
+table_2
 
 
 ```
@@ -113,17 +185,17 @@ table_1
 
 
 
-# 2: Income and Home Ownership for Mexicans by 10 Counties 
+# 3: Income and Home Ownership for Mexicans by 10 Counties 
 
 
 
 ```{r}
-table_2 <- county_table_ownership_income %>% select(county_name, total_pop, total_mexican,  prc_mexican, avg_incwage, weighted_median_incwage, per2) %>% 
+table_3 <- county_table_ownership_income %>% select(county_name, total_pop, total_mexican,  prc_mexican, avg_incwage, weighted_median_incwage, per2) %>% 
  
    # using kable 
   
   kbl(, booktabs = T,
-       col.names = c("County Name", "Total Population", "Total Mexican Population", "% Mexicans of Total Pop", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
+       col.names = c("County Name", "Total Population", "Total Mexican Population", "% Mexicans of Total Population", "Mean Income", "Median Income", "Mexican Home Ownership Rate"),
       align = c("l",rep("r",6)),
       caption = "Mexican Population, Income, and Mexican Homeownership Rate for 10 Counties with the Largest Share of Mexican Population, 2018-2022 (ACS 5-year Estimates)",
       format.args = list(big.mark = ","),
@@ -149,7 +221,7 @@ row_spec(0, bold = T, align = "c",
   escape = FALSE
 )
 
-table_2
+table_3
 
 
 ```
