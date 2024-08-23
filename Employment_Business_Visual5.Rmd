@@ -1234,10 +1234,9 @@ business_ownership %>%
 
 ```
 
-# net worth
 
 
-# executives 
 
 
+# boards
 
