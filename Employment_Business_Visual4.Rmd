@@ -1234,10 +1234,116 @@ business_ownership %>%
 
 ```
 
-# net worth
+## 5G: net worth
+
+```{r}
+# Creating the dataframe
+median_net_worth <- data.frame(
+  Hispanic_origin_group = c("Mexican", "Native-born Mexican", "Foreign-born Mexican", "Puerto Rican", 
+                            "Cuban", "Salvadoran", "Dominican", "Colombian", "Other Hispanic", 
+                            "Not Hispanic", "Hispanic"),
+  Median_household_net_worth = c(52440, 52650, 47530, 35770, 92700, 30600, 9430, 141200, 58490, 195600, 52190),
+  Standard_error = c(3640, 3088, 5403, 20280, 31780, 7468, 7428, 72690, 14130, 5202, 3260)
+) %>% 
+  mutate(Median_household_net_worth = paste0("\\$", scales::comma(Median_household_net_worth)),
+         Standard_error = paste0("\\$", scales::comma(Standard_error))) %>% 
+  mutate(Hispanic_origin_group = cell_spec(Hispanic_origin_group, italic = ifelse(row_number() %in% c(2,3), T, F))) %>% 
+  mutate(Hispanic_origin_group = ifelse(row_number() %in% c(2,3), paste0("\\hspace{.7em}", Hispanic_origin_group), Hispanic_origin_group))
 
 
-# executives 
+
+median_net_worth_tb <- median_net_worth %>% 
+  kbl(booktabs = T, escape = F,
+      col.names = c("Hispanic Origin Group",  "Median Household Net Worth", "Standard Error"),
+      align = c("l",rep("r",2)),
+      caption = "Median Household Net Worth by Detailed Hispanic Origin, 2020",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+ kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  column_spec(1, width = "19em") %>%
+  column_spec(2, width = "7em") %>%
+  # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity",  "Total\nEmployed","Member of\nLabor Union" =2 ,"Covered by\nUnion but Not\na Member" = 2),
+  #                   # background = "#cbc9e2",
+  #                   bold = T, font_size =8) %>%
+  row_spec(0, bold = T, align = "c",
+           # background = "#f2f0f7",
+           font_size = 8) %>%
+  # row_spec(3, extra_latex_after = " ") %>%
+  add_footnote(c("\\footnotesize{Note: Use caution with estimates having coefficients of variation (defined as the standard error divided by the estimate) larger than 0.3 as they may suffer from data quality issues.}", "\\footnotesize{Source: U.S. Census Bureau, 2021 Survey of Income and Program Participation, public-use data.}", "\\footnotesize{Reproduced from a table by: Zachary Scherer and Yerís H. Mayol-García, statisticians in the Census Bureau’s Social, Economic, and Housing Statistics Division.}"),
+notation = "none",
+threeparttable = T,
+escape = FALSE)
+  
+median_net_worth_tb
+
+```
 
 
 
+
+
+## 5H: executives 
+
+```{r}
+ethnicity_data <- data.frame(
+  Ethnicity = c("Caucasian", "African-American", "Hispanic", "Asian", "Unable to Verify Ethnicity", "Total"),
+  n_2012 = c(166, 4, 2, 8, 27, 207),
+  pct_2012 = c("80.2%", "1.9%", "1.0%", "3.9%", "13.0%", "100.0%"),
+  n_2014 = c(163, 8, 3, 6, 20, 200),
+  pct_2014 = c("81.5%", "4.0%", "1.5%", "3.0%", "10.0%", "100.0%"),
+  n_2016 = c(174, 7, 4, 6, 13, 204),
+  pct_2016 = c("85.3%", "3.4%", "2.0%", "2.9%", "6.4%", "100.0%"),
+  n_2018 = c(184, 11, 6, 5, 10, 216),
+  pct_2018 = c("85.2%", "5.1%", "2.8%", "2.3%", "4.6%", "100.0%"),
+  n_2020 = c(210, 16, 12, 15, 1, 254),
+  pct_2020 = c("82.7%", "6.3%", "4.7%", "5.9%", "0.4%", "100.0%"),
+  n_2022 = c(221, 23, 7, 27, 0, 278),
+  pct_2022 = c("79.5%", "8.3%", "2.5%", "9.7%", "0.0%", "100.0%"),
+  Percentage_Point_Difference = c("-0.7%", "6.3%", "1.6%", "5.8%", "-13.0%", "0.0%")
+) 
+
+
+
+ethnicity_data_tb <- ethnicity_data %>% 
+  kbl(booktabs = T, 
+      col.names = c("","Number",  "Percent", 
+                    "Number",  "Percent",
+                    "Number",  "Percent",
+                    "Number",  "Percent",
+                    "Number",  "Percent",
+                    "Number",  "Percent",
+                    "Percentage Point Difference"),
+      align = c("l",rep("r",13)),
+      caption = "Race/Ethnicity Status of C-Suite Executives for Top 50 Companies in Chicago, 2012-2022",
+      format.args = list(big.mark = ","),
+      linesep = "") %>%
+ kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  column_spec(1, width = "7em") %>%
+  column_spec(2:13, width = "2.3em") %>%
+  column_spec(14, width = "3.5em") %>%
+  add_header_above(align = c("l", rep("c",7)), c("",  "2012" = 2,"2014" =2 ,"2016" = 2,
+                                                 "2018" = 2, "2020" =2 ,"2022" = 2,
+                                                 "2012-2022"),
+                    # background = "#cbc9e2",
+                    bold = T, font_size =8) %>%
+  row_spec(0,  align = "c",
+           # background = "#f2f0f7",
+           font_size = 7.5) %>%
+  # row_spec(3, hline_after = T, extra_latex_after = "%") %>% 
+  add_footnote(c("\\footnotesize{Data Source: Chicago United Inside Inclusion. Data compiled by Great Cities Institute.}"),
+notation = "none",
+threeparttable = T,
+escape = FALSE)
+ 
+ 
+ethnicity_data_tb
+
+```
