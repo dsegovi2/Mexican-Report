@@ -85,10 +85,10 @@ df <- usa_data %>%
   select(race_ethnicity, citizen, perwt, year) %>%
   mutate(
     citizenship_status = case_when(
+      citizen == 0 ~ "Citizen", 
       citizen == 1 ~ "Citizen",
       citizen == 2 ~ "Citizen",
-      citizen == 3 ~ "Not a Citizen",
-      TRUE ~ "Unknown"  # This includes N/A and any other undefined categories
+      citizen == 3 ~ "Not a Citizen"
     )
   )
 
@@ -98,7 +98,7 @@ df <- usa_data %>%
     as_survey_design(weights = perwt)
   
   numerator_2022 <- survey_design %>%
-    filter(year == 2022 & citizen %in% c(1,2) ) %>%
+    filter(year == 2022 & citizen %in% c(0, 1,2) ) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
   
@@ -116,7 +116,7 @@ df <- usa_data %>%
 # 2012
   
   numerator_2012 <- survey_design %>%
-    filter(year == 2012 & citizen %in% c(1,2)) %>%
+    filter(year == 2012 & citizen %in% c(0, 1,2)) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
   
@@ -134,7 +134,7 @@ df <- usa_data %>%
   
 # 2000
    numerator_2000 <- survey_design %>%
-    filter(year == 2000 & citizen %in% c(1,2)) %>%
+    filter(year == 2000 & citizen %in% c(0, 1,2)) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
   

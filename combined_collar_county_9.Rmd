@@ -4157,7 +4157,9 @@ table_5.a1
 
 
 
-```{r}
+
+```{r fig.width=6, fig.height=4 ,fig.align='center'}
+
 LFP_rate = usa_data %>%
   as_survey_design(weights = perwt) %>%
   survey_count(year, race_ethnicity, empstatd,empstatd_f, laborforce= labforce_f,  name="count") %>%
@@ -4169,47 +4171,6 @@ LFP_rate = usa_data %>%
   summarise(count = sum(count, na.rm = TRUE)) %>%
   mutate(prc = 100*round(count/denominator, 4),
          prc2 = paste0(format(round(prc, 1), nsmall = 1), "%"))
-
-
-
-table_5.a1_2 <- LFP_rate %>%
-  select(year, race_ethnicity, prc2) %>%
-  pivot_wider(names_from = year,
-              values_from = prc2) %>%
-  # using kable
-  kbl(booktabs = T,
-      col.names = c("Race/Ethnicity",  "2000" , "2008-2012" ,"2018-2022" ),
-      align = c("l",rep("r",3)),
-      caption = "Labor Force Participation Rate for Mexicans and Other Racial/Ethnic Groups in Chicago, 2000 (Decennial Census), 2008-2012, and 2018-2022 (ACS 5-year Estimates)",
-      format.args = list(big.mark = ","),
-      linesep = "") %>%
- kable_classic(full_width = F,
-                font_size = 8,
-                html_font = "Arial",
-                position = "center",
-                latex_options = "HOLD_position") %>%
-  column_spec(1, width = "14.2em") %>%
-  column_spec(2:4, width = "8.6em") %>%
-  # add_header_above(align = c("l", rep("c",3)), c("Race/Ethnicity", "More than 30%" = 2, "More than 50%" = 2),
-  #                   # background = "#cbc9e2",
-  #                   bold = T, font_size =8) %>%
-  row_spec(0, bold = T,
-           # background = "#f2f0f7",
-           font_size = 8,
-           align = "c") %>%
-
-
-  add_footnote(c("\\footnotesize{Data Source: IPUMS USA, University of Minnesota, www.ipums.org (2018-2022 American Community Survey 5-year Estimates). Tabulations by Great Cities Institute.}"),
-notation = "none",
-threeparttable = T,
-escape = FALSE)
-
-table_5.a1_2
-```
-
-
-```{r fig.width=6, fig.height=4 ,fig.align='center'}
-
 
 
 LFP_rate %>%
@@ -5237,10 +5198,10 @@ df <- usa_data %>%
   select(race_ethnicity, citizen, perwt, year) %>%
   mutate(
     citizenship_status = case_when(
+      citizen == 0 ~ "Citizen", 
       citizen == 1 ~ "Citizen",
       citizen == 2 ~ "Citizen",
-      citizen == 3 ~ "Not a Citizen",
-      TRUE ~ "Unknown"  # This includes N/A and any other undefined categories
+      citizen == 3 ~ "Not a Citizen"
     )
   )
 
@@ -5250,7 +5211,7 @@ df <- usa_data %>%
     as_survey_design(weights = perwt)
   
   numerator_2022 <- survey_design %>%
-    filter(year == 2022 & citizen == 3) %>%
+    filter(year == 2022 & citizen %in% c(0, 1,2) ) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
   
@@ -5268,7 +5229,7 @@ df <- usa_data %>%
 # 2012
   
   numerator_2012 <- survey_design %>%
-    filter(year == 2012 & citizen == 3) %>%
+    filter(year == 2012 & citizen %in% c(0, 1,2)) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
   
@@ -5286,7 +5247,7 @@ df <- usa_data %>%
   
 # 2000
    numerator_2000 <- survey_design %>%
-    filter(year == 2000 & citizen == 3) %>%
+    filter(year == 2000 & citizen %in% c(0, 1,2)) %>%
     group_by(race_ethnicity, citizenship_status) %>%
     summarise(weighted_n = survey_total(vartype = "se"))
   
@@ -5314,9 +5275,9 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
   filter(citizenship_status != "Unknown") %>% 
   select(year, race_ethnicity,  citizenship_status, rate) %>%
   pivot_wider(id_cols = race_ethnicity,   names_from =c(citizenship_status, year) , values_from = rate) %>% 
-  mutate(change_non_citizen = round(`Not a Citizen_2022` - `Not a Citizen_2000`, 2)) %>% 
+  mutate(change_non_citizen = round(`Citizen_2022` - `Citizen_2000`, 2)) %>% 
     
-    select(race_ethnicity, `Not a Citizen_2000` , `Not a Citizen_2012`,  `Not a Citizen_2022`,change_non_citizen) %>%
+    select(race_ethnicity, Citizen_2000 , Citizen_2012,   Citizen_2022 ,change_non_citizen) %>%
   mutate(across(-race_ethnicity, ~ paste0(format(round(., 1), nsmall = 1), "%"))) %>% 
   
   kbl(booktabs = T,
@@ -5332,7 +5293,7 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
                 latex_options = "HOLD_position") %>%
   column_spec(1, width = "14.2em") %>%
   column_spec(2:5, width = "6.45em") %>%
-  add_header_above(align = c("l", rep("c",1)), c("Race/Ethnicity", "Non-citizen Rate" = 4), 
+  add_header_above(align = c("l", rep("c",1)), c("Race/Ethnicity", "Citizen Rate" = 4), 
                    bold = T, font_size =8) %>%
   row_spec(0, align = "c",
            # background = "#f2f0f7",
@@ -5349,6 +5310,44 @@ citizenship <- bind_rows(df_rates_2022, df_rates_2012, df_rates_2000)
 table_6.a1                                                                                                 
 ```
 
+
+```{r}
+
+illinois_legislature <- data.frame(
+  Body = c("Senate", "House"),
+  Members = c(59, 118),
+  Mexicans = c(4, 8),
+  Other_Hispanic_or_Latino = c(2, 4),
+  Percent_Hispanic_or_Latino = c("10.2%", "10.2%")
+)
+
+
+table_6D <- illinois_legislature %>%  
+  kbl(, booktabs = T,
+      col.names = c("Body", "Members", "Mexicans" , "Other Hispanic or Latino", "Percent Hispanic or Latino"),
+      align = c("l", rep("r", 4)),
+      caption = "Mexican and Hispanic/Latino Representation in the Illinois Legislature, 2024",
+     format.args = list(big.mark = ","),
+      linesep = "") %>%
+  kable_classic(full_width = F,
+                font_size = 8,
+                html_font = "Arial",
+                position = "center",
+                latex_options = "HOLD_position") %>%
+  row_spec(0, bold = T, align = "c",
+           # background = "#f2f0f7",
+           font_size = 7.5, monospace = FALSE, strikeout = FALSE) %>%
+  column_spec(1, width = "8em") %>%
+  column_spec(2:5, width = "8em") %>%
+  add_footnote(
+  c("\\footnotesize{Data Source: Illinois Legislative Latino Caucus Foundation. Tabulation by Great Cities Institute}"),
+  notation = "none",
+  threeparttable = TRUE,
+  escape = FALSE
+)
+
+table_6D
+```
 
 
 ```{r}
@@ -5481,44 +5480,6 @@ table_6c <- voting_df %>%
 
 table_6c
 
-```
-
-```{r}
-
-illinois_legislature <- data.frame(
-  Body = c("Senate", "House"),
-  Members = c(59, 118),
-  Mexicans = c(4, 8),
-  Other_Hispanic_or_Latino = c(2, 4),
-  Percent_Hispanic_or_Latino = c("10.2%", "10.2%")
-)
-
-
-table_6D <- illinois_legislature %>%  
-  kbl(, booktabs = T,
-      col.names = c("Body", "Members", "Mexicans" , "Other Hispanic or Latino", "Percent Hispanic or Latino"),
-      align = c("l", rep("r", 4)),
-      caption = "Mexican and Hispanic/Latino Representation in the Illinois Legislature, 2024",
-     format.args = list(big.mark = ","),
-      linesep = "") %>%
-  kable_classic(full_width = F,
-                font_size = 8,
-                html_font = "Arial",
-                position = "center",
-                latex_options = "HOLD_position") %>%
-  row_spec(0, bold = T, align = "c",
-           # background = "#f2f0f7",
-           font_size = 7.5, monospace = FALSE, strikeout = FALSE) %>%
-  column_spec(1, width = "8em") %>%
-  column_spec(2:5, width = "8em") %>%
-  add_footnote(
-  c("\\footnotesize{Data Source: Illinois Legislative Latino Caucus Foundation. Tabulation by Great Cities Institute}"),
-  notation = "none",
-  threeparttable = TRUE,
-  escape = FALSE
-)
-
-table_6D
 ```
 
 \clearpage
