@@ -62,6 +62,9 @@ get_metadata_nhgis(dataset = "2018_2022_ACS5b")
 
 ################## 2018-2022 ACS
 
+
+
+
 # MSA
 
 nhgis_csv_file <- "C:/Users/dsegovi2//Box/Great Cities Institute/Research/Mexican Report/nhgis0057_csv.zip"
