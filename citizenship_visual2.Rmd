@@ -250,7 +250,6 @@ election_df <- data.frame(
   Rank_Percent_Voted = rank_percent_voted
 )
 
-colnames(election_df)
 
 # kable
 
