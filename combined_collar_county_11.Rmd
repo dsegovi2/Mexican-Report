@@ -1390,7 +1390,7 @@ table_1e <- df_final   %>% select(commnty, totl_pp, ttl_hs_, ttl_mxc, prc_mx_ , 
   #           font_size = 8) %>%
  row_spec(c(10), hline_after = T) %>%
   row_spec(11:13, bold = T,
-             background = "",
+             # background = "#e6e0f1",
             font_size = 8) %>%
 
      add_footnote(
@@ -3910,7 +3910,9 @@ table_4a <- df_final %>%
   column_spec(1, width = "14.2em") %>%
   column_spec(2:5, width = "6.45em") %>%  
 row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
-  row_spec(5:7, bold = TRUE, background = "") %>%
+  row_spec(5:7, bold = TRUE 
+           # background = "#e6e0f1"
+           ) %>%
   row_spec(c(4), hline_after = T) %>%  
   
    add_footnote(
@@ -3997,7 +3999,10 @@ table_4e <- df_final %>%
   column_spec(1, width = "14.2em") %>%
   column_spec(2:4, width = "9.2em") %>%  
 row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
-  row_spec(5:7, bold = TRUE, background = "") %>%
+  row_spec(5:7, 
+           bold = TRUE
+           # background = "#e6e0f1"
+           ) %>%
    row_spec(c(4), hline_after = T) %>%  
   
   add_footnote(
@@ -4091,7 +4096,9 @@ table_4f <- df_final %>%
   column_spec(2:4, width = "9.2em") %>%  
 row_spec(0, bold = TRUE, font_size = 8, align = "c") %>%
   row_spec(c(4), hline_after = T) %>%  
-  row_spec(5:7, bold = TRUE, background = "") %>%   
+  row_spec(5:7, bold = TRUE
+           # background = "#e6e0f1"
+           ) %>%   
   
     add_footnote(
   c("\\footnotesize{Note: Cancer diagnosis is defined as the annual diagnosis rate for all invasive cancers, excluding pre-cancerous conditions.  All ages, risk-adjusted.}",
@@ -5060,7 +5067,9 @@ country_gdp_tb <- country_gdp %>%
   row_spec(0, bold = T, align = "c",
            # background = "#f2f0f7",
            font_size = 8) %>%
-  row_spec(5, bold = TRUE, background = "" ) %>% 
+  row_spec(5, bold = TRUE
+           # background = "#e6e0f1"
+           ) %>% 
   footnote(general = "\\\\footnotesize{Data Source: 2023 U.S. Latino GDP Report, www.LatinoGDP.us (International Monetary Fund and Organization for Economic Cooperation and Development).}",
            general_title = "",
            threeparttable = T,
@@ -5825,7 +5834,9 @@ pop_latino_2000_2020_tb <- pop_latino_2000_2020 %>%
             hline_after = T, indent=FALSE ) %>%
   pack_rows("Will County", 41, 48,  hline_before = T, hline_after = T, indent=FALSE ) %>%
   # column_spec(1, width = "8em", border_left = FALSE, extra_css = "text-align: left;", monospace = TRUE) %>%
-  row_spec(c(7,8, 15,16, 23, 24, 31, 32, 39, 40, 47, 48),  background = "") %>%
+  row_spec(c(7,8, 15,16, 23, 24, 31, 32, 39, 40, 47, 48) 
+           # background = "#e6e0f1"
+           ) %>%
   row_spec(c(6, 14, 22, 30, 38, 46), hline_after = T) %>%
   column_spec(1, width = "10.5em") %>%
   column_spec(2:8, width = "4.2em") %>%
